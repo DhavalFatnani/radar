@@ -1,0 +1,25 @@
+---
+description: Radar project context and non-negotiable business rules
+alwaysApply: true
+---
+
+# Radar Core Rules
+
+Before writing code, read `Phase0_Platform_Specification.md` and `docs/superpowers/specs/2026-06-25-phase1-stack-design.md`.
+
+## Principles (never violate)
+
+1. Every signal observation has **dated, sourced proof**
+2. Signals and mappings enter as `proposed` — operator approval required to go live
+3. Quality over volume — leads must be winnable, not just numerous
+
+## Architecture
+
+- **Next.js 15** monorepo: UI + `/api/v1/*` in one app
+- **Postgres** for everything; catalogue = `catalogue_nodes` + `catalogue_edges`
+- **Layers**: `app/api` (thin) → `services/*` (logic) → `db/schema` (data)
+- `ai/*` and `integrations/*` never touch DB directly — go through services
+
+## When unsure
+
+Check `AGENTS.md` and `Prompt_Playbook.md` before improvising.

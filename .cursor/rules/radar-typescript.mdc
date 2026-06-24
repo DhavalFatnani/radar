@@ -1,0 +1,36 @@
+---
+description: TypeScript and Next.js patterns for Radar
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Radar TypeScript Rules
+
+## Stack
+
+- TypeScript strict (`noUncheckedIndexedAccess`, no `any`)
+- Next.js 15 App Router
+- Path alias: `@/*` → `src/*`
+
+## Layer boundaries
+
+```typescript
+// ✅ API route — thin handler
+export async function POST(req: Request) {
+  const body = schema.parse(await req.json());
+  const result = await createSignal(body); // services/
+  return NextResponse.json(result, { status: 201 });
+}
+
+// ❌ Business logic in route handler
+// ❌ Direct DB access from app/api or ai/ or integrations/
+```
+
+## Errors
+
+Return `{ error: string, code: string }` — never stack traces to client.
+
+## Tests
+
+- `foo.ts` → `foo.test.ts` colocated or in `tests/unit/`
+- Test edge cases: empty input, null, unauthorized, max length

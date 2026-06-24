@@ -1,0 +1,14 @@
+# --- GitNexus (code-intelligence knowledge graph) ---
+# The index itself: machine-specific, large (binary KuzuDB), rebuilt by
+# `npx gitnexus analyze`. Never commit.
+.gitnexus/
+
+# GitNexus-generated agent context + skill files (regenerated on every analyze).
+# Curated guidance lives in AGENTS.md, which IS tracked.
+/CLAUDE.md
+.claude/skills/gitnexus/
+
+# --- Local machine state accidentally written into the repo ---
+# agentmemory MCP DB written with an unexpanded "~" -> a literal ~/ dir here.
+/~/
+.agentmemory/

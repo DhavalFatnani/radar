@@ -1,0 +1,31 @@
+---
+description: Drizzle schema and Postgres conventions for Radar
+globs: "src/db/**/*,drizzle.config.ts,**/migrations/**"
+alwaysApply: false
+---
+
+# Radar Data Layer
+
+## ORM
+
+Drizzle ORM + drizzle-kit. One schema file per domain under `src/db/schema/`.
+
+## Catalogue graph (Postgres, not Neo4j)
+
+```
+catalogue_nodes (node_id, type, label, metadata jsonb)
+catalogue_edges (edge_id, from_node_id, to_node_id, type)
+```
+
+Indexes: `(type)`, `(from_node_id, type)`, `(to_node_id, type)`.
+
+## Query rules
+
+- Always paginate list queries — default 20, max 100
+- Prefer CTEs for graph traversals
+- Never `SELECT *` without `LIMIT`
+- Use parameterized queries only
+
+## MCP
+
+Use **Neon** MCP for branch management and SQL. Use **Context7** for Drizzle docs.

@@ -1,0 +1,28 @@
+---
+description: MCP tool routing for Radar build tasks
+alwaysApply: true
+---
+
+# Radar MCP Routing
+
+Read MCP tool schemas before calling. Route by task:
+
+| Building… | Use |
+|-----------|-----|
+| Next.js, Drizzle, Auth.js setup | **Context7** |
+| Neon DB, branches, SQL | **Neon** MCP |
+| Company/tender/signal web research | **Bright Data** (`search_engine`, `scrape_as_markdown`) |
+| Recent news, docs lookup | **Exa** |
+| Vercel deploy, env vars | **Vercel** MCP |
+| Refactor / impact analysis | **GitNexus** |
+| UI component library | **shadcn** MCP |
+
+## Sourcing engine (Phase 4+)
+
+Signal evidence requires dated proof — prefer Bright Data structured tools over raw scraping when platform is supported.
+
+## Before finishing a slice
+
+1. Run `npm run lint` and `npm run typecheck`
+2. Run relevant tests
+3. Confirm no secrets in code — env vars only
