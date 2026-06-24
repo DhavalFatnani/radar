@@ -12,3 +12,22 @@
 # agentmemory MCP DB written with an unexpanded "~" -> a literal ~/ dir here.
 /~/
 .agentmemory/
+
+# --- Node / Next.js ---
+/node_modules
+/.next
+/out
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# Env files (never commit real secrets; .env.example IS tracked)
+.env
+.env.local
+.env.*.local
+
+# Test / coverage output
+/coverage
+
+# SDD scratch (never commit)
+.superpowers/
