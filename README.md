@@ -34,14 +34,13 @@ This repo includes project-level Cursor configuration so agents use your plugins
 
 Global standards live in `~/AGENTS.md` (security, testing, MCP orchestration).
 
-## Getting started (Slice 1 — not yet scaffolded)
+## Getting started
 
 ```bash
-# After scaffold lands:
 npm install
-cp .env.example .env.local   # fill Neon + auth secrets
-npm run dev                  # http://localhost:3000
-npm run lint && npm run typecheck && npm test
+cp .env.example .env.local   # NODE_ENV is enough for Slice 1; add DATABASE_URL at Slice 2
+npm run dev                  # http://localhost:3000  (healthcheck: /api/v1/health)
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 ## Key MCPs for this project
