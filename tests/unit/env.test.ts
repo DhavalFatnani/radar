@@ -28,4 +28,14 @@ describe("parseEnv", () => {
       /Invalid environment variables/,
     );
   });
+
+  it("treats an empty DATABASE_URL as absent", () => {
+    const env = parseEnv({ DATABASE_URL: "" });
+    expect(env.DATABASE_URL).toBeUndefined();
+  });
+
+  it("treats an empty NODE_ENV as the default", () => {
+    const env = parseEnv({ NODE_ENV: "" });
+    expect(env.NODE_ENV).toBe("development");
+  });
 });

@@ -11,5 +11,6 @@ describe("GET /api/v1/health", () => {
     expect(body.service).toBe("radar");
     expect(body.version).toBe("v1");
     expect(typeof body.timestamp).toBe("string");
+    expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);
   });
 });
