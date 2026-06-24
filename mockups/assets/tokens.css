@@ -1,0 +1,350 @@
+/* ============================================================================
+   Radar — Design Tokens
+   The visual language made concrete (UIUX spec §2).
+   Structural tokens are shared. Color is a SWITCHABLE IDENTITY:
+     data-theme = slate | paper | observatory   (the mood)
+     data-mode  = light | dark                   (dark is required, spec §2)
+   Color encodes MEANING ONLY. If a color appears, it means something.
+   ========================================================================== */
+
+:root {
+  /* ---- Type families ------------------------------------------------------ */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  --font-serif: "Spectral", Georgia, "Times New Roman", serif;
+  /* the body face changes per theme (serif headings only in Paper) */
+  --font-display: var(--font-sans);
+
+  /* ---- Type scale (editorial, set for density) ---------------------------- */
+  --text-2xs: 0.6875rem;  /* 11px — mono micro-labels */
+  --text-xs:  0.75rem;    /* 12px */
+  --text-sm:  0.8125rem;  /* 13px — dense body */
+  --text-md:  0.9375rem;  /* 15px — default body */
+  --text-lg:  1.0625rem;  /* 17px */
+  --text-xl:  1.375rem;   /* 22px */
+  --text-2xl: 1.875rem;   /* 30px */
+  --text-3xl: 2.5rem;     /* 40px — hero numerals */
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.6;
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.08em;   /* mono micro-labels */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---- Spacing scale (4px base) ------------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+  --space-12: 6rem;
+
+  /* ---- Radii / borders ---------------------------------------------------- */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+  --border-w: 1px;
+
+  /* ---- Motion (minimal & purposeful, spec §2) ----------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+
+  /* ---- Layout ------------------------------------------------------------- */
+  --rail-w: 232px;
+  --content-max: 1400px;
+  --z-rail: 30;
+  --z-header: 40;
+  --z-overlay: 80;
+  --z-toast: 90;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; }
+}
+
+/* ============================================================================
+   THEME: SLATE — precision instrument (recommended default)
+   Cool graphite neutrals; a single restrained indigo for action.
+   ========================================================================== */
+[data-theme="slate"] {
+  --canvas:      #F6F7F9;
+  --surface:     #FFFFFF;
+  --surface-2:   #EFF1F5;
+  --surface-inset:#E9ECF1;
+  --border:      #E2E5EA;
+  --border-strong:#CBD0D9;
+  --text:        #1A2230;
+  --text-muted:  #586273;
+  --text-faint:  #8A93A3;
+  --accent:      #4F6BED;
+  --accent-hover:#3D58D6;
+  --accent-soft: #E7ECFD;
+  --accent-contrast:#FFFFFF;
+  --focus-ring:  #4F6BED;
+
+  /* status — the approval gate made visible */
+  --status-proposed:    #B07410;  --status-proposed-bg: #FAEFD6;
+  --status-approved:    #2E8E63;  --status-approved-bg: #DDF1E7;
+  --status-retired:     #6B7585;  --status-retired-bg:  #ECEEF1;
+
+  /* strength / score ramp — temperature read, weak(cool) → strong(hot) */
+  --strength-low:   #7A8494;
+  --strength-medium:#4F86C6;
+  --strength-high:  #D6912A;
+  --strength-vhigh: #D6473B;
+
+  /* freshness */
+  --fresh-recent:   #15938F;  --fresh-recent-bg: #D7F0EE;
+  --fresh-stale:    #93795A;  --fresh-stale-bg:  #EFE9DF;
+
+  /* pipeline stages */
+  --stage-sourced:  #8A93A3;
+  --stage-contacted:#5B8DBF;
+  --stage-engaged:  #4F6BED;
+  --stage-pitched:  #7A5BD6;
+  --stage-won:      #2E8E63;
+  --stage-lost:     #B85650;
+  --stage-delivered:#1E8A8A;
+  --stage-paid:     #2F8F57;
+
+  /* semantic */
+  --success: #2E8E63; --warning: #D6912A; --attention: #D6473B;
+  --money:   #2F8F57;
+
+  --shadow-sm: 0 1px 2px rgba(16,22,33,.06), 0 1px 1px rgba(16,22,33,.04);
+  --shadow-md: 0 4px 14px rgba(16,22,33,.08), 0 1px 3px rgba(16,22,33,.06);
+  --shadow-lg: 0 18px 50px rgba(16,22,33,.16);
+  --font-display: var(--font-sans);
+}
+[data-theme="slate"][data-mode="dark"] {
+  --canvas:      #0E1116;
+  --surface:     #161A21;
+  --surface-2:   #1C212B;
+  --surface-inset:#11151B;
+  --border:      #262C36;
+  --border-strong:#363D49;
+  --text:        #E6EAF0;
+  --text-muted:  #9BA5B4;
+  --text-faint:  #69727F;
+  --accent:      #6B83F0;
+  --accent-hover:#849AF6;
+  --accent-soft: #1D2540;
+  --accent-contrast:#0B0E13;
+  --focus-ring:  #6B83F0;
+
+  --status-proposed: #E0A33A; --status-proposed-bg: #2E2410;
+  --status-approved: #46B985; --status-approved-bg: #11281F;
+  --status-retired:  #828C9A; --status-retired-bg:  #20252E;
+
+  --strength-low:   #6B7585;
+  --strength-medium:#5B95D6;
+  --strength-high:  #E2A33F;
+  --strength-vhigh: #EB5B4E;
+
+  --fresh-recent: #2FB6B0; --fresh-recent-bg: #0E2A29;
+  --fresh-stale:  #A98F69; --fresh-stale-bg:  #262017;
+
+  --stage-sourced:  #828C9A;
+  --stage-contacted:#6BA0CF;
+  --stage-engaged:  #6B83F0;
+  --stage-pitched:  #9277E0;
+  --stage-won:      #46B985;
+  --stage-lost:     #CC6A64;
+  --stage-delivered:#2FB0B0;
+  --stage-paid:     #44B06E;
+
+  --success: #46B985; --warning: #E2A33F; --attention: #EB5B4E; --money: #44B06E;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 6px 20px rgba(0,0,0,.45);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,.6);
+}
+
+/* ============================================================================
+   THEME: PAPER & INK — the dossier
+   Warm off-white & ink; oxblood accent; serif headings.
+   ========================================================================== */
+[data-theme="paper"] {
+  --canvas:      #FAF8F4;
+  --surface:     #FFFEFB;
+  --surface-2:   #F3EFE7;
+  --surface-inset:#EEE9DE;
+  --border:      #E7E0D3;
+  --border-strong:#D3C9B6;
+  --text:        #221C14;
+  --text-muted:  #6A5F4D;
+  --text-faint:  #978B76;
+  --accent:      #8A2B2B;
+  --accent-hover:#71211F;
+  --accent-soft: #F1E1DC;
+  --accent-contrast:#FFF8F0;
+  --focus-ring:  #8A2B2B;
+
+  --status-proposed: #9A6B16; --status-proposed-bg: #F3E7CC;
+  --status-approved: #5E7E3A; --status-approved-bg: #E5ECD5;
+  --status-retired:  #897C64; --status-retired-bg:  #EBE5D8;
+
+  --strength-low:   #998C76;
+  --strength-medium:#7C8A57;
+  --strength-high:  #B5852A;
+  --strength-vhigh: #9A3324;
+
+  --fresh-recent: #4E8C6A; --fresh-recent-bg: #DEEBDD;
+  --fresh-stale:  #9A8252; --fresh-stale-bg:  #EDE5D2;
+
+  --stage-sourced:  #978B76;
+  --stage-contacted:#7C8A57;
+  --stage-engaged:  #8A6D2B;
+  --stage-pitched:  #8A5A2B;
+  --stage-won:      #5E7E3A;
+  --stage-lost:     #9A3324;
+  --stage-delivered:#3E7E6A;
+  --stage-paid:     #5E7E3A;
+
+  --success: #5E7E3A; --warning: #B5852A; --attention: #9A3324; --money: #5E7E3A;
+
+  --shadow-sm: 0 1px 2px rgba(60,45,25,.08);
+  --shadow-md: 0 6px 18px rgba(60,45,25,.10);
+  --shadow-lg: 0 20px 52px rgba(60,45,25,.18);
+  --font-display: var(--font-serif);
+}
+[data-theme="paper"][data-mode="dark"] {
+  --canvas:      #17140F;
+  --surface:     #201C15;
+  --surface-2:   #2A251C;
+  --surface-inset:#13110C;
+  --border:      #332C22;
+  --border-strong:#473E30;
+  --text:        #EDE7DA;
+  --text-muted:  #B3A892;
+  --text-faint:  #897E68;
+  --accent:      #C9604E;
+  --accent-hover:#D9745F;
+  --accent-soft: #34201A;
+  --accent-contrast:#17140F;
+  --focus-ring:  #C9604E;
+
+  --status-proposed: #D4A24A; --status-proposed-bg: #2E2512;
+  --status-approved: #8FB061; --status-approved-bg: #1E2614;
+  --status-retired:  #A2967D; --status-retired-bg:  #272217;
+
+  --strength-low:   #897E68;
+  --strength-medium:#9DAA6B;
+  --strength-high:  #D4A24A;
+  --strength-vhigh: #D9745F;
+
+  --fresh-recent: #6FA98A; --fresh-recent-bg: #16261E;
+  --fresh-stale:  #B89A66; --fresh-stale-bg:  #29230f;
+
+  --stage-sourced:  #897E68;
+  --stage-contacted:#9DAA6B;
+  --stage-engaged:  #D4A24A;
+  --stage-pitched:  #C98A4A;
+  --stage-won:      #8FB061;
+  --stage-lost:     #D9745F;
+  --stage-delivered:#6FA98A;
+  --stage-paid:     #8FB061;
+
+  --success: #8FB061; --warning: #D4A24A; --attention: #D9745F; --money: #8FB061;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 6px 20px rgba(0,0,0,.45);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,.6);
+}
+
+/* ============================================================================
+   THEME: OBSERVATORY — dark-first mission control
+   Deep navy void; signal color glows; luminous teal action.
+   ========================================================================== */
+[data-theme="observatory"] {
+  /* light derived (secondary) */
+  --canvas:      #EEF2F7;
+  --surface:     #FFFFFF;
+  --surface-2:   #E3E9F1;
+  --surface-inset:#DCE3EC;
+  --border:      #D5DEE9;
+  --border-strong:#BCC8D8;
+  --text:        #0B1220;
+  --text-muted:  #4A586D;
+  --text-faint:  #7E8CA0;
+  --accent:      #0E8C82;
+  --accent-hover:#0B7268;
+  --accent-soft: #D6F0EC;
+  --accent-contrast:#FFFFFF;
+  --focus-ring:  #0E8C82;
+
+  --status-proposed: #B07410; --status-proposed-bg: #F8EBCF;
+  --status-approved: #19926A; --status-approved-bg: #D5F0E5;
+  --status-retired:  #6A7689; --status-retired-bg:  #E6EBF1;
+
+  --strength-low:   #7E8CA0;
+  --strength-medium:#3E78C6;
+  --strength-high:  #C98A1E;
+  --strength-vhigh: #D24539;
+
+  --fresh-recent: #0E8C82; --fresh-recent-bg: #D6F0EC;
+  --fresh-stale:  #8A7A52; --fresh-stale-bg:  #ECE6D8;
+
+  --stage-sourced:  #7E8CA0;  --stage-contacted:#3E78C6; --stage-engaged: #0E8C82;
+  --stage-pitched:  #6A5BD6;  --stage-won: #19926A; --stage-lost: #C04A3E;
+  --stage-delivered:#1E8A8A;  --stage-paid: #2F8F57;
+  --success: #19926A; --warning: #C98A1E; --attention: #D24539; --money: #2F8F57;
+
+  --shadow-sm: 0 1px 2px rgba(11,18,32,.08);
+  --shadow-md: 0 6px 20px rgba(11,18,32,.12);
+  --shadow-lg: 0 22px 56px rgba(11,18,32,.2);
+  --font-display: var(--font-sans);
+}
+[data-theme="observatory"][data-mode="dark"] {
+  --canvas:      #080B11;
+  --surface:     #111722;
+  --surface-2:   #18202E;
+  --surface-inset:#0C111A;
+  --border:      #1E2737;
+  --border-strong:#2C3850;
+  --text:        #C7D2E0;
+  --text-muted:  #7E8CA0;
+  --text-faint:  #54637A;
+  --accent:      #2DD4BF;
+  --accent-hover:#5BE3D2;
+  --accent-soft: #0C2B29;
+  --accent-contrast:#04181A;
+  --focus-ring:  #2DD4BF;
+
+  --status-proposed: #E5AA40; --status-proposed-bg: #2C2410;
+  --status-approved: #36C58A; --status-approved-bg: #0C2A20;
+  --status-retired:  #5A697F; --status-retired-bg:  #1A2230;
+
+  --strength-low:   #54637A;
+  --strength-medium:#4D90E0;
+  --strength-high:  #E5AA40;
+  --strength-vhigh: #F06A5C;
+
+  --fresh-recent: #38D6C4; --fresh-recent-bg: #0A2B28;
+  --fresh-stale:  #B89A66; --fresh-stale-bg:  #241E12;
+
+  --stage-sourced:  #54637A;  --stage-contacted:#4D90E0; --stage-engaged: #2DD4BF;
+  --stage-pitched:  #8A7BF0;  --stage-won: #36C58A; --stage-lost: #F06A5C;
+  --stage-delivered:#33B6B6;  --stage-paid: #44C57E;
+  --success: #36C58A; --warning: #E5AA40; --attention: #F06A5C; --money: #44C57E;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+  --shadow-md: 0 6px 22px rgba(0,0,0,.55);
+  --shadow-lg: 0 26px 64px rgba(0,0,0,.7);
+  /* faint signal-glow used sparingly on strong scores */
+  --glow-accent: 0 0 0 1px rgba(45,212,191,.25), 0 0 18px rgba(45,212,191,.18);
+}

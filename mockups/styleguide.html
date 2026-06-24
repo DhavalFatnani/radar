@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  .sg { max-width: 1080px; margin: 0 auto; padding: var(--space-7) var(--space-6) var(--space-12); }
+  .sg-hero { padding: var(--space-6) 0 var(--space-7); border-bottom: var(--border-w) solid var(--border); margin-bottom: var(--space-7); }
+  .sg-hero h1 { font-size: var(--text-3xl); letter-spacing: -0.02em; }
+  .sg-hero p { color: var(--text-muted); max-width: 60ch; margin-top: var(--space-3); font-size: var(--text-lg); }
+  .sg-section { margin: var(--space-8) 0; }
+  .sg-section > .eyebrow { margin-bottom: var(--space-2); }
+  .sg-section > h2 { font-size: var(--text-xl); margin-bottom: var(--space-5); }
+  .sg-note { color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--space-5); max-width: 64ch; }
+  .sg-topbar {
+    position: sticky; top: 0; z-index: var(--z-header); display: flex; align-items: center; gap: var(--space-4);
+    padding: var(--space-3) var(--space-6); border-bottom: var(--border-w) solid var(--border);
+    background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: blur(10px);
+  }
+  .sg-topbar .brand-mark { width: 26px; height: 26px; font-size: var(--text-sm); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); align-items: start; }
+  @media (max-width: 720px){ .pair { grid-template-columns: 1fr; } }
+  .lbl { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); text-transform: uppercase; letter-spacing: var(--tracking-wide); margin-bottom: var(--space-2); }
+</style>
+</head>
+<body>
+
+<div class="sg-topbar">
+  <span class="brand-mark">R</span>
+  <strong style="font-family:var(--font-display)">Radar — Design System</strong>
+  <span class="spacer" style="flex:1"></span>
+  <div class="switcher">
+    <div class="seg" role="group" aria-label="Aesthetic direction">
+      <button data-set-theme="slate" aria-pressed="true">Slate</button>
+      <button data-set-theme="paper" aria-pressed="false">Paper</button>
+      <button data-set-theme="observatory" aria-pressed="false">Observatory</button>
+    </div>
+    <div class="seg" role="group" aria-label="Color mode">
+      <button data-set-mode="light" aria-pressed="true">Light</button>
+      <button data-set-mode="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</div>
+
+<main class="sg">
+  <header class="sg-hero">
+    <div class="eyebrow">The visual language · UIUX spec §2–§3</div>
+    <h1>A calm, confident intelligence workspace.</h1>
+    <p>Not a consumer app — a precision instrument for one operator, all day. Color is spent almost entirely on <em>meaning</em>; data is monospace; the <strong>proof line</strong> is the signature texture. Flip the controls above to compare directions and modes — your pick becomes the system every screen inherits. <span class="faint mono">(Shift+D toggles dark.)</span></p>
+  </header>
+
+  <!-- COLOR AS MEANING -->
+  <section class="sg-section">
+    <div class="eyebrow">Foundations</div>
+    <h2>Color is meaning, never decoration</h2>
+    <p class="sg-note">Every color in the system encodes something learnable: status (the approval gate), the strength/score ramp, freshness, and pipeline stage. This restraint is what makes the meaningful colors legible.</p>
+    <div class="sg-swatches" id="swatches"></div>
+  </section>
+
+  <!-- TYPE -->
+  <section class="sg-section">
+    <div class="eyebrow">Foundations</div>
+    <h2>Type carries hierarchy &amp; personality</h2>
+    <div class="scale-row"><span class="tok">3xl / hero</span><span style="font-size:var(--text-3xl);font-weight:700">92</span><span class="faint mono">lead score numeral</span></div>
+    <div class="scale-row"><span class="tok">xl</span><span style="font-size:var(--text-xl);font-weight:600">BrightHaul Logistics</span></div>
+    <div class="scale-row"><span class="tok">lg</span><span style="font-size:var(--text-lg)">Why them, why now</span></div>
+    <div class="scale-row"><span class="tok">md / body</span><span style="font-size:var(--text-md)">The operator should feel they are looking at a sharp, trustworthy tool.</span></div>
+    <div class="scale-row"><span class="tok">sm / dense</span><span style="font-size:var(--text-sm)">Dense where scanning many items helps; generous where focus helps.</span></div>
+    <div class="scale-row"><span class="tok">mono / data</span><span class="mono" style="font-size:var(--text-sm)">SIG-EXP-NEW-FACILITY · 18 Jun 2026 · score 92</span></div>
+  </section>
+
+  <!-- COMPONENT SYSTEM -->
+  <section class="sg-section">
+    <div class="eyebrow">The component system · §3</div>
+    <h2>Reusable parts, identical everywhere</h2>
+
+    <div class="pair">
+      <div class="card card-pad">
+        <div class="lbl">Status badge — the approval gate, visible</div>
+        <div class="demo">
+          <span class="badge badge-proposed">proposed</span>
+          <span class="badge badge-approved">approved</span>
+          <span class="badge badge-retired">retired</span>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="lbl">Strength indicator — level without the word</div>
+        <div class="demo">
+          <span class="strength" data-level="low"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">low</span></span>
+          <span class="strength" data-level="medium"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">medium</span></span>
+          <span class="strength" data-level="high"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">high</span></span>
+          <span class="strength" data-level="very_high"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">very high</span></span>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="lbl">Freshness chip — reinforces the proof principle</div>
+        <div class="demo">
+          <span class="fresh fresh-recent">recent · 18 Jun 2026</span>
+          <span class="fresh fresh-stale">stale · 12 Jan 2026</span>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="lbl">Score display — hot / warm / cool triage read</div>
+        <div class="demo">
+          <span class="score" data-heat="hot" data-score="92"><span class="ring"><span>92</span></span><span class="col"><span class="num" style="font-size:var(--text-lg)">92</span><span class="heat-label">hot</span></span></span>
+          <span class="score" data-heat="warm" data-score="78"><span class="ring"><span>78</span></span><span class="col"><span class="num" style="font-size:var(--text-lg)">78</span><span class="heat-label">warm</span></span></span>
+          <span class="score" data-heat="cool" data-score="64"><span class="ring"><span>64</span></span><span class="col"><span class="num" style="font-size:var(--text-lg)">64</span><span class="heat-label">cool</span></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROOF LINE — the signature -->
+    <div style="margin-top:var(--space-5)">
+      <div class="lbl">Proof line — THE signature element (claim · dated source · recency)</div>
+      <div class="card card-pad">
+        <div class="proof">
+          <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div>
+            <div class="claim">Announced a 220,000 sq ft fulfilment centre in Bhiwandi.</div>
+            <div class="receipt" data-fresh="recent"><span class="mono">18 Jun 2026</span><span class="dot">·</span><span class="ago">1 wk ago</span><span class="dot">·</span><span class="src">commercial property news</span><span class="dot">·</span><a href="#">evidence</a></div>
+          </div>
+        </div>
+        <div class="proof">
+          <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div>
+            <div class="claim">7 warehouse &amp; fulfilment roles opened across Bhiwandi and Pune in 5 weeks.</div>
+            <div class="receipt" data-fresh="recent"><span class="mono">10 Jun 2026</span><span class="dot">·</span><span class="ago">2 wks ago</span><span class="dot">·</span><span class="src">Naukri + LinkedIn</span><span class="dot">·</span><a href="#">evidence</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPROVAL + TOGGLE (interactive) -->
+    <div class="pair" style="margin-top:var(--space-5)">
+      <div class="card card-pad">
+        <div class="lbl">Approval control — deliberate, weighted, confirms with motion</div>
+        <div class="row between" style="margin-bottom:var(--space-4)">
+          <span class="mono" style="font-size:var(--text-sm)">SIG-EXP-COLD-CHAIN</span>
+          <span class="badge badge-proposed" id="sg-badge">proposed</span>
+        </div>
+        <div class="approve-bar">
+          <button class="btn-approve" data-approve="sg-badge" data-label="Signal approved — now live">Approve signal</button>
+          <button class="btn-reject" data-reject>Reject</button>
+        </div>
+        <p class="faint" style="font-size:var(--text-xs);margin-top:var(--space-3)">Click approve — the badge transitions with a confirming motion. Cannot fire by accident.</p>
+      </div>
+      <div class="card card-pad">
+        <div class="lbl">Toggle control — state always visible</div>
+        <div class="toggle" role="switch" aria-checked="false" tabindex="0" data-toggle data-on="Automatic" data-off="Suggest" data-toast-on="Bundling: automatic" data-toast-off="Bundling: suggest">
+          <span class="switch"></span>
+          <span class="labels"><span class="state">Suggest</span><span class="desc">bundling mode</span></span>
+        </div>
+        <div class="toggle" role="switch" aria-checked="true" tabindex="0" data-toggle data-on="Handed to vendor" data-off="Operator handles" data-toast-on="Outreach handed to vendor" data-toast-off="Operator handles outreach" style="margin-top:var(--space-4)">
+          <span class="switch"></span>
+          <span class="labels"><span class="state">Handed to vendor</span><span class="desc">outreach mode</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE + EMPTY -->
+    <div class="pair" style="margin-top:var(--space-5)">
+      <div class="card card-pad">
+        <div class="lbl">Pipeline stage indicator — sourced → paid</div>
+        <div class="demo" style="gap:var(--space-5)">
+          <span class="stage" data-stage="sourced"><span>sourced</span></span>
+          <span class="stage" data-stage="engaged"><span>engaged</span></span>
+          <span class="stage" data-stage="won"><span>won</span></span>
+          <span class="stage" data-stage="paid"><span>paid</span></span>
+        </div>
+        <div style="margin-top:var(--space-4)">
+          <div class="stage-track" data-stage="pitched" style="--stage-c:var(--stage-pitched)">
+            <i class="done"></i><i class="done"></i><i class="done"></i><i class="cur"></i><i></i><i></i>
+          </div>
+          <div class="faint mono" style="font-size:var(--text-2xs);margin-top:6px">sourced · contacted · engaged · <strong style="color:var(--stage-pitched)">pitched</strong> · won · paid</div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="lbl" style="padding:var(--space-5) var(--space-5) 0">Empty state — direction, not mood</div>
+        <div style="padding:var(--space-3) var(--space-5) var(--space-5)">
+          <div class="empty">
+            <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h10"/></svg>
+            <h3>No proposed signals</h3>
+            <p>When SIA surfaces a “when a company does X, that’s when they need us” moment, it lands here for your approval.</p>
+            <button class="btn btn-ghost btn-sm">Start a vendor interview</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGNAL RECORD CARD (canonical) -->
+  <section class="sg-section">
+    <div class="eyebrow">Canonical · §3</div>
+    <h2>Signal record card — five groups, self-documenting</h2>
+    <div class="card signal-card">
+      <div class="sig-head">
+        <div style="flex:1">
+          <div class="sig-id">SIG-EXP-NEW-FACILITY</div>
+          <div class="sig-name">New facility announced</div>
+          <p class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2);max-width:60ch">News of a new warehouse, dark store, distribution centre, or plant. The strongest, most defensible seed signal.</p>
+        </div>
+        <div class="col" style="align-items:flex-end;gap:var(--space-3)">
+          <span class="badge badge-approved">approved</span>
+          <span class="strength" data-level="very_high"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">very high</span></span>
+        </div>
+      </div>
+      <div class="sig-group">
+        <div class="eyebrow">Identity &amp; meaning</div>
+        <div class="field"><span class="k">family</span><span class="v"><span class="tag">expansion</span></span></div>
+        <div class="field"><span class="k">entity type</span><span class="v"><span class="tag">business</span> <span class="faint">B2C-ready via entity_type</span></span></div>
+        <div class="field"><span class="k">polarity</span><span class="v"><span class="tag">positive</span></span></div>
+      </div>
+      <div class="sig-group">
+        <div class="eyebrow">Detection — how the engine finds &amp; proves it</div>
+        <div class="field"><span class="k">trigger rule</span><span class="v">News of a new warehouse, dark store, DC, or plant.<span class="hint">The precise, observable yes/no rule.</span></span></div>
+        <div class="field"><span class="k">sources</span><span class="v"><span class="tag">commercial property news</span><span class="tag">company press</span><span class="tag">industrial news</span></span></div>
+        <div class="field"><span class="k">method</span><span class="v"><span class="tag">ai_classification</span> + <span class="tag">keyword_match</span></span></div>
+        <div class="field"><span class="k">proof captured</span><span class="v">Article URL, headline, publication, date, location, capacity.<span class="hint">What we store when it fires — the receipt.</span></span></div>
+        <div class="field"><span class="k">confirmation</span><span class="v">≥ 1 credible publication, entity-matched.</span></div>
+        <div class="field"><span class="k">recheck</span><span class="v"><span class="tag">weekly</span></span></div>
+      </div>
+      <div class="sig-group">
+        <div class="eyebrow">Weighting &amp; quality</div>
+        <div class="field"><span class="k">strength</span><span class="v"><span class="tag">very_high</span></span></div>
+        <div class="field"><span class="k">false-positive risk</span><span class="v"><span class="tag">low</span></span></div>
+        <div class="field"><span class="k">freshness window</span><span class="v"><span class="mono">180 days</span><span class="hint">How long it stays meaningful before decaying.</span></span></div>
+      </div>
+      <div class="sig-group">
+        <div class="eyebrow">Meaning &amp; combination</div>
+        <div class="field"><span class="k">pairs with</span><span class="v"><span class="tag">SIG-HIRING-OPS-SURGE</span><span class="tag">SIG-MONEY-FUNDING</span><span class="tag">SIG-LEAD-NEW-OPS</span></span></div>
+        <div class="field"><span class="k">geography</span><span class="v"><span class="tag">india</span></span></div>
+      </div>
+      <div class="sig-group">
+        <div class="eyebrow">History &amp; track record</div>
+        <div class="field"><span class="k">origin</span><span class="v">Seed library — strongest defensible signal.</span></div>
+        <div class="field"><span class="k">added · reviewed</span><span class="v"><span class="mono">1 Mar 2026</span> · <span class="mono">10 Jun 2026</span></span></div>
+        <div class="field"><span class="k">example</span><span class="v" style="font-style:italic">“BrightHaul to open 220,000 sq ft fulfilment centre in Bhiwandi.”</span></div>
+        <div class="field"><span class="k">track record</span><span class="v faint">Empty until outcomes accumulate — reads honestly, not faked.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT BLOCK -->
+  <section class="sg-section">
+    <div class="eyebrow">Canonical · §3</div>
+    <h2>Contact block — honest about what’s missing</h2>
+    <div class="card card-pad" style="max-width:560px">
+      <div class="dm">
+        <div class="dm-head"><span class="dm-name">Rohan Mehta</span><span class="dm-role">VP Operations</span></div>
+        <div class="why">Owns the fit-out &amp; timeline decision for the new fulfilment centre.</div>
+        <div class="paths">
+          <div class="path"><span class="type">linkedin</span><span class="val">in/rohanmehta-ops</span><span class="conf">high</span></div>
+          <div class="path"><span class="type">email</span><span class="val">r.mehta@brighthaul.in</span><span class="conf">medium · Apollo</span></div>
+          <div class="path missing"><span class="type">phone</span><span class="val">not found</span><span class="needs">needs enrichment</span></div>
+        </div>
+        <div class="warm-path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> Warm path · 2nd-degree via a shared ex-Delhivery contact</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+  // Build the color-as-meaning swatch grid
+  (function () {
+    const groups = [
+      { name: "proposed", mean: "needs approval", var: "--status-proposed" },
+      { name: "approved", mean: "live", var: "--status-approved" },
+      { name: "retired", mean: "archived", var: "--status-retired" },
+      { name: "strength ↑", mean: "very high", var: "--strength-vhigh" },
+      { name: "strength", mean: "high", var: "--strength-high" },
+      { name: "strength", mean: "medium", var: "--strength-medium" },
+      { name: "recent", mean: "fresh proof", var: "--fresh-recent" },
+      { name: "stale", mean: "decaying", var: "--fresh-stale" },
+      { name: "won / paid", mean: "money", var: "--money" },
+      { name: "lost", mean: "dead", var: "--stage-lost" },
+      { name: "accent", mean: "action only", var: "--accent" },
+      { name: "attention", mean: "warning", var: "--attention" },
+    ];
+    const wrap = document.getElementById("swatches");
+    wrap.innerHTML = groups.map(g => `
+      <div class="sw">
+        <div class="chip" style="background:var(${g.var})"></div>
+        <div class="meta"><div class="name">${g.name}</div><div class="mean">${g.mean}</div></div>
+      </div>`).join("");
+  })();
+</script>
+</body>
+</html>
