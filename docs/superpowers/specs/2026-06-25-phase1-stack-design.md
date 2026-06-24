@@ -1,7 +1,7 @@
 # Phase 1 Stack & Project Structure Design
 
 **Date:** 2026-06-25  
-**Status:** Proposed — awaiting operator approval  
+**Status:** Approved (operator, 2026-06-25). Hosting decided: Vercel (app) + Neon (Postgres).  
 **Scope:** Phase 1 Slice 0 only (stack decision + folder layout). No scaffolding yet.  
 **Source of truth:** `Phase0_Platform_Specification.md` §10, §11; `Prompt_Playbook.md` Part 3 Slice 0.
 
@@ -166,9 +166,9 @@ radar/
 
 ---
 
-## Open Decision for Operator
+## Operator Decisions
 
-**Hosting target for Phase 1:** Vercel (app) + Neon (Postgres) is the default assumption for fast iteration. Confirm or specify if you prefer all-local Docker only for now.
+**Hosting target for Phase 1 — DECIDED (2026-06-25):** Vercel (app) + Neon (Postgres). Neon env wiring is introduced at scaffold time (validated `env.ts`, `.env.example` Neon placeholder); the actual data layer lands in Slice 2.
 
 ---
 
