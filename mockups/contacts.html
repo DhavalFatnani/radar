@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* LAYOUT ONLY — every color comes from var(--token) */
+  .contacts-layout { display: grid; grid-template-columns: 1fr minmax(320px, 380px); gap: var(--space-5); align-items: start; }
+  .contacts-main { min-width: 0; }
+  .search-bar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
+  .search-field {
+    flex: 1 1 240px; display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-2) var(--space-3); border: var(--border-w) solid var(--border);
+    border-radius: var(--radius-md); background: var(--surface);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .search-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .search-field svg { width: 16px; height: 16px; color: var(--text-faint); flex: none; }
+  .search-field input {
+    flex: 1; border: 0; background: transparent; color: var(--text);
+    font-family: var(--font-sans); font-size: var(--text-sm); outline: none; min-width: 0;
+  }
+  .search-field input::placeholder { color: var(--text-faint); }
+  .filter-rows { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+
+  .ct-name { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .ct-co { font-size: var(--text-sm); }
+  .ct-co .ct-does { display: block; color: var(--text-faint); font-size: var(--text-2xs); margin-top: 1px; }
+  .ct-source { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .warm-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono); font-size: var(--text-2xs); font-weight: var(--weight-medium);
+    padding: 2px var(--space-2); border-radius: var(--radius-sm);
+  }
+  .warm-chip svg { width: 11px; height: 11px; }
+  .warm-chip.warm { color: var(--success); background: var(--status-approved-bg); }
+  .warm-chip.cold { color: var(--text-faint); background: var(--surface-inset); }
+  .ct-best { display: flex; flex-direction: column; gap: 1px; }
+  .ct-best .ct-path { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text); }
+  .ct-best .ct-conf { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); }
+  .tbl tbody tr[aria-selected="true"] { background: var(--accent-soft); }
+  .tbl tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+
+  .detail-panel { position: sticky; top: calc(56px + var(--space-6)); display: flex; flex-direction: column; gap: var(--space-4); }
+  .detail-co { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-1); }
+  .detail-co b { color: var(--text); font-weight: var(--weight-semibold); }
+  .prov { display: flex; flex-direction: column; gap: var(--space-2); }
+  .prov .prov-row { display: flex; gap: var(--space-2); font-size: var(--text-sm); }
+  .prov .prov-k { color: var(--text-muted); width: 92px; flex: none; font-size: var(--text-xs); padding-top: 1px; }
+  .prov .prov-v { color: var(--text); }
+
+  @media (max-width: 980px) {
+    .contacts-layout { grid-template-columns: 1fr; }
+    .detail-panel { position: static; }
+  }
+</style>
+</head>
+<body data-screen="contacts" data-title="Contacts">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">contact book</span>
+          <h2 id="ct-heading">contacts</h2>
+        </div>
+        <span class="count-pill" id="ct-dedup-note">deduped across leads</span>
+      </div>
+
+      <div class="contacts-layout">
+        <section class="contacts-main">
+          <div class="search-bar">
+            <label class="search-field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="ct-search" type="search" placeholder="Search name, role, company, geo, or vendor…" aria-label="Search contacts" autocomplete="off" />
+            </label>
+          </div>
+          <div class="filter-rows" id="ct-filters"></div>
+
+          <div class="card" style="overflow:hidden">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Contact</th>
+                  <th>Role</th>
+                  <th>Company</th>
+                  <th>Warm path</th>
+                  <th>Best path</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody id="ct-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="detail-panel" id="ct-detail" aria-live="polite"></aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+
+  // --- Confidence ranking for "best path" selection ---
+  const confRank = { high: 3, medium: 2, low: 1 };
+
+  // --- Resolve the vendor a lead is mapped to (spec: filterable by vendor) ---
+  function vendorName(vendorId) {
+    const v = R.vendors.find((x) => x.vendor_id === vendorId);
+    return v ? v.name : vendorId;
+  }
+
+  // --- Aggregate every contact from every lead, deduplicated by name+company ---
+  function buildContacts() {
+    const byKey = new Map();
+    R.leads.forEach((lead) => {
+      (lead.contacts || []).forEach((dm) => {
+        const key = (dm.name + "|" + lead.company).toLowerCase();
+        if (byKey.has(key)) {
+          // already seen this person at this company — note the extra source lead
+          byKey.get(key).foundIn.push(lead.company);
+          return;
+        }
+        byKey.set(key, {
+          name: dm.name,
+          role: dm.role,
+          why: dm.why,
+          company: lead.company,
+          does: lead.does,
+          geo: lead.geo,
+          vendor: vendorName(lead.vendor_id),
+          vendorId: lead.vendor_id,
+          leadId: lead.lead_id,
+          warm: dm.warm || { status: "cold" },
+          paths: dm.paths || [],
+          source: lead.company,
+          foundIn: [lead.company],
+        });
+      });
+    });
+    return Array.from(byKey.values());
+  }
+
+  const ALL = buildContacts();
+
+  // best (highest-confidence, present) path for a contact
+  function bestPath(c) {
+    const present = c.paths.filter((p) => p.val);
+    if (!present.length) return null;
+    return present.slice().sort((a, b) => (confRank[b.conf] || 0) - (confRank[a.conf] || 0))[0];
+  }
+
+  // unique source list for the filter
+  const sources = Array.from(new Set(ALL.map((c) => c.source)));
+  // unique vendor list for the filter (spec: filterable by vendor)
+  const vendors = Array.from(new Set(ALL.map((c) => c.vendorId)))
+    .map((id) => [id, vendorName(id)]);
+
+  let state = { q: "", warm: "all", source: "all", vendor: "all", selected: ALL.length ? key(ALL[0]) : null };
+  function key(c) { return (c.name + "|" + c.company).toLowerCase(); }
+
+  function filtered() {
+    const q = state.q.trim().toLowerCase();
+    return ALL.filter((c) => {
+      if (state.warm !== "all") {
+        const isWarm = c.warm.status === "warm";
+        if (state.warm === "warm" && !isWarm) return false;
+        if (state.warm === "cold" && isWarm) return false;
+      }
+      if (state.source !== "all" && c.source !== state.source) return false;
+      if (state.vendor !== "all" && c.vendorId !== state.vendor) return false;
+      if (q) {
+        // search across role, industry (does), company, geography, vendor, source
+        const hay = (c.name + " " + c.role + " " + c.company + " " + c.does + " " + c.geo + " " + c.vendor + " " + c.source).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  // ---- Filters (warm-path + source) ----
+  function renderFilters() {
+    const warmOpts = [["all", "All"], ["warm", "Warm"], ["cold", "Cold"]];
+    const sourceOpts = [["all", "All sources"]].concat(sources.map((s) => [s, s]));
+    const vendorOpts = [["all", "All vendors"]].concat(vendors);
+    const seg = (label, opts, fkey) =>
+      `<span class="fchip-label">${label}</span>` +
+      opts.map(([val, txt]) =>
+        `<button class="fchip" data-fkey="${fkey}" data-fval="${val}" aria-pressed="${state[fkey] === val}">${txt}</button>`).join("");
+    document.getElementById("ct-filters").innerHTML =
+      `<div class="filters">${seg("Warm path", warmOpts, "warm")}</div>` +
+      `<div class="filters">${seg("Vendor", vendorOpts, "vendor")}</div>` +
+      `<div class="filters">${seg("Source", sourceOpts, "source")}</div>`;
+    document.querySelectorAll("#ct-filters [data-fkey]").forEach((b) =>
+      b.addEventListener("click", () => { state[b.dataset.fkey] = b.dataset.fval; render(); }));
+  }
+
+  function warmCell(c) {
+    if (c.warm.status === "warm") {
+      return `<span class="warm-chip warm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> warm</span>`;
+    }
+    return `<span class="warm-chip cold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> cold</span>`;
+  }
+
+  // ---- Table rows ----
+  function renderRows() {
+    const list = filtered();
+    const tbody = document.getElementById("ct-rows");
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:0">
+        <div class="empty" style="border:0;background:transparent">
+          <h3>No contacts match</h3>
+          <p>Loosen the search or filters to see the contact book.</p>
+        </div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map((c) => {
+      const bp = bestPath(c);
+      const bestHTML = bp
+        ? `<div class="ct-best"><span class="ct-path">${bp.type}: ${bp.val}</span><span class="ct-conf">${bp.conf} conf${bp.source ? " · " + bp.source : ""}</span></div>`
+        : `<span class="ct-conf faint">no path yet</span>`;
+      return `<tr data-key="${key(c)}" aria-selected="${key(c) === state.selected}">
+        <td><span class="ct-name">${c.name}</span></td>
+        <td>${c.role}</td>
+        <td><span class="ct-co">${c.company}<span class="ct-does">${c.does} · ${c.geo}</span></span></td>
+        <td>${warmCell(c)}</td>
+        <td>${bestHTML}</td>
+        <td><span class="ct-source">first found on ${c.source}</span></td>
+      </tr>`;
+    }).join("");
+    document.querySelectorAll("#ct-rows tr[data-key]").forEach((row) =>
+      row.addEventListener("click", () => { state.selected = row.dataset.key; render(); }));
+  }
+
+  // ---- Detail: full paths + provenance via .dm/.paths/.warm-path ----
+  function renderDetail() {
+    const panel = document.getElementById("ct-detail");
+    const list = filtered();
+    let c = list.find((x) => key(x) === state.selected);
+    if (!c) c = list[0];
+    if (!c) {
+      panel.innerHTML = `<div class="card card-pad"><div class="empty" style="border:0;background:transparent">
+        <h3>Nothing selected</h3><p>Pick a contact to see their full paths and provenance.</p></div></div>`;
+      return;
+    }
+    state.selected = key(c);
+
+    const paths = c.paths.map((p) => {
+      if (!p.val) return `<div class="path missing"><span class="type">${p.type}</span><span class="val">not found</span><span class="needs">needs enrichment</span></div>`;
+      return `<div class="path"><span class="type">${p.type}</span><span class="val">${p.val}</span><span class="conf">${p.conf}${p.source ? " · " + p.source : ""}</span></div>`;
+    }).join("");
+
+    const warmHTML = c.warm.status === "warm"
+      ? `<div class="warm-path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> Warm path · ${c.warm.detail}</div>`
+      : `<div class="warm-path cold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> No warm path yet — cold outreach</div>`;
+
+    const seenAt = c.foundIn.length > 1
+      ? `<div class="prov-row"><span class="prov-k">Also on</span><span class="prov-v">${c.foundIn.slice(1).join(", ")}</span></div>`
+      : "";
+
+    panel.innerHTML = `
+      <div class="card card-pad">
+        <div class="dm" style="border:0;padding:0">
+          <div class="dm-head"><span class="dm-name">${c.name}</span><span class="dm-role">${c.role}</span></div>
+          <div class="detail-co">at <b>${c.company}</b><span class="faint">·</span><span class="mono faint" style="font-size:var(--text-2xs)">${c.geo}</span></div>
+          <div class="why" style="margin-top:var(--space-3)">${c.why}</div>
+          <div class="paths">${paths}</div>${warmHTML}
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <span class="eyebrow" style="display:block;margin-bottom:var(--space-3)">provenance</span>
+        <div class="prov">
+          <div class="prov-row"><span class="prov-k">Source</span><span class="prov-v">first found on <b>${c.source}</b></span></div>
+          <div class="prov-row"><span class="prov-k">Vendor</span><span class="prov-v">${c.vendor}</span></div>
+          <div class="prov-row"><span class="prov-k">Lead</span><span class="prov-v mono">${c.leadId}</span></div>
+          <div class="prov-row"><span class="prov-k">Company</span><span class="prov-v">${c.does} · ${c.geo}</span></div>
+          ${seenAt}
+        </div>
+        <div class="filters" style="margin-top:var(--space-4)">
+          <a class="btn btn-ghost btn-sm" href="leads.html">Open lead brief</a>
+        </div>
+      </div>`;
+
+    radarPaintScores(panel);
+    radarWire(panel);
+  }
+
+  function renderHeading() {
+    const n = ALL.length;
+    document.getElementById("ct-heading").textContent = `${n} unique contact${n !== 1 ? "s" : ""}`;
+    document.getElementById("ct-dedup-note").textContent = `deduped by person × company across ${R.leads.length} leads`;
+  }
+
+  function render() {
+    renderFilters();
+    renderRows();
+    renderDetail();
+  }
+
+  // ---- Live search ----
+  const searchEl = document.getElementById("ct-search");
+  searchEl.addEventListener("input", () => {
+    state.q = searchEl.value;
+    renderRows();
+    renderDetail();
+  });
+
+  renderHeading();
+  render();
+})();
+</script>
+</body>
+</html>

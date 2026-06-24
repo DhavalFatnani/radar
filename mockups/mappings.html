@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Mappings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* LAYOUT only — every color comes from a --token */
+  .map-layout { display: grid; grid-template-columns: minmax(300px, 360px) 1fr; gap: var(--space-5); align-items: start; }
+  .map-list { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: calc(56px + var(--space-6)); }
+  .map-cards { display: flex; flex-direction: column; gap: var(--space-3); }
+  .map-card {
+    display: block; width: 100%; text-align: left;
+    padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); transition: all var(--dur-fast) var(--ease-out);
+  }
+  .map-card:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .map-card[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--surface); }
+  .map-card .mc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+  .map-card .mc-name { font-weight: var(--weight-semibold); font-size: var(--text-md); }
+  .map-card .mc-serves { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; }
+  .map-card .mc-serves b { color: var(--text); font-weight: var(--weight-semibold); }
+  .map-card .mc-counts { display: flex; gap: var(--space-4); margin-top: var(--space-3); }
+  .map-card .mc-count { display: flex; flex-direction: column; gap: 1px; }
+  .map-card .mc-count .n { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-md); }
+  .map-card .mc-count .l { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); }
+
+  .editor { min-width: 0; }
+  .brief-body { padding-top: var(--space-2); }
+  .act-bar { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-5); padding-top: var(--space-5); border-top: var(--border-w) solid var(--border); }
+  .ed-head { display: flex; gap: var(--space-5); align-items: flex-start; padding-bottom: var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .ed-head .ed-co { flex: 1; min-width: 0; }
+  .ed-head h2 { font-size: var(--text-2xl); letter-spacing: -0.02em; }
+  .ed-head .ed-serves { color: var(--text-muted); margin-top: var(--space-1); font-size: var(--text-sm); }
+  .ed-head .ed-serves b { color: var(--text); font-weight: var(--weight-semibold); }
+  .ed-gate { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); flex: none; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+  .sig-tag { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .sig-tag .nm { font-family: var(--font-sans); }
+  .fire-note { color: var(--text-muted); font-size: var(--text-xs); margin-top: var(--space-3); font-style: italic; }
+  .dq-list { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+  .dq-item {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+    border-left: 2px solid var(--attention);
+    background: color-mix(in srgb, var(--attention) 8%, var(--surface));
+    font-size: var(--text-sm); color: var(--text);
+  }
+  .dq-item .x { color: var(--attention); font-family: var(--font-mono); font-weight: var(--weight-bold); flex: none; }
+
+  @media (max-width: 980px) {
+    .map-layout { grid-template-columns: 1fr; }
+    .map-list { position: static; }
+  }
+</style>
+</head>
+<body data-screen="mappings" data-title="Mappings">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="map-layout">
+        <!-- ZONE 1: mapping list -->
+        <aside class="map-list">
+          <div class="panel-head" style="margin:0">
+            <span class="eyebrow" id="map-count">mappings</span>
+            <span class="eyebrow">intent → vendor</span>
+          </div>
+          <div class="map-cards" id="cards" role="listbox" aria-label="Mappings"></div>
+        </aside>
+        <!-- ZONE 2: the editor -->
+        <section class="editor card card-pad" id="editor" aria-live="polite"></section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vendor = (id) => R.vendors.find((v) => v.vendor_id === id) || {};
+  const sig = (id) => R.signalById(id) || { signal_id: id, name: id, strength: "medium" };
+
+  let state = { selected: R.mappings[0].mapping_id };
+
+  function statusBadge(s) {
+    const cls = s === "approved" ? "badge-approved" : s === "retired" ? "badge-retired" : "badge-proposed";
+    return `<span class="badge ${cls}">${s}</span>`;
+  }
+
+  function sigChip(id) {
+    const s = sig(id);
+    return `<span class="tag sig-tag" title="${s.signal_id}">
+      <span class="strength" data-level="${s.strength}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span></span>
+      <span class="nm">${s.name}</span>
+    </span>`;
+  }
+
+  function renderCards() {
+    document.getElementById("map-count").textContent =
+      `${R.mappings.length} mapping${R.mappings.length !== 1 ? "s" : ""}`;
+    document.getElementById("cards").innerHTML = R.mappings.map((m) => {
+      const v = vendor(m.serves);
+      return `
+        <button class="map-card" role="option" data-map="${m.mapping_id}" aria-selected="${m.mapping_id === state.selected}">
+          <div class="mc-top">
+            <div style="min-width:0">
+              <div class="mc-name">${m.name}</div>
+              <div class="mc-serves">serves <b>${v.short || v.name || m.serves}</b></div>
+            </div>
+            ${statusBadge(m.status)}
+          </div>
+          <div class="mc-counts">
+            <span class="mc-count"><span class="n">${m.required.length}</span><span class="l">required</span></span>
+            <span class="mc-count"><span class="n">${m.supporting.length}</span><span class="l">supporting</span></span>
+          </div>
+        </button>`;
+    }).join("");
+    document.querySelectorAll(".map-card").forEach((c) =>
+      c.addEventListener("click", () => { state.selected = c.dataset.map; render(); }));
+  }
+
+  function renderEditor() {
+    const m = R.mappings.find((x) => x.mapping_id === state.selected) || R.mappings[0];
+    state.selected = m.mapping_id;
+    const v = vendor(m.serves);
+    const badgeId = "gate-badge";
+
+    const approved = m.status === "approved";
+    // approval gate: approved → show Retire; otherwise show Approve/Reject control
+    const gateAction = approved
+      ? `<div class="approve-bar">
+           ${statusBadgeWithId(m.status, badgeId)}
+           <button class="btn btn-ghost btn-sm" id="retire">Retire</button>
+         </div>`
+      : `<div class="approve-bar">
+           ${statusBadgeWithId(m.status, badgeId)}
+         </div>
+         <div class="approve-bar">
+           <button class="btn-approve" data-approve="${badgeId}" data-label="Mapping approved — now live">Approve</button>
+           <button class="btn-reject" data-reject>Reject</button>
+         </div>`;
+
+    const html = `
+      <div class="ed-head">
+        <div class="ed-co">
+          <div class="mono faint" style="font-size:var(--text-2xs)">${m.mapping_id}</div>
+          <h2>${m.name}</h2>
+          <div class="ed-serves">serves <b>${v.name || m.serves}</b> · ${v.short || ""}</div>
+        </div>
+        <div class="ed-gate">${gateAction}</div>
+      </div>
+
+      <div class="brief-body">
+        <div class="brief-block">
+          <h3>Intent</h3>
+          <p>${m.intent}</p>
+        </div>
+
+        <div class="brief-block">
+          <h3>Required signals <span class="count-pill">${m.required.length}</span></h3>
+          <div class="chip-row">${m.required.map(sigChip).join("")}</div>
+          <div class="fire-note">At least one of these must fire for the mapping to trigger.</div>
+        </div>
+
+        <div class="brief-block">
+          <h3>Supporting signals <span class="count-pill">${m.supporting.length}</span></h3>
+          <div class="chip-row">${m.supporting.map(sigChip).join("")}</div>
+          <div class="fire-note">These don't trigger on their own — each fresh one lifts the score.</div>
+        </div>
+
+        <div class="brief-block">
+          <h3>Rules</h3>
+          <div class="signal-card card inset">
+            <div class="sig-group">
+              <div class="field"><span class="k">Threshold</span><span class="v">${m.threshold}</span></div>
+              <div class="field"><span class="k">Timing</span><span class="v">${m.timing}</span></div>
+              <div class="field"><span class="k">Strength logic</span><span class="v">${m.strength_logic}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="brief-block">
+          <h3>Disqualifiers <span class="eyebrow" style="font-weight:400">auto-suppress the lead</span></h3>
+          <ul class="dq-list">
+            ${m.disqualifiers.map((d) => `<li class="dq-item"><span class="x">✕</span><span>${d}</span></li>`).join("")}
+          </ul>
+        </div>
+
+        <div class="act-bar">
+          <button class="btn btn-ghost" id="edit">Edit mapping</button>
+          <button class="btn btn-ghost" id="open-leads">See leads from this mapping</button>
+        </div>
+      </div>`;
+
+    const editor = document.getElementById("editor");
+    editor.innerHTML = html;
+
+    // wire injected controls (approve/reject/toggles) + paint any score rings
+    radarWire(editor);
+    radarPaintScores(editor);
+
+    // Retire (approved mappings)
+    const retire = document.getElementById("retire");
+    if (retire) retire.addEventListener("click", () => {
+      const badge = document.getElementById(badgeId);
+      if (badge) { badge.className = "badge badge-retired swap-in"; badge.innerHTML = "retired"; }
+      retire.style.display = "none";
+      radarToast(`${m.name} retired`);
+    });
+
+    document.getElementById("edit").addEventListener("click", () => radarToast("Editing is a future affordance"));
+    document.getElementById("open-leads").addEventListener("click", () => {
+      const n = R.leadsForVendor(m.serves).length;
+      radarToast(`${n} lead${n !== 1 ? "s" : ""} from ${m.name}`);
+    });
+  }
+
+  function statusBadgeWithId(s, id) {
+    const cls = s === "approved" ? "badge-approved" : s === "retired" ? "badge-retired" : "badge-proposed";
+    return `<span class="badge ${cls}" id="${id}">${s}</span>`;
+  }
+
+  function render() {
+    renderCards();
+    renderEditor();
+  }
+  render();
+})();
+</script>
+</body>
+</html>

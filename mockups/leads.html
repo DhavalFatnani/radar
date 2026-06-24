@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  .leads-layout { display: grid; grid-template-columns: minmax(330px, 400px) 1fr; gap: var(--space-5); align-items: start; }
+  .queue { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: calc(56px + var(--space-6)); }
+  .queue-list { display: flex; flex-direction: column; gap: var(--space-2); max-height: calc(100vh - 230px); overflow-y: auto; padding-right: 2px; }
+  .qrow {
+    display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); width: 100%; text-align: left;
+    padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); transition: all var(--dur-fast) var(--ease-out);
+  }
+  .qrow:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .qrow[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--surface); }
+  .qrow-co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .qrow-does { color: var(--text-muted); font-size: var(--text-xs); margin-top: 1px; }
+  .qrow-tags { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+  .qrow-vendor { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .qrow-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+  .qrow-meta { display: flex; align-items: center; gap: var(--space-2); }
+
+  .lead-detail { min-width: 0; }
+  .brief-head { display: flex; gap: var(--space-5); align-items: flex-start; padding-bottom: var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .brief-head .co h2 { font-size: var(--text-2xl); letter-spacing: -0.02em; }
+  .brief-head .co .does { color: var(--text-muted); margin-top: var(--space-1); }
+  .brief-head .co .meta { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); font-size: var(--text-sm); }
+  .brief-controls { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); flex: none; }
+  .brief-body { padding-top: var(--space-2); }
+  .vendor-chip { display:inline-flex; align-items:center; gap:var(--space-2); font-size:var(--text-sm); color:var(--text-muted); }
+  .vendor-chip b { color: var(--text); font-weight: var(--weight-semibold); }
+  .act-bar { display:flex; gap:var(--space-3); flex-wrap:wrap; margin-top:var(--space-5); padding-top:var(--space-5); border-top:var(--border-w) solid var(--border); }
+  @media (max-width: 980px) {
+    .leads-layout { grid-template-columns: 1fr; }
+    .queue { position: static; }
+    .queue-list { max-height: none; }
+  }
+  @media (max-width: 640px) {
+    .brief-head { flex-direction: column; }
+    .brief-controls { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+    .brief-head .co h2 { font-size: var(--text-xl); }
+  }
+</style>
+</head>
+<body data-screen="leads" data-title="Leads">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="leads-layout">
+        <!-- ZONE 1: triage queue -->
+        <aside class="queue">
+          <div>
+            <div class="filters" id="filters"></div>
+          </div>
+          <div class="panel-head" style="margin:0">
+            <span class="eyebrow" id="queue-count">leads</span>
+            <span class="eyebrow">sorted by score ↓</span>
+          </div>
+          <div class="queue-list" id="queue" role="listbox" aria-label="Lead triage queue"></div>
+        </aside>
+        <!-- ZONE 2: the reverse brief -->
+        <section class="lead-detail card card-pad" id="detail" aria-live="polite"></section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vendorName = (id) => (R.vendors.find((v) => v.vendor_id === id) || {}).name || id;
+  const vendorShort = (id) => (R.vendors.find((v) => v.vendor_id === id) || {}).short || "";
+  const heatLabel = { hot: "hot", warm: "warm", cool: "cool" };
+
+  let state = { vendor: "all", stage: "all", fresh: "all", selected: null };
+
+  function filtered() {
+    return R.leads
+      .filter((l) => state.vendor === "all" || l.vendor_id === state.vendor)
+      .filter((l) => state.stage === "all" || l.stage === state.stage)
+      .sort((a, b) => b.score - a.score);
+  }
+
+  function renderFilters() {
+    const vendors = [["all", "All vendors"]].concat(R.vendors.map((v) => [v.vendor_id, v.short]));
+    const stages = [["all", "All"]].concat(["sourced","contacted","engaged","pitched","won"].map((s) => [s, s]));
+    const seg = (label, opts, key) =>
+      `<span class="fchip-label">${label}</span>` +
+      opts.map(([val, txt]) =>
+        `<button class="fchip" data-fkey="${key}" data-fval="${val}" aria-pressed="${state[key] === val}">${txt}</button>`).join("");
+    document.getElementById("filters").innerHTML =
+      `<div class="filters" style="margin-bottom:var(--space-2)">${seg("Vendor", vendors, "vendor")}</div>` +
+      `<div class="filters">${seg("Stage", stages, "stage")}</div>`;
+    document.querySelectorAll("[data-fkey]").forEach((b) =>
+      b.addEventListener("click", () => { state[b.dataset.fkey] = b.dataset.fval; render(); }));
+  }
+
+  function renderQueue() {
+    const list = filtered();
+    document.getElementById("queue-count").textContent = `${list.length} lead${list.length !== 1 ? "s" : ""}`;
+    document.getElementById("queue").innerHTML = list.map((l) => `
+      <button class="qrow" role="option" data-lead="${l.lead_id}" aria-selected="${l.lead_id === state.selected}">
+        <div>
+          <div class="qrow-co">${l.company}</div>
+          <div class="qrow-does">${l.does} · ${l.geo}</div>
+          <div class="qrow-tags">
+            <span class="qrow-vendor">${vendorShort(l.vendor_id)}</span>
+            <span class="stage" data-stage="${l.stage}"><span>${l.stage}</span></span>
+          </div>
+        </div>
+        <div class="qrow-right">
+          <span class="score-pill" data-heat="${l.heat}">${l.score}</span>
+          <span class="fresh fresh-recent" style="font-size:9px">recent</span>
+        </div>
+      </button>`).join("");
+    document.querySelectorAll(".qrow").forEach((row) =>
+      row.addEventListener("click", () => { state.selected = row.dataset.lead; render(); }));
+  }
+
+  function proofLine(p) {
+    const sig = R.signalById(p.sig) || {};
+    const verdict = R.freshness(p.date, sig.freshness_window || 180);
+    return `
+      <div class="proof">
+        <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div>
+          <div class="claim">${p.claim}</div>
+          <div class="receipt" data-fresh="${verdict}">
+            <span class="mono">${R.fmtDate(p.date)}</span><span class="dot">·</span>
+            <span class="ago">${R.ago(p.date)}</span><span class="dot">·</span>
+            <span class="src">${p.source}</span><span class="dot">·</span>
+            <span class="mono faint">${p.sig}</span>
+            ${p.evidence ? `<span class="dot">·</span><a href="${p.evidence}">evidence</a>` : ""}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function contactBlock(l) {
+    if (!l.contacts || !l.contacts.length)
+      return `<div class="empty" style="padding:var(--space-6)"><h3>Contacts pending enrichment</h3><p>Decision-makers for this lead haven't been resolved yet.</p></div>`;
+    return l.contacts.map((dm) => {
+      const warm = dm.warm || { status: "cold" };
+      const paths = dm.paths.map((p) => {
+        if (!p.val) return `<div class="path missing"><span class="type">${p.type}</span><span class="val">not found</span><span class="needs">needs enrichment</span></div>`;
+        return `<div class="path"><span class="type">${p.type}</span><span class="val">${p.val}</span><span class="conf">${p.conf}${p.source ? " · " + p.source : ""}</span></div>`;
+      }).join("");
+      const warmHTML = warm.status === "warm"
+        ? `<div class="warm-path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> Warm path · ${warm.detail}</div>`
+        : `<div class="warm-path cold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> No warm path yet — cold outreach</div>`;
+      return `<div class="dm">
+        <div class="dm-head"><span class="dm-name">${dm.name}</span><span class="dm-role">${dm.role}</span></div>
+        <div class="why">${dm.why}</div>
+        <div class="paths">${paths}</div>${warmHTML}
+      </div>`;
+    }).join("");
+  }
+
+  function renderDetail() {
+    const l = filtered().find((x) => x.lead_id === state.selected) || filtered()[0];
+    if (!l) { document.getElementById("detail").innerHTML = `<div class="empty"><h3>No leads match</h3><p>Loosen the filters to see the queue.</p></div>`; return; }
+    state.selected = l.lead_id;
+    const outreachOn = l.outreach === "handed_to_vendor";
+    const html = `
+      <div class="brief-head">
+        <div class="co" style="flex:1">
+          <div class="mono faint" style="font-size:var(--text-2xs)">${l.lead_id}</div>
+          <h2>${l.company}</h2>
+          <div class="does">${l.does} · ${l.geo}</div>
+          <div class="meta">
+            <span class="vendor-chip">for <b>${vendorName(l.vendor_id)}</b></span>
+            <span class="faint">·</span>
+            <span class="stage" data-stage="${l.stage}"><span>${l.stage}</span></span>
+            <span class="faint">·</span>
+            <span class="check-pass" style="font-size:var(--text-xs)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> disqualifier check passed</span>
+          </div>
+        </div>
+        <div class="brief-controls">
+          <span class="score" data-heat="${l.heat}" data-score="${l.score}">
+            <span class="ring"><span>${l.score}</span></span>
+            <span class="col"><span class="num">${l.score}</span><span class="heat-label">${heatLabel[l.heat]}</span></span>
+          </span>
+          <div class="toggle" role="switch" aria-checked="${outreachOn}" tabindex="0" id="outreach"
+               data-on="Handed to vendor" data-off="Operator handles"
+               data-toast-on="Outreach handed to vendor" data-toast-off="Operator handles outreach">
+            <span class="switch"></span>
+            <span class="labels"><span class="state">${outreachOn ? "Handed to vendor" : "Operator handles"}</span><span class="desc">outreach mode</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="brief-body">
+        <div class="brief-block"><h3>Why them</h3><p>${l.why_them || l.intent}</p></div>
+
+        <div class="brief-block">
+          <h3>Why now <span class="eyebrow" style="font-weight:400">dated, sourced proof</span></h3>
+          ${(l.why_now || []).map(proofLine).join("")}
+        </div>
+
+        ${l.what_they_need ? `<div class="brief-block"><h3>What they need</h3><p>${l.what_they_need}</p></div>` : ""}
+
+        ${l.hook ? `<div class="brief-block"><h3>The hook <span class="draft-flag">suggested draft</span></h3><div class="hook">${l.hook}</div></div>` : ""}
+
+        ${l.why_this_vendor ? `<div class="brief-block"><h3>Why this vendor</h3><p>${l.why_this_vendor}</p></div>` : ""}
+
+        ${(l.objections && l.objections.length) ? `<div class="brief-block"><h3>What to watch for</h3>
+          ${l.objections.map((o) => `<div class="objection"><div class="o">${o.o}</div><div class="c">${o.c}</div></div>`).join("")}
+        </div>` : ""}
+
+        <div class="brief-block"><h3>Contacts</h3>${contactBlock(l)}</div>
+
+        <div class="act-bar">
+          <button class="btn btn-primary" id="advance">Advance stage →</button>
+          <button class="btn btn-ghost">Open in pipeline</button>
+          <button class="btn btn-ghost">Copy brief</button>
+        </div>
+      </div>`;
+    const detail = document.getElementById("detail");
+    detail.innerHTML = html;
+    radarPaintScores(detail);
+    radarWire(detail);
+
+    // advance stage (optimistic)
+    const order = R.stages;
+    document.getElementById("advance").addEventListener("click", () => {
+      const i = order.indexOf(l.stage);
+      if (i < 0 || i >= 4) { radarToast("Lead is past triage stages"); return; }
+      l.stage = order[i + 1];
+      radarToast(`Advanced to ${l.stage}`);
+      render();
+    });
+  }
+
+  function render() {
+    renderFilters();
+    renderQueue();
+    renderDetail();
+  }
+  render();
+})();
+</script>
+</body>
+</html>
