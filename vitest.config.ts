@@ -12,6 +12,11 @@ export default defineConfig({
     // Integration tests share one Neon DB; running files in parallel lets one
     // file's TRUNCATE ... CASCADE wipe rows another file is using. Run serially.
     fileParallelism: false,
+    // Integration tests hit a real Neon branch (Singapore latency, many
+    // round-trips + a migrate in beforeAll); the default 5s is too tight under
+    // full-suite serial load. Headroom kills the seed-test timeout flake.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
   resolve: {
     alias: {
