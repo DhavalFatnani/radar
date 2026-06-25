@@ -43,6 +43,18 @@ npm run dev                  # http://localhost:3000  (healthcheck: /api/v1/heal
 npm run lint && npm run typecheck && npm test && npm run build
 ```
 
+### Auth (Slice 3)
+
+Single operator, env-based. Set in `.env.local`:
+
+```bash
+AUTH_SECRET="$(openssl rand -base64 33)"
+OPERATOR_EMAIL=you@example.com
+OPERATOR_PASSWORD_HASH="$(node scripts/hash-password.mjs 'your-password')"
+```
+
+Then `npm run dev` and sign in at `/login`. Unauthenticated requests to app routes redirect to `/login`.
+
 ### Database (Slice 2)
 
 ```bash
