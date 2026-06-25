@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* screen-specific LAYOUT only — all color via var(--token) */
+  .pipe-top { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); }
+  .money-card {
+    flex: 1 1 200px; min-width: 180px;
+    border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); padding: var(--space-4);
+    display: flex; flex-direction: column; gap: var(--space-1);
+  }
+  .money-card.flag { border-color: color-mix(in srgb, var(--attention) 45%, var(--border)); background: color-mix(in srgb, var(--attention) 6%, var(--surface)); }
+  .money-card .mk { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); }
+  .money-card .mv { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-xl); color: var(--money); line-height: 1.1; }
+  .money-card.flag .mv { color: var(--attention); }
+  .money-card .ms { font-size: var(--text-xs); color: var(--text-muted); }
+
+  .pipe-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+
+  .board { display: flex; gap: var(--space-3); overflow-x: auto; padding-bottom: var(--space-3); align-items: flex-start; }
+  .pcol {
+    flex: 0 0 240px; width: 240px; display: flex; flex-direction: column; gap: var(--space-3);
+    background: var(--surface-2); border: var(--border-w) solid var(--border);
+    border-radius: var(--radius-lg); padding: var(--space-3);
+  }
+  .col-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-bottom: var(--space-2); border-bottom: 2px solid var(--col-c, var(--border-strong)); }
+  .col-head .ct { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-semibold); text-transform: capitalize; color: var(--col-c, var(--text)); }
+  .col-head .ct::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--col-c, var(--text-faint)); }
+
+  .col-body { display: flex; flex-direction: column; gap: var(--space-2); min-height: 40px; }
+
+  .pcard {
+    display: block; width: 100%; text-align: left;
+    border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); padding: var(--space-3);
+    transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+  }
+  .pcard:hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .pcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+  .pcard-co { font-weight: var(--weight-semibold); font-size: var(--text-sm); color: var(--text); }
+  .pcard-meta { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+  .pcard-vendor { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+
+  .comm { margin-top: var(--space-2); padding-top: var(--space-2); border-top: var(--border-w) dashed var(--border); display: flex; flex-direction: column; gap: 2px; }
+  .comm-amt { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-sm); color: var(--money); }
+  .comm-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+  .comm-type { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); }
+  .comm-status { font-family: var(--font-mono); font-size: var(--text-2xs); font-weight: var(--weight-medium); }
+  .comm-status[data-cstat="missed"] { color: var(--attention); }
+  .comm-status[data-cstat="cycle_due"] { color: var(--warning); }
+  .comm-status[data-cstat="due"] { color: var(--money); }
+  .comm-next { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); }
+
+  .col-empty { font-size: var(--text-xs); color: var(--text-faint); text-align: center; padding: var(--space-4) var(--space-2); font-family: var(--font-mono); }
+</style>
+</head>
+<body data-screen="pipeline" data-title="Pipeline">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="panel-head" style="margin-bottom:var(--space-4)">
+        <h2>Pipeline</h2>
+        <span class="count-pill" id="lead-count">leads</span>
+      </div>
+
+      <!-- summary strip: money at a glance -->
+      <div class="pipe-top" id="summary"></div>
+
+      <!-- outreach / vendor filter -->
+      <div class="pipe-filters">
+        <div class="filters" id="filters"></div>
+        <div class="toggle" role="switch" aria-checked="false" tabindex="0" id="outreach-mode" data-toggle
+             data-on="Handed to vendor" data-off="Operator runs outreach"
+             data-toast-on="Outreach handed to vendor" data-toast-off="Operator runs outreach">
+          <span class="switch"></span>
+          <span class="labels"><span class="state">Operator runs outreach</span><span class="desc">outreach mode</span></span>
+        </div>
+      </div>
+
+      <!-- the stage board -->
+      <div class="board" id="board" aria-label="Pipeline stage board"></div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vendorShort = (id) => (R.vendors.find((v) => v.vendor_id === id) || {}).short || "";
+
+  let state = { vendor: "all" };
+
+  // ---- money: parse the leading rupee figure for a rough total of what's due ----
+  function rupeeNum(amt) {
+    const m = (amt || "").replace(/[^0-9]/g, "");
+    return m ? parseInt(m, 10) : 0;
+  }
+  function fmtRupee(n) {
+    return "₹" + n.toLocaleString("en-IN");
+  }
+
+  function summary() {
+    const due = R.commissions.filter((c) => c.status === "due" || c.status === "cycle_due");
+    const dueTotal = due.reduce((s, c) => s + rupeeNum(c.amount), 0);
+    const missed = R.commissions.filter((c) => c.status === "missed");
+    const cycles = R.commissions
+      .filter((c) => c.next && c.status !== "missed")
+      .map((c) => c.next)
+      .sort();
+    const nextCycle = cycles[0];
+
+    const cards = [
+      `<div class="money-card">
+         <span class="mk">Commission due</span>
+         <span class="mv">${fmtRupee(dueTotal)}</span>
+         <span class="ms">${due.length} ${due.length === 1 ? "deal" : "deals"} awaiting payout</span>
+       </div>`,
+      `<div class="money-card">
+         <span class="mk">Next recurring cycle</span>
+         <span class="mv">${nextCycle ? R.fmtDate(nextCycle) : "—"}</span>
+         <span class="ms">${nextCycle ? R.ago(nextCycle).replace(" ago", " out") : "no upcoming cycle"}</span>
+       </div>`,
+      `<div class="money-card${missed.length ? " flag" : ""}">
+         <span class="mk">Missed cycles</span>
+         <span class="mv">${missed.length}</span>
+         <span class="ms">${missed.length ? missed.map((c) => c.company).join(", ") + " overdue" : "all cycles current"}</span>
+       </div>`,
+    ];
+    document.getElementById("summary").innerHTML = cards.join("");
+  }
+
+  function renderFilters() {
+    const vendors = [["all", "All vendors"]].concat(R.vendors.map((v) => [v.vendor_id, v.short]));
+    const seg =
+      `<span class="fchip-label">Vendor</span>` +
+      vendors.map(([val, txt]) =>
+        `<button class="fchip" data-fkey="vendor" data-fval="${val}" aria-pressed="${state.vendor === val}">${txt}</button>`).join("");
+    document.getElementById("filters").innerHTML = seg;
+    document.querySelectorAll("#filters [data-fkey]").forEach((b) =>
+      b.addEventListener("click", () => { state[b.dataset.fkey] = b.dataset.fval; render(); }));
+  }
+
+  // commission rows that belong in a given stage (matched by lead_id where the lead
+  // is present, plus orphan commission rows whose lead isn't on the board)
+  function commissionsForStage(stage, leadsByStage) {
+    return R.commissions.filter((c) => {
+      if (c.stage !== stage) return false;
+      if (state.vendor !== "all") {
+        // keep commissions whose lead matches the vendor filter, or that have no matching lead
+        const lead = R.leads.find((l) => l.lead_id === c.lead_id);
+        if (lead && lead.vendor_id !== state.vendor) return false;
+      }
+      return true;
+    });
+  }
+
+  function commBlock(c) {
+    const typeLabel = c.type === "recurring" ? "recurring" : "one-time";
+    return `
+      <div class="comm">
+        <span class="comm-amt">${c.amount}</span>
+        <div class="comm-row">
+          <span class="comm-type">${typeLabel}</span>
+          <span class="comm-status" data-cstat="${c.status}">${c.status.replace("_", " ")}</span>
+        </div>
+        ${c.next ? `<span class="comm-next">${c.status === "missed" ? "overdue since" : "next"} ${R.fmtDate(c.next)}</span>` : ""}
+      </div>`;
+  }
+
+  function leadCard(l) {
+    const comm = R.commissions.find((c) => c.lead_id === l.lead_id);
+    return `
+      <a class="pcard" href="leads.html" data-lead="${l.lead_id}">
+        <div class="pcard-top">
+          <span class="pcard-co">${l.company}</span>
+          <span class="score-pill" data-heat="${l.heat}">${l.score}</span>
+        </div>
+        <div class="pcard-meta">
+          <span class="pcard-vendor">${vendorShort(l.vendor_id)}</span>
+          <span class="stage" data-stage="${l.stage}"><span>${l.stage}</span></span>
+        </div>
+        ${comm ? commBlock(comm) : ""}
+      </a>`;
+  }
+
+  // an orphan commission (lead not present on the board) shown as its own card
+  function orphanCommCard(c) {
+    return `
+      <div class="pcard" data-lead="${c.lead_id}">
+        <div class="pcard-top">
+          <span class="pcard-co">${c.company}</span>
+          <span class="comm-type">${c.lead_id}</span>
+        </div>
+        <div class="pcard-meta">
+          <span class="pcard-vendor">${c.vendor}</span>
+          <span class="stage" data-stage="${c.stage}"><span>${c.stage}</span></span>
+        </div>
+        ${commBlock(c)}
+      </div>`;
+  }
+
+  function render() {
+    renderFilters();
+    summary();
+
+    const leads = R.leads.filter((l) => state.vendor === "all" || l.vendor_id === state.vendor);
+    document.getElementById("lead-count").textContent =
+      `${leads.length} lead${leads.length !== 1 ? "s" : ""}`;
+
+    const byStage = {};
+    R.stages.forEach((s) => (byStage[s] = []));
+    leads.forEach((l) => { if (byStage[l.stage]) byStage[l.stage].push(l); });
+
+    const board = R.stages.map((stage) => {
+      const stageLeads = (byStage[stage] || []).sort((a, b) => b.score - a.score);
+      const leadIds = new Set(stageLeads.map((l) => l.lead_id));
+      // orphan commissions: in this stage but their lead isn't on the board
+      const orphans = commissionsForStage(stage).filter((c) => !leadIds.has(c.lead_id));
+
+      const cards = stageLeads.map(leadCard).concat(orphans.map(orphanCommCard)).join("");
+      const count = stageLeads.length + orphans.length;
+      const body = count
+        ? cards
+        : `<div class="col-empty">no leads</div>`;
+
+      return `
+        <section class="pcol" style="--col-c: var(--stage-${stage})">
+          <header class="col-head">
+            <span class="ct">${stage}</span>
+            <span class="count-pill">${count}</span>
+          </header>
+          <div class="col-body">${body}</div>
+        </section>`;
+    }).join("");
+
+    const boardEl = document.getElementById("board");
+    boardEl.innerHTML = board;
+    radarWire(boardEl);
+    radarPaintScores(boardEl);
+  }
+
+  render();
+  // the outreach-mode toggle is static markup, wired by ui.js's DOMContentLoaded wire(document)
+})();
+</script>
+</body>
+</html>

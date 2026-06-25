@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Holding pool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .hp-intro { max-width: 64ch; color: var(--text-muted); font-size: var(--text-md); margin-bottom: var(--space-6); }
+  .hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-4); }
+  .hp-card { padding: var(--space-5); }
+  .hp-card .co { font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+  .hp-card .does { color: var(--text-muted); font-size: var(--text-sm); margin-top: 2px; }
+  .hp-reason { margin: var(--space-4) 0; padding: var(--space-3) var(--space-4); border-left: 3px solid var(--warning); background: var(--surface-2); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .hp-reason .lbl { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--warning); }
+  .hp-reason .txt { font-size: var(--text-sm); margin-top: 3px; }
+  .hp-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-4); padding-top: var(--space-4); border-top: var(--border-w) solid var(--border); }
+  .future-tag { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1px 5px; }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+</style>
+</head>
+<body data-dir="command" data-screen="holding" data-title="Holding pool">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <p class="hp-intro">Good leads that no current vendor can fulfil — captured the moment they surface, so nothing is lost. Reverse vendor-sourcing comes later; for now Radar holds them, with the reason, until a fit exists.</p>
+      <div class="panel-head"><h2 style="font-size:var(--text-md)">Held</h2><span class="count-pill" id="count"></span></div>
+      <div class="hp-grid reveal" data-stagger id="grid"></div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  document.getElementById("count").textContent = `${R.holding.length} captured`;
+  document.getElementById("grid").innerHTML = R.holding.map((h)=>`
+    <div class="card hp-card">
+      <div class="co">${h.company}</div><div class="does">${h.does}</div>
+      <div class="hp-reason"><div class="lbl">why it's held</div><div class="txt">${h.reason}</div></div>
+      <div class="row" style="gap:var(--space-2)"><span class="tag">${h.signal}</span><span class="faint mono" style="font-size:var(--text-2xs)">${R.ago(h.date)}</span></div>
+      <div class="hp-foot"><button class="btn btn-ghost btn-sm" disabled>Source a vendor for this</button><span class="future-tag">future · reverse-sourcing</span></div>
+    </div>`).join("");
+  if (window.radarMotion) { radarMotion.wireReveals(document); }
+})();
+</script>
+</body>
+</html>

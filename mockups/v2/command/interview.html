@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — SIA Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .sia-layout { display: grid; grid-template-columns: 1fr minmax(320px, 380px); gap: var(--space-5); align-items: start; }
+  .interview { display: flex; flex-direction: column; min-height: calc(100vh - 170px); }
+  .iv-head { display: flex; align-items: center; gap: var(--space-3); justify-content: space-between; margin-bottom: var(--space-5); }
+  .iv-head .who { display: flex; align-items: center; gap: var(--space-3); }
+  .ver-chip { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--accent); background: var(--accent-soft); padding: 1px var(--space-2); border-radius: var(--radius-full); }
+  .thread { display: flex; flex-direction: column; gap: var(--space-4); }
+  .thread .msg { display: grid; grid-template-columns: 28px 1fr; gap: var(--space-3); }
+  .thread .msg .av { width: 28px; height: 28px; border-radius: var(--radius-md); display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--text-2xs); font-weight: var(--weight-bold); flex: none; }
+  .thread .msg.sia .av { background: var(--accent); color: var(--accent-contrast); }
+  .thread .msg.vendor .av { background: var(--surface-inset); color: var(--text-muted); }
+  .thread .msg .who-line { font-size: var(--text-2xs); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); margin-bottom: 3px; }
+  .thread .msg .bubble { font-size: var(--text-md); line-height: var(--leading-normal); }
+  .thread .msg.vendor .bubble { color: var(--text-muted); }
+  .probe-flag { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--warning); background: var(--status-proposed-bg); padding: 1px var(--space-2); border-radius: var(--radius-sm); margin-left: var(--space-2); }
+  .nudge button { font-size: var(--text-xs); color: var(--accent); font-family: var(--font-mono); margin-top: var(--space-2); }
+  .composer { margin-top: auto; padding-top: var(--space-5); display: flex; gap: var(--space-3); align-items: center; }
+  .composer input { flex: 1; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: var(--border-w) solid var(--border); background: var(--surface); font-size: var(--text-sm); }
+  .composer input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .side { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: 112px; }
+  .prof-section { padding: var(--space-4) 0; border-top: var(--border-w) solid var(--border); }
+  .prof-section:first-child { border-top: 0; padding-top: 0; }
+  .prof-section .eyebrow { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); }
+  .prof-item { font-size: var(--text-sm); padding: var(--space-1) 0; display: flex; gap: var(--space-2); }
+  .prof-item::before { content: "›"; color: var(--text-faint); }
+  .prof-item.added { animation: slide-in var(--dur-slow) var(--ease-out); }
+  .thin { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--warning); }
+  .dots { display: inline-flex; gap: 3px; } .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); } .dots i.on { background: var(--success); }
+  @media (max-width: 980px) { .sia-layout { grid-template-columns: 1fr; } .side { position: static; } }
+</style>
+</head>
+<body data-dir="command" data-screen="interview" data-title="SIA Interview">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="sia-layout">
+        <section class="interview card card-pad">
+          <div class="iv-head">
+            <div class="who"><span class="brand-mark" style="width:30px;height:30px;background:var(--accent)">SIA</span>
+              <div><div style="font-weight:var(--weight-semibold)">Meridian Warehouse Infrastructure</div><div class="faint" style="font-size:var(--text-xs)">Re-interview · append &amp; amend</div></div></div>
+            <span class="ver-chip">v2 → v3</span>
+          </div>
+          <div class="thread" id="thread"></div>
+          <div class="composer"><input id="ci" placeholder="Type the vendor's answer, or press Continue…" aria-label="Vendor answer" /><button class="btn btn-primary" id="send">Continue interview</button></div>
+        </section>
+        <aside class="side">
+          <div class="card card-pad">
+            <div class="panel-head" style="margin-bottom:var(--space-3)"><h2 style="font-size:var(--text-md)">Profile forming</h2><span class="count-pill">v3 draft</span></div>
+            <div class="prof-section"><div class="eyebrow"><span>Capabilities</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+              <div id="caps"><div class="prof-item">Racking up to 12t/bay</div><div class="prof-item">CCTV, networking, electricals</div><div class="prof-item">Facility fit-out, 10k–100k sq ft</div></div></div>
+            <div class="prof-section"><div class="eyebrow"><span>Constraints</span><span class="dots" id="cdots"><i class="on"></i><i class="on"></i><i></i></span></div>
+              <div id="cons"><div class="prof-item">Maharashtra, Gujarat, MP</div><div class="prof-item">Floats materials up to ₹2cr</div><div class="prof-item" id="thin">Cold-chain scope <span class="thin">● not yet pinned</span></div></div></div>
+            <div class="prof-section"><div class="eyebrow"><span>Ideal customer</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+              <div class="prof-item">3PLs, D2C brands &amp; manufacturers building DCs</div></div>
+          </div>
+          <div class="card card-pad" id="cand-wrap" style="display:none"><div class="eyebrow" style="margin-bottom:var(--space-3)">Candidate signal · surfaced live</div><div id="cand"></div></div>
+          <div class="card inset card-pad"><div class="eyebrow" style="margin-bottom:var(--space-2)">Operator co-pilot</div><p class="muted" style="font-size:var(--text-sm)">SIA probes for precision where the profile is thin. Nudge deeper anywhere you see <span class="thin" style="display:inline-flex">● not yet pinned</span> — vague answers make weak leads.</p></div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const thread = document.getElementById("thread");
+  const seed = [
+    { who: "sia", text: "Welcome back. Last time we mapped Meridian's racking, CCTV, networking and electricals across 10k–100k sq ft in Maharashtra. What's changed since v2?" },
+    { who: "vendor", text: "We've started doing cold-storage fit-outs too." },
+    { who: "sia", probe: true, text: "Cold storage — a full refrigeration build, or the ambient scope (insulation, racking, electricals) around a third-party refrigeration vendor?" },
+    { who: "vendor", text: "We handle insulation, racking and electricals. Refrigeration we partner out." },
+  ];
+  const steps = [
+    { sia: "Got it — cold-chain fit-out minus the refrigeration unit. What size band: the same 10k–100k sq ft, or different?", probe: true, reply: "Smaller — 10k to 60k sq ft for cold.", commit: () => { fillThin("Cold-chain fit-out: insulation, racking, electricals (refrigeration partnered)"); addCap("Cold-chain fit-out (ex-refrigeration)"); cdots(); } },
+    { sia: "Which geographies for cold-chain specifically — all of Maharashtra, or a tighter set?", probe: true, reply: "Pune, Mumbai and Nashik for now.", commit: () => addCon("Cold-chain: 10k–60k sq ft · Pune, Mumbai, Nashik") },
+    { sia: "Last one. In your experience, when a company does what — exactly — is when they need cold-chain fit-out?", probe: true, reply: "When they announce a temp-controlled DC, or move into frozen or pharma.", commit: surfaceCandidate },
+  ];
+  let i = 0;
+  function bubble(m) {
+    const av = m.who === "sia" ? "SIA" : "MW";
+    const probe = m.probe ? `<span class="probe-flag">● probing for precision</span>` : "";
+    const nudge = m.who === "sia" && m.probe ? `<div class="nudge"><button>↳ push deeper</button></div>` : "";
+    return `<div class="msg ${m.who}"><span class="av">${av}</span><div><div class="who-line">${m.who==="sia"?"SIA":"Meridian (vendor)"}${probe}</div><div class="bubble">${m.text}</div>${nudge}</div></div>`;
+  }
+  const append = (m) => { thread.insertAdjacentHTML("beforeend", bubble(m)); thread.scrollTop = thread.scrollHeight; };
+  function addCap(t){ const d=document.createElement("div"); d.className="prof-item added"; d.textContent=t; document.getElementById("caps").appendChild(d); }
+  function addCon(t){ const d=document.createElement("div"); d.className="prof-item added"; d.textContent=t; document.getElementById("cons").appendChild(d); }
+  function fillThin(t){ const el=document.getElementById("thin"); if(el){ el.classList.add("added"); el.innerHTML=t; } }
+  function cdots(){ const d=document.getElementById("cdots"); if(d) d.lastElementChild.classList.add("on"); }
+  function surfaceCandidate(){
+    const s = RADAR.signalById("SIG-EXP-COLD-CHAIN");
+    document.getElementById("cand").innerHTML = `<div class="row between" style="margin-bottom:var(--space-2)"><span class="mono" style="font-size:var(--text-sm)">${s.signal_id}</span><span class="badge badge-proposed">proposed</span></div>
+      <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">${s.name}</div><p class="muted" style="font-size:var(--text-xs);margin:var(--space-2) 0">${s.trigger}</p>
+      <p class="faint" style="font-size:var(--text-2xs)">Surfaced from this interview — enters the library as <b>proposed</b> for your approval.</p>
+      <a class="btn btn-ghost btn-sm" href="signals.html" style="margin-top:var(--space-3)">Review in Signals →</a>`;
+    document.getElementById("cand-wrap").style.display = "block";
+    radarToast("Candidate signal surfaced: SIG-EXP-COLD-CHAIN");
+  }
+  function advance(custom) {
+    if (i >= steps.length) { radarToast("Profile updated — ready to save as v3"); document.getElementById("send").textContent = "Save & version v3"; return; }
+    const s = steps[i++];
+    append({ who: "sia", probe: s.probe, text: s.sia });
+    const reply = (custom && custom.trim()) || s.reply;
+    setTimeout(() => { append({ who: "vendor", text: reply }); s.commit && s.commit(); }, 360);
+  }
+  thread.innerHTML = seed.map(bubble).join("");
+  document.getElementById("send").addEventListener("click", () => { const inp = document.getElementById("ci"); advance(inp.value); inp.value = ""; });
+  document.getElementById("ci").addEventListener("keydown", (e) => { if (e.key === "Enter") { advance(e.target.value); e.target.value = ""; } });
+})();
+</script>
+</body>
+</html>

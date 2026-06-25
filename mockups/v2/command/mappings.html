@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Mappings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .mp-split { display: grid; grid-template-columns: 320px 1fr; gap: var(--space-5); align-items: start; }
+  .mp-list { display: flex; flex-direction: column; gap: var(--space-3); position: sticky; top: 112px; align-self: start; }
+  .mp-card { padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); background: var(--surface); cursor: pointer; transition: border-color var(--dur-fast); text-align: left; width: 100%; }
+  .mp-card:hover { border-color: var(--border-strong); }
+  .mp-card[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .mp-card .nm { font-weight: var(--weight-semibold); }
+  .mp-card .sv { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); margin-top: 2px; }
+  .mp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .mp-head h2 { font-size: var(--text-xl); }
+  .mp-sec { padding: var(--space-5) 0; border-bottom: var(--border-w) solid var(--border); }
+  .mp-sec:last-child { border-bottom: 0; }
+  .mp-sec h3 { font-size: var(--text-md); margin-bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-2); }
+  .mp-sec .note { font-size: var(--text-xs); color: var(--text-faint); margin-bottom: var(--space-3); }
+  .sig-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .rules { display: grid; grid-template-columns: 130px 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm); }
+  .rules .k { color: var(--text-muted); }
+  .disq { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: color-mix(in srgb, var(--attention) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--attention) 25%, transparent); font-size: var(--text-sm); margin-bottom: var(--space-2); }
+  .disq svg { width: 14px; height: 14px; color: var(--attention); flex: none; }
+  @media (max-width: 980px) { .mp-split { grid-template-columns: 1fr; } .mp-list { position: static; flex-direction: row; flex-wrap: wrap; } .mp-card { flex: 1; min-width: 220px; } }
+</style>
+</head>
+<body data-dir="command" data-screen="mappings" data-title="Mappings">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="mp-split">
+        <aside class="mp-list" id="list"></aside>
+        <section class="card card-pad" id="editor" aria-live="polite"></section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vshort = (id) => (R.vendors.find((v)=>v.vendor_id===id)||{}).short || id;
+  let selected = R.mappings[0].mapping_id;
+
+  function renderList() {
+    document.getElementById("list").innerHTML = R.mappings.map((m)=>`
+      <button class="mp-card" data-m="${m.mapping_id}" aria-selected="${m.mapping_id===selected}">
+        <div class="row between"><span class="nm">${m.name}</span><span class="badge badge-${m.status}">${m.status}</span></div>
+        <div class="sv">serves ${vshort(m.serves)}</div>
+        <div class="row" style="gap:var(--space-3);margin-top:var(--space-2)"><span class="faint mono" style="font-size:var(--text-2xs)">${m.required.length} required</span><span class="faint mono" style="font-size:var(--text-2xs)">${m.supporting.length} supporting</span></div>
+      </button>`).join("");
+    document.querySelectorAll("[data-m]").forEach((b)=>b.addEventListener("click",()=>{ selected=b.dataset.m; render(); }));
+  }
+  function chip(sid){ const s=R.signalById(sid); return `<a class="tag" href="signals.html" style="text-decoration:none">${s?s.name:sid}</a>`; }
+  function renderEditor() {
+    const m = R.mappings.find((x)=>x.mapping_id===selected);
+    document.getElementById("editor").innerHTML = `
+      <div class="mp-head">
+        <div><div class="mono faint" style="font-size:var(--text-2xs)">${m.mapping_id}</div><h2>${m.name}</h2>
+          <div class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2);max-width:62ch">${m.intent}</div></div>
+        <div class="col" style="gap:var(--space-2);align-items:flex-end"><span class="badge badge-${m.status}">${m.status}</span>
+          <a class="btn btn-ghost btn-sm" href="catalogue.html">View flow graph →</a><button class="btn-ghost btn-sm" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-1) var(--space-3)">Retire</button></div>
+      </div>
+      <div class="mp-sec"><h3>Required signals <span class="count-pill">${m.required.length}</span></h3><div class="note">At least one must fire for the mapping to trigger.</div><div class="sig-chips">${m.required.map(chip).join("")}</div></div>
+      <div class="mp-sec"><h3>Supporting signals <span class="count-pill">${m.supporting.length}</span></h3><div class="note">Each present, fresh supporting signal lifts the lead score.</div><div class="sig-chips">${m.supporting.map(chip).join("")}</div></div>
+      <div class="mp-sec"><h3>Rules</h3><div class="rules">
+        <span class="k">threshold</span><span>${m.threshold}</span>
+        <span class="k">timing</span><span>${m.timing}</span>
+        <span class="k">strength logic</span><span>${m.strength_logic}</span></div></div>
+      <div class="mp-sec"><h3>Disqualifiers</h3><div class="note">Any of these vetoes the match even when the positive cluster is present.</div>
+        ${m.disqualifiers.map((d)=>`<div class="disq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg> ${d}</div>`).join("")}</div>
+      <div class="row" style="gap:var(--space-3);margin-top:var(--space-5)"><button class="btn btn-primary">Edit mapping</button><a class="btn btn-ghost" href="leads.html">See leads from this mapping</a></div>`;
+  }
+  function render(){ renderList(); renderEditor(); }
+  render();
+})();
+</script>
+</body>
+</html>
