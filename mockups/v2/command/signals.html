@@ -31,6 +31,10 @@
   .sig-row[aria-selected="true"] { background: var(--accent-soft); }
   .sig-row .id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
   .sig-row .nm { font-size: var(--text-sm); }
+  /* record-card header: status+strength inline under the title; actions in their own slot */
+  #record .sig-head { align-items: flex-start; }
+  .sig-meta { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3); flex-wrap: wrap; }
+  .sig-actions { display: flex; gap: var(--space-2); flex: none; align-items: flex-start; }
   @media (max-width: 1080px) { .sig-split { grid-template-columns: 1fr; } .sig-left { position: static; } }
 </style>
 </head>
@@ -114,11 +118,18 @@
     const st = statusOf(s);
     document.getElementById("record").innerHTML = `
       <div class="sig-head">
-        <div style="flex:1"><div class="sig-id">${s.signal_id}</div><div class="sig-name">${s.name}</div>
-          ${s.description?`<p class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2);max-width:60ch">${s.description}</p>`:""}</div>
-        <div class="col" style="align-items:flex-end;gap:var(--space-3)"><span class="badge badge-${st}">${st}</span>
-          <span class="strength" data-level="${STR[s.strength]}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">${s.strength.replace("_"," ")}</span></span>
-          ${st==="proposed"?`<div class="ab-actions"><button class="btn-approve btn-sm" data-ap2="${s.signal_id}">Approve</button><button class="btn-ghost btn-sm">Reject</button></div>`:`<button class="btn-ghost btn-sm">Retire</button>`}</div>
+        <div style="flex:1;min-width:0">
+          <div class="sig-id">${s.signal_id}</div>
+          <div class="sig-name">${s.name}</div>
+          <div class="sig-meta">
+            <span class="badge badge-${st}">${st}</span>
+            <span class="strength" data-level="${STR[s.strength]}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">${s.strength.replace("_"," ")}</span></span>
+          </div>
+          ${s.description?`<p class="muted" style="font-size:var(--text-sm);margin-top:var(--space-3);max-width:60ch">${s.description}</p>`:""}
+        </div>
+        <div class="sig-actions">
+          ${st==="proposed"?`<button class="btn-approve btn-sm" data-ap2="${s.signal_id}">Approve</button><button class="btn-ghost btn-sm">Reject</button>`:`<button class="btn-ghost btn-sm">Retire</button>`}
+        </div>
       </div>
       <div class="sig-group"><div class="eyebrow">Identity &amp; meaning</div>${field("family",`<span class="tag">${s.family}</span>`)}${field("entity type",tags([s.entity||"business"]))}${field("polarity",tags([s.polarity||"positive"]))}</div>
       <div class="sig-group"><div class="eyebrow">Detection</div>${field("trigger rule",s.trigger,"The precise observable yes/no rule.")}${field("sources",tags(s.sources))}${field("method",tags([s.method]))}${field("proof captured",s.proof_captured||'<span class="faint">not specified</span>')}${field("recheck",tags([s.recheck]))}</div>
