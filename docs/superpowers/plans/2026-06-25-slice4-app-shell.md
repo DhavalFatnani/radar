@@ -496,10 +496,45 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Create: `src/app/(app)/{dashboard,vendors,signals,mappings,leads,contacts,pipeline}/page.tsx`
-- Modify: `README.md`
+- Modify: `src/app/components/shell/topbar.tsx`, `src/app/(app)/layout.tsx` (review fix: drop the Topbar h1), `README.md`
 
 **Interfaces:**
 - Consumes: `PageHeader`, `EmptyState` (Task 2).
+
+- [ ] **Step 0 (review fix): remove the Topbar's static `<h1>` to avoid a double-h1**
+
+Each page's `PageHeader` provides the single `<h1>`; the rail provides the brand. So the Topbar carries no heading. Rewrite `src/app/components/shell/topbar.tsx`:
+
+```tsx
+import type { ReactNode } from "react";
+import { ModeToggle } from "./mode-toggle";
+
+// Thin action bar — no heading (the page's PageHeader owns the single <h1>,
+// the rail owns the brand).
+export function Topbar({ actions }: { actions?: ReactNode }) {
+  return (
+    <header className="v2-topbar">
+      <div className="v2-actions">
+        <ModeToggle />
+        {actions}
+      </div>
+    </header>
+  );
+}
+```
+
+And in `src/app/(app)/layout.tsx`, drop the `title` prop from the `Topbar` usage (keep the `actions` with the operator email + sign-out):
+
+```tsx
+      <Topbar
+        actions={
+          <>
+            <span className="op-email">{session?.user?.email}</span>
+            {signOutAction}
+          </>
+        }
+      />
+```
 
 - [ ] **Step 1: Create the seven pages**
 
