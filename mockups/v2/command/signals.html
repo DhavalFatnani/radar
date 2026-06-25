@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .sig-split { display: grid; grid-template-columns: minmax(360px, 440px) 1fr; gap: var(--space-5); align-items: start; }
+  .sig-left { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: 112px; align-self: start; }
+  .approve-band { border: var(--border-w) solid color-mix(in srgb, var(--status-proposed) 35%, transparent); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--status-proposed) 7%, var(--surface)); padding: var(--space-4); }
+  .approve-band .ab-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+  .approve-band .ab-head .t { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .ab-item { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-3); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .ab-item + .ab-item { margin-top: var(--space-2); }
+  .ab-item .nm { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .ab-item .id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .ab-actions { display: flex; gap: var(--space-2); }
+  .sig-list { max-height: calc(100vh - 320px); overflow-y: auto; }
+  .sig-row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); cursor: pointer; }
+  .sig-row:hover { background: var(--surface-2); }
+  .sig-row[aria-selected="true"] { background: var(--accent-soft); }
+  .sig-row .id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .sig-row .nm { font-size: var(--text-sm); }
+  @media (max-width: 1080px) { .sig-split { grid-template-columns: 1fr; } .sig-left { position: static; } }
+</style>
+</head>
+<body data-dir="command" data-screen="signals" data-title="Signals">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="sig-split">
+        <aside class="sig-left">
+          <div class="approve-band reveal" id="queue"></div>
+          <div class="card card-pad">
+            <div class="panel-head" style="margin-bottom:var(--space-3)"><h2 style="font-size:var(--text-md)">Signal library</h2><span class="count-pill" id="libcount"></span></div>
+            <div class="filters" id="ffilter" style="margin-bottom:var(--space-2)"></div>
+            <div class="filters" id="sfilter" style="margin-bottom:var(--space-3)"></div>
+            <div class="sig-list" id="list"></div>
+          </div>
+        </aside>
+        <section class="card" id="record" style="overflow:hidden" aria-live="polite"></section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const STR = { low:"low", medium:"medium", high:"high", very_high:"very_high" };
+  let fam = "all", stat = "all", selected = null;
+  const approved = new Set(); // signals approved this session
+
+  function statusOf(s) { return approved.has(s.signal_id) ? "approved" : s.status; }
+
+  function renderQueue() {
+    const proposed = R.signals.filter((s) => statusOf(s) === "proposed");
+    const band = document.getElementById("queue");
+    if (!proposed.length) { band.style.display = "none"; return; }
+    band.style.display = "block";
+    band.innerHTML = `<div class="ab-head"><span class="badge badge-proposed">${proposed.length} need approval</span><span class="t">Clear the gate</span></div>` +
+      proposed.map((s) => `<div class="ab-item"><div><div class="nm">${s.name}</div><div class="id">${s.signal_id} · ${s.family}</div></div>
+        <div class="ab-actions"><button class="btn-approve btn-sm" data-ap="${s.signal_id}">Approve</button><button class="btn-reject btn-sm" data-rj="${s.signal_id}">Reject</button></div></div>`).join("");
+    band.querySelectorAll("[data-ap]").forEach((b)=>b.addEventListener("click",()=>{ approved.add(b.dataset.ap); radarToast(`${b.dataset.ap} approved — now live`); rerender(); }));
+    band.querySelectorAll("[data-rj]").forEach((b)=>b.addEventListener("click",()=>{ approved.delete(b.dataset.rj); radarToast(`${b.dataset.rj} rejected`); rerender(); }));
+  }
+
+  function renderFilters() {
+    const fams = [["all","All"]].concat(R.families.map((f)=>[f,f]));
+    const stats = [["all","All"],["proposed","Proposed"],["approved","Approved"]];
+    document.getElementById("ffilter").innerHTML = `<span class="fchip-label">Family</span>`+fams.map(([v,t])=>`<button class="fchip" data-f="${v}" aria-pressed="${fam===v}">${t}</button>`).join("");
+    document.getElementById("sfilter").innerHTML = `<span class="fchip-label">Status</span>`+stats.map(([v,t])=>`<button class="fchip" data-s="${v}" aria-pressed="${stat===v}">${t}</button>`).join("");
+    document.querySelectorAll("[data-f]").forEach((b)=>b.addEventListener("click",()=>{ fam=b.dataset.f; renderList(); renderFilters(); }));
+    document.querySelectorAll("[data-s]").forEach((b)=>b.addEventListener("click",()=>{ stat=b.dataset.s; renderList(); renderFilters(); }));
+  }
+
+  function renderList() {
+    const rows = R.signals.filter((s)=>(fam==="all"||s.family===fam)&&(stat==="all"||statusOf(s)===stat));
+    document.getElementById("libcount").textContent = `${rows.length}`;
+    document.getElementById("list").innerHTML = rows.map((s)=>{
+      const st = statusOf(s);
+      return `<div class="sig-row" data-sig="${s.signal_id}" aria-selected="${s.signal_id===selected}">
+        <div><div class="nm">${s.name}</div><div class="id">${s.signal_id}</div></div>
+        <div class="row" style="gap:var(--space-2)"><span class="strength" data-level="${STR[s.strength]}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span></span><span class="badge badge-${st}">${st}</span></div></div>`;
+    }).join("");
+    document.querySelectorAll(".sig-row").forEach((r)=>r.addEventListener("click",()=>{ selected=r.dataset.sig; renderList(); renderRecord(); }));
+  }
+
+  function field(k, v, hint) { return `<div class="field"><span class="k">${k}</span><span class="v">${v}${hint?`<span class="hint">${hint}</span>`:""}</span></div>`; }
+  function tags(arr) { return (arr&&arr.length) ? arr.map((t)=>`<span class="tag">${t}</span>`).join("") : `<span class="faint">not specified</span>`; }
+  function renderRecord() {
+    const s = R.signalById(selected) || R.signals.find((x)=>statusOf(x)==="proposed") || R.signals[0];
+    selected = s.signal_id;
+    const st = statusOf(s);
+    document.getElementById("record").innerHTML = `
+      <div class="sig-head">
+        <div style="flex:1"><div class="sig-id">${s.signal_id}</div><div class="sig-name">${s.name}</div>
+          ${s.description?`<p class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2);max-width:60ch">${s.description}</p>`:""}</div>
+        <div class="col" style="align-items:flex-end;gap:var(--space-3)"><span class="badge badge-${st}">${st}</span>
+          <span class="strength" data-level="${STR[s.strength]}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">${s.strength.replace("_"," ")}</span></span>
+          ${st==="proposed"?`<div class="ab-actions"><button class="btn-approve btn-sm" data-ap2="${s.signal_id}">Approve</button><button class="btn-ghost btn-sm">Reject</button></div>`:`<button class="btn-ghost btn-sm">Retire</button>`}</div>
+      </div>
+      <div class="sig-group"><div class="eyebrow">Identity &amp; meaning</div>${field("family",`<span class="tag">${s.family}</span>`)}${field("entity type",tags([s.entity||"business"]))}${field("polarity",tags([s.polarity||"positive"]))}</div>
+      <div class="sig-group"><div class="eyebrow">Detection</div>${field("trigger rule",s.trigger,"The precise observable yes/no rule.")}${field("sources",tags(s.sources))}${field("method",tags([s.method]))}${field("proof captured",s.proof_captured||'<span class="faint">not specified</span>')}${field("recheck",tags([s.recheck]))}</div>
+      <div class="sig-group"><div class="eyebrow">Weighting &amp; quality</div>${field("strength",`<span class="tag">${s.strength}</span>`)}${field("false-positive risk",tags([s.fp_risk]))}${field("freshness window",`<span class="mono">${s.freshness_window} days</span>`)}</div>
+      <div class="sig-group"><div class="eyebrow">Meaning &amp; combination</div>${field("pairs with",tags(s.pairs))}${field("geography",tags(s.geography))}</div>
+      <div class="sig-group"><div class="eyebrow">History &amp; track record</div>${field("origin",s.origin||'<span class="faint">not specified</span>')}${field("added",s.added?`<span class="mono">${R.fmtDate(s.added)}</span>`:'<span class="faint">—</span>')}${field("example",s.example?`<span style="font-style:italic">${s.example}</span>`:'<span class="faint">—</span>')}${field("track record",'<span class="faint">Empty until outcomes accumulate.</span>')}</div>`;
+    const ap2 = document.querySelector("[data-ap2]");
+    if (ap2) ap2.addEventListener("click",()=>{ approved.add(ap2.dataset.ap2); radarToast(`${ap2.dataset.ap2} approved — now live`); rerender(); });
+  }
+
+  function rerender() { renderQueue(); renderList(); renderRecord(); }
+  renderFilters(); rerender();
+  if (window.radarMotion) { radarMotion.wireReveals(document); }
+})();
+</script>
+</body>
+</html>
