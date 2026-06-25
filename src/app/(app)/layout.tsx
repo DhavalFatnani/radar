@@ -23,7 +23,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <AppFrame rail={<Rail />}>
       <Topbar
-        title="Radar"
         actions={
           <>
             <span className="op-email">{session?.user?.email}</span>

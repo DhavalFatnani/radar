@@ -62,6 +62,17 @@
 /* ---- Operator email (topbar) --------------------------------------------- */
 .op-email { color: var(--text-muted); font-size: var(--text-sm); }
 
+/* --- Slice 4: section page header + empty state --- */
+.page-header { padding: 0 0 var(--space-5); }
+.page-header h1 { font-size: var(--text-2xl); letter-spacing: var(--tracking-tight); }
+.empty-state { display: grid; place-items: center; gap: var(--space-3); text-align: center;
+  padding: var(--space-12) var(--space-5); border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg); color: var(--text-muted); }
+.empty-state-icon { width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-faint); }
+.empty-state h2 { font-size: var(--text-lg); color: var(--text); }
+.empty-state p { max-width: 46ch; font-size: var(--text-sm); }
+
 /* responsive */
 .rail-toggle { display: none; }
 @media (max-width: 1080px) { .cmd-split { grid-template-columns: 1fr; } .cmd-list { position: static; max-height: none; } .cmd-bento > .tile, .cmd-bento > .tile.third { grid-column: span 12; } }

@@ -43,6 +43,10 @@ npm run dev                  # http://localhost:3000  (healthcheck: /api/v1/heal
 npm run lint && npm run typecheck && npm test && npm run build
 ```
 
+### App shell (Slice 4)
+
+After signing in, the app has a Command-style rail (Operate: Dashboard/Leads/Pipeline/Contacts · Build: Vendors/Signals/Mappings), a topbar with a light/dark toggle, and a clear empty state per section. Visual system ported from `mockups/` (`tokens.css` + the v2 Command shell).
+
 ### Auth (Slice 3)
 
 Single operator, env-based. Set in `.env.local`:
