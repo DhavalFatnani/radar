@@ -9,6 +9,9 @@ export default defineConfig({
     globals: true,
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./tests/setup/load-env.ts"],
+    // Integration tests share one Neon DB; running files in parallel lets one
+    // file's TRUNCATE ... CASCADE wipe rows another file is using. Run serially.
+    fileParallelism: false,
   },
   resolve: {
     alias: {
