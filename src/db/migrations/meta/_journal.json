@@ -15,6 +15,13 @@
       "when": 1782351183491,
       "tag": "0001_large_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782372788389,
+      "tag": "0002_round_karen_page",
+      "breakpoints": true
     }
   ]
 }
