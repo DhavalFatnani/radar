@@ -51,16 +51,19 @@
   window.radarPaintScores = paintScores;
 
   // ---- Wire everything on a (re)render ----
+  // Idempotent: each element is wired at most once, no matter how many callers
+  // (ui.js DOMContentLoaded, nav.js, per-render radarWire) invoke wire().
   function wire(scope) {
     const el = scope || document;
+    const once = (n) => { if (n.dataset.uiwired) return false; n.dataset.uiwired = "1"; return true; };
 
     // theme / mode segmented controls
-    el.querySelectorAll("[data-set-theme]").forEach((b) => b.addEventListener("click", () => { store.theme = b.dataset.setTheme; applyTheme(); }));
-    el.querySelectorAll("[data-set-mode]").forEach((b) => b.addEventListener("click", () => { store.mode = b.dataset.setMode; applyTheme(); }));
-    el.querySelectorAll("[data-toggle-mode]").forEach((b) => b.addEventListener("click", () => { store.mode = store.mode === "dark" ? "light" : "dark"; applyTheme(); }));
+    el.querySelectorAll("[data-set-theme]").forEach((b) => { if (!once(b)) return; b.addEventListener("click", () => { store.theme = b.dataset.setTheme; applyTheme(); }); });
+    el.querySelectorAll("[data-set-mode]").forEach((b) => { if (!once(b)) return; b.addEventListener("click", () => { store.mode = b.dataset.setMode; applyTheme(); }); });
+    el.querySelectorAll("[data-toggle-mode]").forEach((b) => { if (!once(b)) return; b.addEventListener("click", () => { store.mode = store.mode === "dark" ? "light" : "dark"; applyTheme(); }); });
 
     // approval control — deliberate, confirms with motion, swaps badge
-    el.querySelectorAll("[data-approve]").forEach((btn) => {
+    el.querySelectorAll("[data-approve]").forEach((btn) => { if (!once(btn)) return;
       btn.addEventListener("click", () => {
         if (btn.dataset.done) return;
         btn.dataset.done = "1";
@@ -80,7 +83,7 @@
     });
 
     // toggle controls (bundling mode, outreach mode)
-    el.querySelectorAll("[data-toggle]").forEach((tg) => {
+    el.querySelectorAll("[data-toggle]").forEach((tg) => { if (!once(tg)) return;
       tg.addEventListener("click", () => {
         const on = tg.getAttribute("aria-checked") === "true";
         tg.setAttribute("aria-checked", String(!on));
@@ -90,11 +93,12 @@
       });
     });
 
-    // mobile rail
-    el.querySelectorAll("[data-rail-toggle]").forEach((b) => b.addEventListener("click", () => {
+    // mobile rail (v1 shell only; v2 rail is handled by nav.js. Null-guarded.)
+    el.querySelectorAll("[data-rail-toggle]").forEach((b) => { if (!once(b)) return; b.addEventListener("click", () => {
       const app = document.querySelector(".app");
+      if (!app) return;
       app.dataset.rail = app.dataset.rail === "open" ? "closed" : "open";
-    }));
+    }); });
 
     paintScores(el);
   }

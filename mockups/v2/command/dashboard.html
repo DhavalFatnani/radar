@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="observatory" data-mode="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  /* the dashboard IS the wayfinding — hide the duplicate strip here */
+  .v2-wayslot { display: none; }
+  .day { max-width: 880px; margin: 0 auto; }
+
+  .day-head { padding: var(--space-4) 0 var(--space-6); }
+  .day-head .greet { font-family: var(--font-display); font-size: var(--text-2xl); letter-spacing: -0.02em; }
+  .day-head .summary { color: var(--text-muted); font-size: var(--text-lg); margin-top: var(--space-2); }
+  .day-head .summary b { color: var(--text); font-weight: var(--weight-semibold); }
+
+  .flow-label { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-2) 0 var(--space-4); }
+  .flow-label .eyebrow { color: var(--text-faint); }
+  .flow-label .line { flex: 1; height: 1px; background: var(--border); }
+
+  .day-flow { display: flex; flex-direction: column; gap: var(--space-3); }
+  /* a priority step — readable, one obvious action, ordered top to bottom */
+  .step {
+    display: grid; grid-template-columns: 46px 1fr auto; gap: var(--space-4); align-items: center;
+    padding: var(--space-4) var(--space-5); background: var(--surface);
+    border: var(--border-w) solid var(--border); border-left: 3px solid var(--u, var(--border-strong));
+    border-radius: var(--radius-lg); box-shadow: var(--depth-1);
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), border-color var(--dur-fast);
+  }
+  .step:hover { transform: translateX(2px); box-shadow: var(--depth-2); }
+  .step .num {
+    width: 34px; height: 34px; border-radius: var(--radius-full); display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-md);
+    color: var(--u, var(--text-muted)); background: color-mix(in srgb, var(--u, var(--text-faint)) 14%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--u, var(--text-faint)) 35%, transparent);
+  }
+  .step .body .tag {
+    display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: var(--text-2xs);
+    text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--u, var(--text-muted));
+  }
+  .step .body .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--u, var(--text-faint)); }
+  .step .body .title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 3px 0 2px; }
+  .step .body .fact { color: var(--text-muted); font-size: var(--text-sm); }
+  .step .go { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+  .step .go svg { width: 15px; height: 15px; }
+  .step[data-u="money"]    { --u: var(--attention); }
+  .step[data-u="approval"] { --u: var(--status-proposed); }
+  .step[data-u="hot"]      { --u: var(--strength-vhigh); }
+  .step[data-u="stall"]    { --u: var(--warning); }
+
+  .day-clear { margin-top: var(--space-5); padding: var(--space-4) var(--space-5); border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg); color: var(--text-muted); font-size: var(--text-sm); display: flex; align-items: center; gap: var(--space-3); }
+  .day-clear svg { width: 18px; height: 18px; color: var(--success); flex: none; }
+
+  /* quiet at-a-glance numbers (secondary) */
+  .day-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-top: var(--space-7); }
+  .stat { padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); transition: border-color var(--dur-fast); }
+  .stat:hover { border-color: var(--border-strong); }
+  .stat .v { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-xl); }
+  .stat .v.money { color: var(--money); }
+  .stat .l { font-size: var(--text-xs); color: var(--text-faint); margin-top: 2px; }
+  @media (max-width: 720px) { .day-stats { grid-template-columns: repeat(2, 1fr); } .step { grid-template-columns: 40px 1fr; } .step .go { grid-column: 2; justify-self: start; margin-top: var(--space-2); } }
+</style>
+</head>
+<body data-dir="command" data-screen="dashboard" data-title="Dashboard">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="day">
+        <header class="day-head">
+          <div class="greet">Your operating day</div>
+          <div class="summary" id="summary"></div>
+        </header>
+        <div class="flow-label"><span class="eyebrow">do this, in order</span><span class="line"></span></div>
+        <div class="day-flow" id="flow"></div>
+        <div class="day-clear" id="clear-note" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Queue clear — interview a vendor to grow the signal library. <a href="interview.html" style="color:var(--accent)">Start an interview →</a></span>
+        </div>
+        <div class="day-stats" id="stats"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  // Build the priority flow from real data, ordered by stakes.
+  const steps = [];
+  const missed = (R.commissions || []).filter((c) => c.status === "missed");
+  if (missed.length) steps.push({ u: "money", tag: "money at risk", title: `Recover ${missed[0].company}'s missed payment`,
+    fact: `Recurring commission of ${missed[0].amount} went unpaid (due ${R.fmtDate(missed[0].next)}). Chase it before it ages.`, cta: "Recover", href: "pipeline.html" });
+
+  const proposed = R.signals.filter((s) => s.status === "proposed");
+  if (proposed.length) steps.push({ u: "approval", tag: "approval gate", title: `Clear ${proposed.length} signal${proposed.length>1?"s":""} from the queue`,
+    fact: `${proposed.map((s)=>s.name).join(", ")} — surfaced from interviews, waiting to go live.`, cta: "Review", href: "signals.html" });
+
+  const hot = R.leads.filter((l) => l.heat === "hot" && (l.stage === "sourced" || l.stage === "contacted")).sort((a,b)=>b.score-a.score);
+  if (hot.length) steps.push({ u: "hot", tag: "hot & cooling", title: `Act on ${hot.length} hot lead${hot.length>1?"s":""} before they cool`,
+    fact: `${hot.map((l)=>`${l.company} (${l.score})`).join(", ")} — top-scored and not yet worked.`, cta: "Open leads", href: "leads.html" });
+
+  const stalls = R.leads.filter((l) => ["contacted","pitched","engaged"].includes(l.stage) && R.daysAgo(l.created) >= 14)
+    .sort((a,b)=>R.daysAgo(b.created)-R.daysAgo(a.created));
+  if (stalls.length) { const s = stalls[0]; steps.push({ u: "stall", tag: "stalling", title: `Unstick ${s.company}`,
+    fact: `Sitting in “${s.stage}” for ${R.daysAgo(s.created)} days. A nudge now keeps it alive.`, cta: "Nudge", href: "pipeline.html" }); }
+
+  document.getElementById("summary").innerHTML = steps.length
+    ? `<b>${steps.length} things</b> need you today. Here's the order.`
+    : `You're all caught up. Nothing urgent.`;
+
+  document.getElementById("flow").innerHTML = steps.map((s, i) => `
+    <div class="step reveal" data-u="${s.u}" data-stagger>
+      <div class="num">${i + 1}</div>
+      <div class="body"><span class="tag">${s.tag}</span><div class="title">${s.title}</div><div class="fact">${s.fact}</div></div>
+      <a class="btn btn-primary go" href="${s.href}">${s.cta} ${arrow}</a>
+    </div>`).join("");
+  if (!steps.length) document.getElementById("clear-note").style.display = "flex";
+
+  // quiet at-a-glance numbers
+  const dueTotal = 225000; const hotCount = R.leads.filter((l)=>l.heat==="hot").length;
+  const stats = [
+    { v: "2,25,000", l: "commission due", money: true, prefix: "₹", group: true, n: 225000 },
+    { v: hotCount, l: "hot leads", n: hotCount, href: "leads.html" },
+    { v: proposed.length, l: "pending approvals", n: proposed.length, href: "signals.html" },
+    { v: R.leads.length, l: "active leads", n: R.leads.length, href: "pipeline.html" },
+  ];
+  document.getElementById("stats").innerHTML = stats.map((s) => `
+    <a class="stat" ${s.href?`href="${s.href}"`:""} style="display:block">
+      <div class="v ${s.money?"money":""} count" data-count="${s.n}" ${s.prefix?`data-prefix="${s.prefix}"`:""} ${s.group?'data-group="1"':""}>0</div>
+      <div class="l">${s.l}</div></a>`).join("");
+
+  if (window.radarMotion) { radarMotion.wireReveals(document); radarMotion.countUp(document); }
+})();
+</script>
+</body>
+</html>
