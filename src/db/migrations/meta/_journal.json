@@ -57,6 +57,13 @@
       "when": 1782374360466,
       "tag": "0007_yellow_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1782375651798,
+      "tag": "0008_living_maggott",
+      "breakpoints": true
     }
   ]
 }

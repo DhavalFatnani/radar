@@ -21,9 +21,6 @@ export const pipelineStage = pgEnum("pipeline_stage", [
 ]);
 export const outreachMode = pgEnum("outreach_mode", ["operator_handles", "handed_to_vendor"]);
 
-// Commission (§4.7)
-export const commissionType = pgEnum("commission_type", ["one_time", "recurring"]);
-
 // Catalogue (§4.6)
 export const catalogueNodeType = pgEnum("catalogue_node_type", [
   "vendor", "capability", "sub_capability", "geography", "project_size_range",

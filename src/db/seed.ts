@@ -1,21 +1,19 @@
 import { config } from "dotenv";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema from "./schema";
 import {
   companies, signalDefinitions, signalObservations, mappings,
   vendorProfiles, leads, catalogueNodes, catalogueEdges, contacts, projects,
 } from "./schema";
+import type { DB } from "./client";
 
-config({ path: ".env.local" });
-
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL is required for db:seed");
-
-const client = postgres(url, { prepare: false });
-const db = drizzle(client);
-
-// Inserts one representative row per table, respecting FK order. Idempotent on a clean DB.
-export async function seed() {
+/**
+ * Inserts one representative row per table, respecting FK order.
+ * The caller owns the connection lifecycle — this function does NOT
+ * create or close any connection.
+ */
+export async function seed(db: DB) {
   const [company] = await db.insert(companies)
     .values({ name: "Acme Logistics", description: "3PL operator expanding capacity" }).returning();
 
@@ -66,8 +64,6 @@ export async function seed() {
     commissionTerms: { type: "one_time", rate_or_amount: "3%" },
   }).returning();
 
-  await client.end();
-
   return {
     company, definition, observation, mapping, vendor, lead,
     vendorNode, capNode, edge, contact, project,
@@ -76,8 +72,15 @@ export async function seed() {
 
 // Allow `npm run db:seed` to execute directly.
 if (process.argv[1] && process.argv[1].endsWith("seed.ts")) {
-  seed().then((r) => {
+  config({ path: ".env.local" });
+  const url = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
+  if (!url) throw new Error("DATABASE_URL is required for db:seed");
+  const client = postgres(url, { prepare: false, max: 1 });
+  const db = drizzle(client, { schema });
+  seed(db).then((r) => {
     console.log("Seeded:", Object.keys(r).join(", "));
+    return client.end();
+  }).then(() => {
     process.exit(0);
   }).catch((e) => {
     console.error(e);

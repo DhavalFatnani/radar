@@ -36,4 +36,9 @@ describe("parseEnv", () => {
       /Invalid environment variables/,
     );
   });
+
+  it("treats an empty NODE_ENV as the default", () => {
+    const env = parseEnv({ NODE_ENV: "", DATABASE_URL: "postgresql://u:p@host/db?sslmode=require" });
+    expect(env.NODE_ENV).toBe("development");
+  });
 });
