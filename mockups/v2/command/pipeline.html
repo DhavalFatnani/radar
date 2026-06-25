@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .pipe-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-5); }
+  .pstat { padding: var(--space-4) var(--space-5); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--depth-1); }
+  .pstat .l { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--text-faint); }
+  .pstat .v { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-xl); margin-top: var(--space-1); }
+  .pstat .s { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+  .pstat.alert { border-color: color-mix(in srgb, var(--attention) 40%, transparent); background: color-mix(in srgb, var(--attention) 7%, var(--surface)); }
+  .pstat.alert .v { color: var(--attention); }
+  .pstat.money .v { color: var(--money); }
+
+  .pipe-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+  .pipe-board { display: flex; gap: var(--space-3); overflow-x: auto; padding-bottom: var(--space-4); }
+  .pcol { min-width: 236px; width: 236px; flex: none; display: flex; flex-direction: column; gap: var(--space-2); }
+  .pcol-head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3);
+    border-top: 2px solid var(--sc, var(--border-strong)); background: var(--surface-2); border-radius: var(--radius-sm); }
+  .pcol-head .nm { font-size: var(--text-sm); font-weight: var(--weight-semibold); text-transform: capitalize; }
+  .pcol-head .ct { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .plead { padding: var(--space-3); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--depth-1);
+    transition: transform var(--dur-fast), box-shadow var(--dur-fast); display: block; }
+  .plead:hover { transform: translateY(-2px); box-shadow: var(--depth-2); }
+  .plead .ph { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+  .plead .co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .plead .vn { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); margin-top: 2px; }
+  .plead .comm { margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px dashed var(--border); font-family: var(--font-mono); font-size: var(--text-2xs); display: flex; justify-content: space-between; }
+  .plead .comm .amt { color: var(--money); font-weight: var(--weight-semibold); }
+  .plead .comm .amt.miss { color: var(--attention); }
+  .pcol-empty { font-size: var(--text-2xs); color: var(--text-faint); font-family: var(--font-mono); padding: var(--space-3); text-align: center; border: 1px dashed var(--border); border-radius: var(--radius-md); }
+  @media (max-width: 720px) { .pipe-stats { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-dir="command" data-screen="pipeline" data-title="Pipeline">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="pipe-stats reveal" data-stagger id="pstats"></div>
+      <div class="pipe-toolbar">
+        <div class="filters" id="vfilter"></div>
+        <div class="toggle" role="switch" aria-checked="false" tabindex="0" data-toggle data-on="Vendor runs outreach" data-off="Operator runs outreach" data-toast-on="Outreach: vendor" data-toast-off="Outreach: operator">
+          <span class="switch"></span><span class="labels"><span class="state">Operator runs outreach</span><span class="desc">default outreach mode</span></span>
+        </div>
+      </div>
+      <div class="pipe-board" id="board"></div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vshort = (id) => (R.vendors.find((v) => v.vendor_id === id) || {}).short || "";
+  const commByLead = {}; (R.commissions || []).forEach((c) => { commByLead[c.lead_id] = c; });
+  let vendor = "all";
+
+  // commission summary
+  const due = (R.commissions||[]).filter((c)=>c.status==="due"||c.status==="cycle_due");
+  const missed = (R.commissions||[]).find((c)=>c.status==="missed");
+  const nextCycle = (R.commissions||[]).find((c)=>c.status==="cycle_due");
+  document.getElementById("pstats").innerHTML = `
+    <div class="pstat money"><div class="l">commission due</div><div class="v count" data-count="225000" data-prefix="₹" data-group="1">0</div><div class="s">${due.length} deals awaiting payout</div></div>
+    <div class="pstat"><div class="l">next recurring cycle</div><div class="v">${nextCycle?R.fmtDate(nextCycle.next):"—"}</div><div class="s">${nextCycle?nextCycle.company+" · "+nextCycle.amount:"none upcoming"}</div></div>
+    <div class="pstat ${missed?"alert":""}"><div class="l">missed cycles</div><div class="v">${missed?1:0}</div><div class="s">${missed?missed.company+" overdue — recover it":"all on time"}</div></div>`;
+
+  // vendor filter
+  const vendors=[["all","All vendors"]].concat(R.vendors.map((v)=>[v.vendor_id,v.short]));
+  document.getElementById("vfilter").innerHTML = `<span class="fchip-label">Vendor</span>`+vendors.map(([val,txt])=>`<button class="fchip" data-v="${val}" aria-pressed="${vendor===val}">${txt}</button>`).join("");
+  document.querySelectorAll("[data-v]").forEach((b)=>b.addEventListener("click",()=>{ vendor=b.dataset.v; document.querySelectorAll("[data-v]").forEach((x)=>x.setAttribute("aria-pressed",String(x.dataset.v===vendor))); renderBoard(); }));
+
+  function leadCard(l) {
+    const c = commByLead[l.lead_id];
+    const comm = (c && ["won","delivered","paid"].includes(l.stage)) ? `<div class="comm"><span>${c.type==="recurring"?"recurring":"one-time"}</span><span class="amt ${c.status==="missed"?"miss":""}">${c.amount}</span></div>` : "";
+    return `<a class="plead" href="leads.html"><div class="ph"><div><div class="co">${l.company}</div><div class="vn">${vshort(l.vendor_id)}</div></div><span class="score-pill" data-heat="${l.heat}">${l.score}</span></div>${comm}</a>`;
+  }
+  function renderBoard() {
+    const ls = R.leads.filter((l)=>vendor==="all"||l.vendor_id===vendor);
+    const board = document.getElementById("board");
+    board.innerHTML = R.stages.map((st) => {
+      const inCol = ls.filter((l)=>l.stage===st);
+      const cards = inCol.length ? inCol.map(leadCard).join("") : `<div class="pcol-empty">—</div>`;
+      return `<div class="pcol" style="--sc:var(--stage-${st})"><div class="pcol-head"><span class="nm">${st}</span><span class="ct">${inCol.length}</span></div>${cards}</div>`;
+    }).join("");
+    if (window.radarPaintScores) radarPaintScores(board);
+  }
+  renderBoard();
+  if (window.radarMotion) { radarMotion.wireReveals(document); radarMotion.countUp(document); }
+})();
+</script>
+</body>
+</html>
