@@ -61,7 +61,7 @@
   .day-clear svg { width: 18px; height: 18px; color: var(--success); flex: none; }
 
   /* quiet at-a-glance numbers (secondary) */
-  .day-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-top: var(--space-7); }
+  .day-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-top: var(--space-7); }
   .stat { padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); transition: border-color var(--dur-fast); }
   .stat:hover { border-color: var(--border-strong); }
   .stat .v { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-xl); }
