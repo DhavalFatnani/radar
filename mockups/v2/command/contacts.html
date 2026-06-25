@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .ct-split { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-5); align-items: start; }
+  .ct-search { width: 100%; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: var(--border-w) solid var(--border); background: var(--surface); font-size: var(--text-sm); margin-bottom: var(--space-3); }
+  .ct-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .ct-filters { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+  .ct-panel { position: sticky; top: 112px; }
+  .ct-warm { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: var(--text-2xs); }
+  .ct-warm.warm { color: var(--success); } .ct-warm.cold { color: var(--text-faint); }
+  .ct-warm::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  tr.sel td { background: var(--accent-soft); }
+  @media (max-width: 980px) { .ct-split { grid-template-columns: 1fr; } .ct-panel { position: static; } }
+</style>
+</head>
+<body data-dir="command" data-screen="contacts" data-title="Contacts">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="ct-split">
+        <div>
+          <div class="panel-head"><h2 id="ct-count">Contacts</h2><span class="count-pill">deduplicated</span></div>
+          <input class="ct-search" id="search" placeholder="Search name, role, company, geography, vendor…" aria-label="Search contacts" />
+          <div class="ct-filters">
+            <div class="filters" id="warmf"></div>
+            <div class="filters" id="vendf"></div>
+          </div>
+          <div class="card" style="overflow:hidden">
+            <table class="tbl"><thead><tr><th>Contact</th><th>Company</th><th>Warm path</th><th>Best path</th></tr></thead><tbody id="rows"></tbody></table>
+          </div>
+        </div>
+        <aside class="ct-panel card card-pad" id="panel"></aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vname = (id) => (R.vendors.find((v)=>v.vendor_id===id)||{}).name || id;
+  const vshort = (id) => (R.vendors.find((v)=>v.vendor_id===id)||{}).short || "";
+  // aggregate every decision-maker into the contact book
+  const contacts = [];
+  R.leads.forEach((l) => (l.contacts||[]).forEach((dm) => contacts.push({ ...dm, company: l.company, does: l.does, geo: l.geo, vendorId: l.vendor_id, source: `first found on ${l.company}`, leadId: l.lead_id })));
+  let q = "", warm = "all", vendor = "all", selected = contacts[0] && contacts[0].name;
+
+  function bestPath(dm) { const p = (dm.paths||[]).find((x)=>x.val); return p ? `${p.type}: ${p.val}` : "needs enrichment"; }
+  function match(c) {
+    const hay = `${c.name} ${c.role} ${c.company} ${c.does} ${c.geo} ${vshort(c.vendorId)} ${c.source}`.toLowerCase();
+    const w = (c.warm||{}).status==="warm" ? "warm" : "cold";
+    return hay.includes(q) && (warm==="all"||warm===w) && (vendor==="all"||c.vendorId===vendor);
+  }
+
+  function renderFilters() {
+    document.getElementById("warmf").innerHTML = `<span class="fchip-label">Warm path</span>`+[["all","All"],["warm","Warm"],["cold","Cold"]].map(([v,t])=>`<button class="fchip" data-w="${v}" aria-pressed="${warm===v}">${t}</button>`).join("");
+    const vends=[["all","All vendors"]].concat(R.vendors.map((v)=>[v.vendor_id,v.short]));
+    document.getElementById("vendf").innerHTML = `<span class="fchip-label">Vendor</span>`+vends.map(([v,t])=>`<button class="fchip" data-vv="${v}" aria-pressed="${vendor===v}">${t}</button>`).join("");
+    document.querySelectorAll("[data-w]").forEach((b)=>b.addEventListener("click",()=>{ warm=b.dataset.w; render(); }));
+    document.querySelectorAll("[data-vv]").forEach((b)=>b.addEventListener("click",()=>{ vendor=b.dataset.vv; render(); }));
+  }
+
+  function renderRows() {
+    const list = contacts.filter(match);
+    document.getElementById("ct-count").textContent = `${list.length} unique contact${list.length!==1?"s":""}`;
+    document.getElementById("rows").innerHTML = list.map((c)=>{
+      const w = (c.warm||{}).status==="warm"?"warm":"cold";
+      return `<tr data-name="${c.name}" class="${c.name===selected?"sel":""}"><td><div style="font-weight:var(--weight-semibold)">${c.name}</div><div class="faint" style="font-size:var(--text-xs)">${c.role}</div></td>
+        <td>${c.company}<div class="faint mono" style="font-size:var(--text-2xs)">${vshort(c.vendorId)}</div></td>
+        <td><span class="ct-warm ${w}">${w}</span></td>
+        <td class="mono" style="font-size:var(--text-2xs)">${bestPath(c)}</td></tr>`;
+    }).join("");
+    document.querySelectorAll("#rows tr").forEach((r)=>r.addEventListener("click",()=>{ selected=r.dataset.name; render(); }));
+  }
+
+  function renderPanel() {
+    const c = contacts.filter(match).find((x)=>x.name===selected) || contacts.filter(match)[0];
+    const panel = document.getElementById("panel");
+    if (!c) { panel.innerHTML = `<div class="empty"><h3>No contacts match</h3><p>Clear the search or filters.</p></div>`; return; }
+    selected = c.name;
+    const warm = c.warm||{status:"cold"};
+    const paths = (c.paths||[]).map((p)=>!p.val?`<div class="path missing"><span class="type">${p.type}</span><span class="val">not found</span><span class="needs">needs enrichment</span></div>`:`<div class="path"><span class="type">${p.type}</span><span class="val">${p.val}</span><span class="conf">${p.conf}${p.source?" · "+p.source:""}</span></div>`).join("");
+    const warmHTML = warm.status==="warm"?`<div class="warm-path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> Warm path · ${warm.detail}</div>`:`<div class="warm-path cold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6.5C19 16.65 12 21 12 21z"/></svg> No warm path yet</div>`;
+    panel.innerHTML = `<div class="dm" style="border:0;padding:0">
+        <div class="dm-head"><span class="dm-name">${c.name}</span><span class="dm-role">${c.role}</span></div>
+        <div class="why">${c.why||""}</div><div class="paths">${paths}</div>${warmHTML}</div>
+      <hr class="hr"/>
+      <div class="eyebrow" style="margin-bottom:var(--space-2)">Provenance</div>
+      <div class="field"><span class="k">company</span><span class="v">${c.company} · ${c.geo}</span></div>
+      <div class="field"><span class="k">vendor</span><span class="v">${vname(c.vendorId)}</span></div>
+      <div class="field"><span class="k">source</span><span class="v">${c.source}</span></div>
+      <a class="btn btn-ghost btn-sm" href="leads.html" style="margin-top:var(--space-3)">Open lead →</a>`;
+  }
+
+  function render() { renderFilters(); renderRows(); renderPanel(); }
+  document.getElementById("search").addEventListener("input",(e)=>{ q=e.target.value.toLowerCase().trim(); render(); });
+  render();
+})();
+</script>
+</body>
+</html>
