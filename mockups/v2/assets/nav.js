@@ -43,19 +43,17 @@
         return `<a class="nav-item" href="${id}.html" ${id===screen?'aria-current="page"':""}>${ic(id)}<span>${label}</span>${badge}</a>`;
       }).join("")
     }</div>`).join("");
-    return `<a class="brand" href="../index.html"><span class="brand-mark">R</span><span class="brand-name">Radar<small>${dir}</small></span></a>
+    return `<a class="brand" href="dashboard.html"><span class="brand-mark">R</span><span class="brand-name">Radar<small>lead intelligence</small></span></a>
       <nav class="nav">${nav}</nav>
-      <div class="rail-foot"><a class="nav-item" href="../index.html">${ic("catalogue")}<span>All directions</span></a></div>`;
+      <div class="rail-foot"><div class="nav-item" style="cursor:default"><span class="brand-mark" style="width:24px;height:24px;font-size:11px;background:var(--surface-inset);color:var(--text-muted)">OP</span><span style="font-size:var(--text-sm)">Operator</span></div></div>`;
   }
 
   function topbarHTML() {
-    const dirs = [["command","Command"],["spatial","Spatial"],["focus","Focus"]];
     return `
       <button class="icon-btn rail-toggle" data-rail-toggle aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
       <button class="cmdk-trigger" data-cmdk-open><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Search or jump to…</span><span class="spacer"></span><kbd>⌘K</kbd></button>
       <h1 class="v2-title">${title}</h1>
       <div class="v2-actions">
-        <div class="dir-switch" role="group" aria-label="Direction">${dirs.map(([d,l])=>`<button data-dir-go="${d}" aria-pressed="${d===dir}">${l}</button>`).join("")}</div>
         <div class="seg" role="group" aria-label="Theme">${[["slate","Slate"],["paper","Paper"],["observatory","Obs"]].map(([t,l])=>`<button data-set-theme="${t}">${l}</button>`).join("")}</div>
         <button class="icon-btn" data-toggle-mode aria-label="Light/dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       </div>`;
