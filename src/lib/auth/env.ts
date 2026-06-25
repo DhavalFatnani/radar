@@ -1,8 +1,9 @@
 import { z } from "zod";
 
-// Auth env is validated HERE (not in src/lib/env.ts) so the DB layer and its
-// tests stay decoupled from auth config. Evaluated only when the Node NextAuth
-// instance (./index.ts) is imported — app runtime/build, never the unit tests.
+// Auth env validated HERE (not src/lib/env.ts). No module-level singleton —
+// the Node NextAuth instance (./index.ts) calls parseAuthEnv(process.env) at
+// load. Unit tests import parseAuthEnv directly with explicit objects, so they
+// need no AUTH_SECRET/OPERATOR_* set.
 const authEnvSchema = z.object({
   AUTH_SECRET: z.string().min(1),
   OPERATOR_EMAIL: z.string().email(),
@@ -21,15 +22,3 @@ export function parseAuthEnv(source: NodeJS.ProcessEnv | Record<string, unknown>
   }
   return result.data;
 }
-
-// Lazy singleton — only validated on first access so the module can be imported
-// (e.g. for parseAuthEnv) without auth env vars present (unit tests, DB-only code).
-let _authEnv: AuthEnv | undefined;
-export const authEnv: AuthEnv = new Proxy({} as AuthEnv, {
-  get(_target, prop) {
-    if (!_authEnv) {
-      _authEnv = parseAuthEnv(process.env);
-    }
-    return _authEnv[prop as keyof AuthEnv];
-  },
-});
