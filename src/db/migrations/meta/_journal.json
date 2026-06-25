@@ -50,6 +50,13 @@
       "when": 1782374110238,
       "tag": "0006_confused_tomas",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782374360466,
+      "tag": "0007_yellow_firelord",
+      "breakpoints": true
     }
   ]
 }
