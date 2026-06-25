@@ -59,6 +59,9 @@
 .cmd-row .vendor { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
 .cmd-row .right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
 
+/* ---- Operator email (topbar) --------------------------------------------- */
+.op-email { color: var(--text-muted); font-size: var(--text-sm); }
+
 /* responsive */
 .rail-toggle { display: none; }
 @media (max-width: 1080px) { .cmd-split { grid-template-columns: 1fr; } .cmd-list { position: static; max-height: none; } .cmd-bento > .tile, .cmd-bento > .tile.third { grid-column: span 12; } }
