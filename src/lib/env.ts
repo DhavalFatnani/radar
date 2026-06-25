@@ -7,9 +7,12 @@ const envSchema = z.object({
     emptyToUndefined,
     z.enum(["development", "test", "production"]).default("development"),
   ),
-  // Slice 1: Neon connection string is wired but optional (no DB usage yet).
-  // Slice 2 (data layer) tightens this to required.
-  DATABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+  // Slice 2: the data layer requires a Postgres connection string (pooled, app runtime).
+  DATABASE_URL: z.preprocess(emptyToUndefined, z.string().url()),
+  // Direct (unpooled) connection — used by drizzle-kit for migrations. Falls back to DATABASE_URL.
+  DIRECT_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+  // Dedicated test database (a Neon branch). Falls back to DIRECT_URL/DATABASE_URL.
+  TEST_DATABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
 });
 
 export type Env = z.infer<typeof envSchema>;

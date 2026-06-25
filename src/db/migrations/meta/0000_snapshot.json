@@ -1,0 +1,175 @@
+{
+  "id": "97ce06ae-e306-4db5-89cd-398a642704b4",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.companies": {
+      "name": "companies",
+      "schema": "",
+      "columns": {
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile": {
+          "name": "profile",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.catalogue_node_type": {
+      "name": "catalogue_node_type",
+      "schema": "public",
+      "values": [
+        "vendor",
+        "capability",
+        "sub_capability",
+        "geography",
+        "project_size_range"
+      ]
+    },
+    "public.commission_type": {
+      "name": "commission_type",
+      "schema": "public",
+      "values": [
+        "one_time",
+        "recurring"
+      ]
+    },
+    "public.detection_method": {
+      "name": "detection_method",
+      "schema": "public",
+      "values": [
+        "structured_query",
+        "api_field",
+        "keyword_match",
+        "ai_classification",
+        "combination"
+      ]
+    },
+    "public.entity_type": {
+      "name": "entity_type",
+      "schema": "public",
+      "values": [
+        "business",
+        "individual",
+        "both"
+      ]
+    },
+    "public.false_positive_risk": {
+      "name": "false_positive_risk",
+      "schema": "public",
+      "values": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "public.lifecycle_status": {
+      "name": "lifecycle_status",
+      "schema": "public",
+      "values": [
+        "proposed",
+        "approved",
+        "retired"
+      ]
+    },
+    "public.outreach_mode": {
+      "name": "outreach_mode",
+      "schema": "public",
+      "values": [
+        "operator_handles",
+        "handed_to_vendor"
+      ]
+    },
+    "public.pipeline_stage": {
+      "name": "pipeline_stage",
+      "schema": "public",
+      "values": [
+        "sourced",
+        "contacted",
+        "engaged",
+        "pitched",
+        "won",
+        "lost",
+        "delivered",
+        "paid"
+      ]
+    },
+    "public.signal_family": {
+      "name": "signal_family",
+      "schema": "public",
+      "values": [
+        "hiring",
+        "procurement",
+        "money",
+        "expansion",
+        "leadership",
+        "digital"
+      ]
+    },
+    "public.signal_polarity": {
+      "name": "signal_polarity",
+      "schema": "public",
+      "values": [
+        "positive",
+        "negative",
+        "contextual"
+      ]
+    },
+    "public.signal_strength": {
+      "name": "signal_strength",
+      "schema": "public",
+      "values": [
+        "low",
+        "medium",
+        "high",
+        "very_high"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
