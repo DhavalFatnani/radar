@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Catalogue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .cat-toolbar { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); flex-wrap: wrap; }
+  .cat-layout { display: grid; grid-template-columns: 1fr 320px; gap: var(--space-4); align-items: start; }
+  .graph-wrap { height: min(72vh, 680px); }
+  .cat-panel { position: sticky; top: 112px; }
+  .cat-panel h3 { font-size: var(--text-md); margin-bottom: var(--space-2); }
+  .cat-panel .lead-in { color: var(--text-muted); font-size: var(--text-sm); }
+  .node-detail .nd-type { font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--accent); }
+  .node-detail .nd-name { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin: 2px 0 var(--space-2); }
+  .insight { display: flex; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-3); }
+  .insight svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+  @media (max-width: 980px) { .cat-layout { grid-template-columns: 1fr; } .cat-panel { position: static; } .graph-wrap { height: 60vh; } }
+</style>
+</head>
+<body data-dir="command" data-screen="catalogue" data-title="Catalogue">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="cat-toolbar">
+        <div class="seg" role="group" aria-label="Graph view">
+          <button data-mode="catalogue" aria-pressed="true">Catalogue network</button>
+          <button data-mode="flow" aria-pressed="false">Mapping flow</button>
+        </div>
+        <div class="filters" id="mapsel" style="display:none"></div>
+        <span class="faint" style="font-size:var(--text-xs);margin-left:auto">drag to pan · scroll to zoom · hover a node to trace its links</span>
+      </div>
+      <div class="cat-layout">
+        <div class="graph-wrap" id="gwrap">
+          <svg id="graph" role="img" aria-label="Catalogue graph"></svg>
+          <div class="graph-legend" id="legend"></div>
+          <div class="graph-zoom"><button data-z="in" aria-label="Zoom in">+</button><button data-z="out" aria-label="Zoom out">−</button><button data-z="reset" aria-label="Reset">⤢</button></div>
+        </div>
+        <aside class="cat-panel card card-pad" id="panel"></aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/graph.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const svg = document.getElementById("graph");
+  let mode = "catalogue", mappingId = R.mappings[0].mapping_id, ctrl = null;
+
+  const legends = {
+    catalogue: [["vendor","var(--accent)"],["capability","var(--stage-engaged)"],["geography","var(--fresh-recent)"],["gap · unmet","var(--strength-high)"]],
+    flow: [["signal","var(--strength-high)"],["mapping","var(--accent)"],["vendor","var(--accent)"],["disqualifier","var(--attention)"]],
+  };
+  function setLegend() { document.getElementById("legend").innerHTML = legends[mode].map(([t,c])=>`<span class="k" style="--c:${c}">${t}</span>`).join(""); }
+
+  const intros = {
+    catalogue: `<h3>The vendor network</h3><p class="lead-in">Every vendor, capability and geography as one connected surface — so a single client need can be matched across the whole network at once.</p>
+      <div class="insight"><svg viewBox="0 0 24 24" fill="none" stroke="var(--fresh-recent)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span><b>Maharashtra</b> is shared by both vendors — a cross-network play in one region.</span></div>
+      <div class="insight"><svg viewBox="0 0 24 24" fill="none" stroke="var(--strength-high)" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>Gaps</b> (pulsing) are real needs from the holding pool that no current vendor fits — who to recruit next.</span></div>
+      <p class="lead-in" style="margin-top:var(--space-4)">Click any node to inspect it.</p>`,
+    flow: `<h3>How a mapping fires</h3><p class="lead-in">Signals flow into a mapping; if the threshold is met and no disqualifier vetoes, it fires a scored lead for the vendor.</p>
+      <div class="insight"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><span><b>Solid bold</b> edges are <b>required</b> signals (≥1 must fire). Thin edges are supporting. The <b>dashed red</b> edge is the disqualifier veto.</span></div>
+      <p class="lead-in" style="margin-top:var(--space-4)">Hover a signal to trace its contribution.</p>`,
+  };
+  function showIntro() { document.getElementById("panel").innerHTML = intros[mode]; }
+
+  function onSelect(n) {
+    const detail = (() => {
+      if (n.type === "vendor") { const v = R.vendors.find((x)=>x.vendor_id===n.id); return v ? `<p class="lead-in">${v.capability}</p><div class="insight"><span>Serves: ${v.geographies.join(", ")} · ${v.size}. ${v.leads_active} active leads.</span></div>` : ""; }
+      if (n.type === "geography") return `<p class="lead-in">A geography node. ${n.sub==="shared region"?"Covered by more than one vendor — a multi-vendor opportunity in this region.":"Covered by one vendor."}</p>`;
+      if (n.type === "capability") return `<p class="lead-in">A capability offered in the network. Hover to see which vendor provides it.</p>`;
+      if (String(n.id).startsWith("gap")) return `<div class="insight"><span>An unmet need captured in the holding pool — no current vendor fits. A target for reverse vendor-sourcing.</span></div>`;
+      if (n.type === "signal" && mode==="flow") { const s = R.signalById(n.id) || R.signalById(n.id.replace("_s","")); return s ? `<p class="lead-in">${s.trigger}</p><div class="insight"><span>${n.sub} signal · strength ${s.strength}.</span></div>` : `<p class="lead-in">${n.sub} signal.</p>`; }
+      if (n.id === "map") { const m = R.mappings.find((x)=>x.mapping_id===mappingId); return `<p class="lead-in">${m.intent}</p>`; }
+      return `<p class="lead-in">${n.sub||""}</p>`;
+    })();
+    document.getElementById("panel").innerHTML = `<div class="node-detail"><div class="nd-type">${n.type}</div><div class="nd-name">${n.label}</div>${detail}</div>`;
+  }
+
+  function draw() {
+    const model = mode === "catalogue" ? radarGraph.catalogueModel() : radarGraph.mappingFlowModel(mappingId);
+    ctrl = radarGraph.render(svg, model, { onSelect });
+    setLegend(); showIntro();
+  }
+
+  document.querySelectorAll("[data-mode]").forEach((b)=>b.addEventListener("click",()=>{
+    mode = b.dataset.mode;
+    document.querySelectorAll("[data-mode]").forEach((x)=>x.setAttribute("aria-pressed",String(x.dataset.mode===mode)));
+    document.getElementById("mapsel").style.display = mode==="flow" ? "flex" : "none";
+    draw();
+  }));
+  // mapping selector (flow mode)
+  document.getElementById("mapsel").innerHTML = `<span class="fchip-label">Mapping</span>`+R.mappings.map((m)=>`<button class="fchip" data-map="${m.mapping_id}" aria-pressed="${m.mapping_id===mappingId}">${m.name}</button>`).join("");
+  document.querySelectorAll("[data-map]").forEach((b)=>b.addEventListener("click",()=>{ mappingId=b.dataset.map; document.querySelectorAll("[data-map]").forEach((x)=>x.setAttribute("aria-pressed",String(x.dataset.map===mappingId))); draw(); }));
+  document.querySelectorAll("[data-z]").forEach((b)=>b.addEventListener("click",()=>{ if(!ctrl)return; if(b.dataset.z==="in")ctrl.zoomIn(); else if(b.dataset.z==="out")ctrl.zoomOut(); else ctrl.reset(); }));
+
+  draw();
+})();
+</script>
+</body>
+</html>

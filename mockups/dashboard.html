@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* LAYOUT ONLY — every color via var(--token) */
+  .cockpit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
+  .panel { display: flex; flex-direction: column; }
+  .panel-body { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  /* What's hot — clickable lead cards */
+  .hot { display: flex; flex-direction: column; gap: var(--space-2); }
+  .hot-card {
+    display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); width: 100%; text-align: left;
+    padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border);
+    border-radius: var(--radius-md); background: var(--surface); transition: all var(--dur-fast) var(--ease-out);
+  }
+  .hot-card:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .hot-co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .hot-does { color: var(--text-muted); font-size: var(--text-xs); margin-top: 1px; }
+  .hot-vendor { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); margin-top: var(--space-2); display: inline-block; }
+  .hot-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+  .hot-proof { grid-column: 1 / -1; margin-top: var(--space-1); }
+
+  /* Approval rows */
+  .appr-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--space-3); align-items: center;
+    padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .appr-id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .appr-name { font-size: var(--text-sm); font-weight: var(--weight-medium); }
+  .appr-name .sub { display: block; color: var(--text-muted); font-size: var(--text-2xs); font-weight: var(--weight-regular); }
+
+  /* Stalling rows */
+  .stall-row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center;
+    padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .stall-co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .stall-does { color: var(--text-muted); font-size: var(--text-xs); margin-top: 1px; }
+  .stall-right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+  .stall-age { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+
+  /* Money rows */
+  .money-row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center;
+    padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .money-co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .money-meta { color: var(--text-muted); font-size: var(--text-xs); margin-top: 1px; }
+  .money-amt { font-family: var(--font-mono); font-weight: var(--weight-semibold); font-size: var(--text-md); color: var(--money); white-space: nowrap; }
+  .money-amt.missed { color: var(--attention); }
+  .money-next { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); margin-top: 2px; text-align: right; }
+
+  @media (max-width: 880px) { .cockpit { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-screen="dashboard" data-title="Dashboard">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="cockpit">
+        <!-- 1) WHAT'S HOT -->
+        <section class="card card-pad panel">
+          <div class="panel-head">
+            <h2>What's hot</h2>
+            <span class="count-pill" id="hot-count">0</span>
+          </div>
+          <div class="hot" id="hot"></div>
+        </section>
+
+        <!-- 2) WHAT NEEDS APPROVAL -->
+        <section class="card card-pad panel">
+          <div class="panel-head">
+            <h2>What needs approval</h2>
+            <span class="count-pill" id="appr-count">0</span>
+          </div>
+          <div class="panel-body" id="appr"></div>
+        </section>
+
+        <!-- 3) WHAT'S STALLING -->
+        <section class="card card-pad panel">
+          <div class="panel-head">
+            <h2>What's stalling</h2>
+            <span class="count-pill" id="stall-count">0</span>
+          </div>
+          <div class="panel-body" id="stall"></div>
+        </section>
+
+        <!-- 4) MONEY -->
+        <section class="card card-pad panel">
+          <div class="panel-head">
+            <h2>Money</h2>
+            <span class="count-pill" id="money-count">0</span>
+          </div>
+          <div class="panel-body" id="money"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const vendorShort = (id) => (R.vendors.find((v) => v.vendor_id === id) || {}).short || "";
+  const tick = `<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></span>`;
+
+  // ---- 1) WHAT'S HOT: top 3 leads by score, freshest proof line each ----
+  function freshestProof(l) {
+    const list = (l.why_now || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+    return list[0];
+  }
+  function proofLine(p) {
+    const sig = R.signalById(p.sig) || {};
+    const verdict = R.freshness(p.date, sig.freshness_window || p.window || 180);
+    return `
+      <div class="proof hot-proof">
+        ${tick}
+        <div>
+          <div class="claim">${p.claim}</div>
+          <div class="receipt" data-fresh="${verdict}">
+            <span class="mono">${R.fmtDate(p.date)}</span><span class="dot">·</span>
+            <span class="ago">${R.ago(p.date)}</span><span class="dot">·</span>
+            <span class="src">${p.source}</span><span class="dot">·</span>
+            <span class="mono faint">${p.sig}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+  function renderHot() {
+    const hot = R.leads.slice().sort((a, b) => b.score - a.score).slice(0, 3);
+    document.getElementById("hot-count").textContent = `top ${hot.length}`;
+    const scope = document.getElementById("hot");
+    if (!hot.length) {
+      scope.innerHTML = `<div class="empty"><h3>No hot leads yet</h3><p>New score-sorted leads will surface here as signals fire.</p></div>`;
+      return;
+    }
+    scope.innerHTML = hot.map((l) => {
+      const p = freshestProof(l);
+      return `
+        <a class="hot-card" href="leads.html" aria-label="${l.company} — open in leads">
+          <div>
+            <div class="hot-co">${l.company}</div>
+            <div class="hot-does">${l.does} · ${l.geo}</div>
+            <span class="hot-vendor">${vendorShort(l.vendor_id)}</span>
+          </div>
+          <div class="hot-right">
+            <span class="score-pill" data-heat="${l.heat}">${l.score}</span>
+          </div>
+          ${p ? proofLine(p) : ""}
+        </a>`;
+    }).join("");
+  }
+
+  // ---- 2) WHAT NEEDS APPROVAL: proposed signals ----
+  function renderApproval() {
+    const proposed = R.signals.filter((s) => s.status === "proposed");
+    document.getElementById("appr-count").textContent = `${proposed.length} proposed`;
+    const scope = document.getElementById("appr");
+    if (!proposed.length) {
+      scope.innerHTML = `<div class="empty"><h3>Approval queue clear</h3><p>No proposed signals waiting on your review.</p></div>`;
+      return;
+    }
+    scope.innerHTML = proposed.map((s) => `
+      <div class="appr-row">
+        <span class="appr-id mono">${s.signal_id}</span>
+        <span class="appr-name">${s.name}<span class="sub">${s.family} · serves ${s.serves}</span></span>
+        <span class="strength" data-level="${s.strength}">
+          <span class="strength-bars"><i></i><i></i><i></i><i></i></span>
+          <span class="lvl">${s.strength.replace("_", " ")}</span>
+        </span>
+        <span class="row" style="gap:var(--space-2)">
+          <span class="badge badge-proposed" id="badge-${s.signal_id}">proposed</span>
+          <button class="btn btn-approve btn-sm" data-approve="badge-${s.signal_id}" data-label="${s.name} approved">Approve</button>
+        </span>
+      </div>`).join("");
+    radarWire(scope);
+    radarPaintScores(scope);
+  }
+
+  // ---- 3) WHAT'S STALLING: leads in pitched/contacted, N days in stage ----
+  function renderStalling() {
+    const stalled = R.leads
+      .filter((l) => l.stage === "pitched" || l.stage === "contacted")
+      .sort((a, b) => R.daysAgo(b.created) - R.daysAgo(a.created))
+      .slice(0, 2);
+    document.getElementById("stall-count").textContent = `${stalled.length} aging`;
+    const scope = document.getElementById("stall");
+    if (!stalled.length) {
+      scope.innerHTML = `<div class="empty"><h3>Nothing stalling</h3><p>No leads aging in contacted or pitched.</p></div>`;
+      return;
+    }
+    scope.innerHTML = stalled.map((l) => {
+      const days = R.daysAgo(l.created);
+      return `
+        <a class="stall-row" href="leads.html" aria-label="${l.company} — open in leads">
+          <div>
+            <div class="stall-co">${l.company}</div>
+            <div class="stall-does">${l.does} · ${l.geo}</div>
+          </div>
+          <div class="stall-right">
+            <span class="stage" data-stage="${l.stage}"><span>${l.stage}</span></span>
+            <span class="stall-age mono">${days} day${days !== 1 ? "s" : ""} in stage</span>
+          </div>
+        </a>`;
+    }).join("");
+  }
+
+  // ---- 4) MONEY: due, recurring cycle due, missed ----
+  function renderMoney() {
+    const c = R.commissions;
+    document.getElementById("money-count").textContent = `${c.length} items`;
+    const labels = { due: "commission due", cycle_due: "recurring cycle due", missed: "missed payment" };
+    const scope = document.getElementById("money");
+    if (!c.length) {
+      scope.innerHTML = `<div class="empty"><h3>No money to chase</h3><p>Commissions due, recurring cycles, and missed payments will appear here.</p></div>`;
+      return;
+    }
+    scope.innerHTML = c.map((m) => {
+      const missed = m.status === "missed";
+      const next = m.next ? `<div class="money-next mono">${m.status === "cycle_due" ? "next " : "was due "}${R.fmtDate(m.next)}</div>` : "";
+      return `
+        <div class="money-row">
+          <div>
+            <div class="money-co">${m.company}</div>
+            <div class="money-meta">${labels[m.status] || m.status} · ${m.vendor} · ${m.type === "recurring" ? "recurring" : "one-time"}</div>
+          </div>
+          <div>
+            <div class="money-amt${missed ? " missed" : ""}">${m.amount}</div>
+            ${next}
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function render() {
+    renderHot();
+    renderApproval();
+    renderStalling();
+    renderMoney();
+    // wire injected hot-card score pills + any controls in the cockpit
+    const cockpit = document.querySelector(".cockpit");
+    radarPaintScores(cockpit);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

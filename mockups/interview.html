@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — SIA Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  .sia-layout { display: grid; grid-template-columns: 1fr minmax(320px, 380px); gap: var(--space-5); align-items: start; }
+  .interview { display: flex; flex-direction: column; min-height: calc(100vh - 120px); }
+  .iv-head { display:flex; align-items:center; gap:var(--space-3); justify-content:space-between; margin-bottom: var(--space-5); }
+  .iv-head .who { display:flex; align-items:center; gap:var(--space-3); }
+  .iv-head .who .v { font-weight: var(--weight-semibold); }
+  .ver-chip { font-family:var(--font-mono); font-size:var(--text-2xs); color:var(--accent); background:var(--accent-soft); padding:1px var(--space-2); border-radius:var(--radius-full); }
+  .thread { display:flex; flex-direction:column; gap:var(--space-4); padding-right: var(--space-2); }
+  .msg { display:grid; grid-template-columns: 28px 1fr; gap: var(--space-3); }
+  .msg .av { width:28px;height:28px;border-radius:var(--radius-md);display:grid;place-items:center;font-family:var(--font-mono);font-size:var(--text-2xs);font-weight:var(--weight-bold);flex:none; }
+  .msg.sia .av { background:var(--accent); color:var(--accent-contrast); }
+  .msg.vendor .av { background:var(--surface-inset); color:var(--text-muted); }
+  .msg .who-line { font-size:var(--text-2xs); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--text-faint); margin-bottom: 3px; }
+  .msg .bubble { font-size:var(--text-md); line-height:var(--leading-normal); }
+  .msg.sia .bubble { color: var(--text); }
+  .msg.vendor .bubble { color: var(--text-muted); }
+  .probe-flag { display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--warning); background:var(--status-proposed-bg); padding:1px var(--space-2); border-radius:var(--radius-sm); margin-left: var(--space-2); }
+  .nudge { margin-top: var(--space-2); }
+  .nudge button { font-size:var(--text-xs); color:var(--accent); font-family:var(--font-mono); }
+  .nudge button:hover { text-decoration: underline; }
+  .composer { margin-top: auto; padding-top: var(--space-5); display:flex; gap:var(--space-3); align-items:center; }
+  .composer input { flex:1; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border:var(--border-w) solid var(--border); background: var(--surface); font-size: var(--text-sm); }
+  .composer input:focus-visible { border-color: var(--accent); outline:none; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .typing { display:inline-flex; gap:3px; align-items:center; color:var(--text-faint); font-size:var(--text-xs); font-family:var(--font-mono); }
+  .typing i { width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite; }
+  .typing i:nth-child(2){animation-delay:.2s} .typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  @media (prefers-reduced-motion: reduce){ .typing i{animation:none} }
+
+  .side { display:flex; flex-direction:column; gap:var(--space-4); position: sticky; top: calc(56px + var(--space-6)); }
+  .prof-section { padding: var(--space-4) 0; border-top: var(--border-w) solid var(--border); }
+  .prof-section:first-child { border-top: 0; padding-top: 0; }
+  .prof-section .eyebrow { display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-3); }
+  .prof-item { font-size: var(--text-sm); padding: var(--space-1) 0; display:flex; gap:var(--space-2); }
+  .prof-item::before { content:"›"; color: var(--text-faint); }
+  .prof-item.added { animation: profIn var(--dur-slow) var(--ease-out); }
+  @keyframes profIn { from { opacity:0; transform: translateX(-6px); } to { opacity:1; transform:none; } }
+  .thin { display:inline-flex; align-items:center; gap:4px; font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--warning); }
+  .dots { display:inline-flex; gap:3px; }
+  .dots i { width:6px;height:6px;border-radius:50%;background:var(--border-strong); }
+  .dots i.on { background: var(--success); }
+  @media (max-width: 980px){ .sia-layout{ grid-template-columns:1fr; } .side{ position:static; } }
+</style>
+</head>
+<body data-screen="interview" data-title="SIA Interview">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="sia-layout">
+        <!-- conversational surface -->
+        <section class="interview card card-pad">
+          <div class="iv-head">
+            <div class="who">
+              <span class="brand-mark" style="width:30px;height:30px;background:var(--accent)">SIA</span>
+              <div>
+                <div class="v">Meridian Warehouse Infrastructure</div>
+                <div class="faint" style="font-size:var(--text-xs)">Re-interview · append &amp; amend</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="ver-chip">v2 → v3</span>
+              <button class="btn btn-ghost btn-sm">Existing profile</button>
+            </div>
+          </div>
+          <div class="thread" id="thread"></div>
+          <div class="composer">
+            <input id="composer-input" placeholder="Type the vendor's answer, or press Continue…" aria-label="Vendor answer" />
+            <button class="btn btn-primary" id="send">Continue interview</button>
+          </div>
+        </section>
+
+        <!-- forming structure + candidate signals + guidance -->
+        <aside class="side">
+          <div class="card card-pad">
+            <div class="panel-head" style="margin-bottom:var(--space-3)"><h2 style="font-size:var(--text-md)">Profile forming</h2><span class="count-pill" id="prof-prog">v3 draft</span></div>
+            <div class="prof-section">
+              <div class="eyebrow"><span>Capabilities</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+              <div id="caps">
+                <div class="prof-item">Racking up to 12t/bay</div>
+                <div class="prof-item">CCTV, networking, electricals</div>
+                <div class="prof-item">Facility fit-out, 10k–100k sq ft</div>
+              </div>
+            </div>
+            <div class="prof-section">
+              <div class="eyebrow"><span>Constraints</span><span class="dots" id="con-dots"><i class="on"></i><i class="on"></i><i></i></span></div>
+              <div id="cons">
+                <div class="prof-item">Maharashtra, Gujarat, MP</div>
+                <div class="prof-item">Can float materials up to ₹2cr</div>
+                <div class="prof-item" id="thin-cold">Cold-chain scope <span class="thin">● not yet pinned</span></div>
+              </div>
+            </div>
+            <div class="prof-section">
+              <div class="eyebrow"><span>Ideal customer</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+              <div class="prof-item">3PLs, D2C brands &amp; manufacturers building DCs</div>
+            </div>
+          </div>
+
+          <div class="card card-pad" id="candidate-wrap" style="display:none">
+            <div class="eyebrow" style="margin-bottom:var(--space-3)">Candidate signal · surfaced live</div>
+            <div id="candidate"></div>
+          </div>
+
+          <div class="card inset card-pad">
+            <div class="eyebrow" style="margin-bottom:var(--space-2)">Operator co-pilot</div>
+            <p class="muted" style="font-size:var(--text-sm)">SIA is probing for precision where the profile is thin. Nudge deeper anywhere you see <span class="thin" style="display:inline-flex">● not yet pinned</span> — vague answers make weak leads.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const thread = document.getElementById("thread");
+  // pre-seeded mid-interview exchange
+  const seed = [
+    { who: "sia", text: "Welcome back. Last time we mapped Meridian's racking, CCTV, networking and electricals across 10k–100k sq ft in Maharashtra. What's changed since v2?" },
+    { who: "vendor", text: "We've started doing cold-storage fit-outs too." },
+    { who: "sia", probe: true, text: "Cold storage — a full refrigeration build, or the ambient scope (insulation, racking, electricals) around a third-party refrigeration vendor?" },
+    { who: "vendor", text: "We handle insulation, racking and electricals. Refrigeration we partner out." },
+  ];
+
+  // remaining scripted steps the operator advances through
+  const steps = [
+    { sia: "Got it — so cold-chain fit-out minus the refrigeration unit itself. What size band for cold-chain: the same 10k–100k sq ft, or different?", probe: true,
+      reply: "Smaller — 10k to 60k sq ft for cold.",
+      commit: () => { fillThin("Cold-chain fit-out: insulation, racking, electricals (refrigeration partnered)"); addCap("Cold-chain fit-out (ex-refrigeration)"); setConDots(); } },
+    { sia: "Which geographies for cold-chain specifically — all of Maharashtra, or a tighter set?", probe: true,
+      reply: "Pune, Mumbai and Nashik for now.",
+      commit: () => { addCon("Cold-chain: 10k–60k sq ft · Pune, Mumbai, Nashik"); } },
+    { sia: "Last one. In your experience, when a company does what — exactly — is when they need cold-chain fit-out?", probe: true,
+      reply: "When they announce a temp-controlled DC, or move into frozen or pharma.",
+      commit: () => { surfaceCandidate(); } },
+  ];
+  let i = 0;
+
+  function bubble(m) {
+    const av = m.who === "sia" ? "SIA" : "MW";
+    const probe = m.probe ? `<span class="probe-flag">● probing for precision</span>` : "";
+    const nudge = m.probe ? `<div class="nudge"><button>↳ push deeper</button></div>` : "";
+    return `<div class="msg ${m.who}">
+      <span class="av">${av}</span>
+      <div><div class="who-line">${m.who === "sia" ? "SIA" : "Meridian (vendor)"}${probe}</div>
+      <div class="bubble">${m.text}</div>${m.who === "sia" ? nudge : ""}</div></div>`;
+  }
+  function render() { thread.innerHTML = seed.map(bubble).join(""); }
+  function append(m) { thread.insertAdjacentHTML("beforeend", bubble(m)); thread.scrollTop = thread.scrollHeight; }
+
+  function addCap(text) { const d = document.createElement("div"); d.className = "prof-item added"; d.textContent = text; document.getElementById("caps").appendChild(d); }
+  function addCon(text) { const d = document.createElement("div"); d.className = "prof-item added"; d.textContent = text; document.getElementById("cons").appendChild(d); }
+  function fillThin(text) { const el = document.getElementById("thin-cold"); if (el) { el.classList.add("added"); el.innerHTML = text; } }
+  function setConDots() { const dots = document.getElementById("con-dots"); if (dots) dots.lastElementChild.classList.add("on"); }
+  function surfaceCandidate() {
+    const sig = RADAR.signalById("SIG-EXP-COLD-CHAIN");
+    const wrap = document.getElementById("candidate-wrap");
+    document.getElementById("candidate").innerHTML = `
+      <div class="row between" style="margin-bottom:var(--space-2)">
+        <span class="mono" style="font-size:var(--text-sm)">${sig.signal_id}</span>
+        <span class="badge badge-proposed">proposed</span>
+      </div>
+      <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">${sig.name}</div>
+      <p class="muted" style="font-size:var(--text-xs);margin:var(--space-2) 0">${sig.trigger}</p>
+      <p class="faint" style="font-size:var(--text-2xs)">Surfaced from this interview — enters the library as <b>proposed</b> for your approval.</p>
+      <a class="btn btn-ghost btn-sm" href="signals.html" style="margin-top:var(--space-3)">Review in Signals →</a>`;
+    wrap.style.display = "block";
+    wrap.classList.add("badge"); wrap.classList.remove("badge");
+    radarToast("Candidate signal surfaced: SIG-EXP-COLD-CHAIN");
+  }
+
+  function advance(customReply) {
+    if (i >= steps.length) {
+      radarToast("Profile updated — ready to save as v3");
+      document.getElementById("send").textContent = "Save & version v3";
+      return;
+    }
+    const s = steps[i++];
+    append({ who: "sia", probe: s.probe, text: s.sia });
+    const reply = (customReply && customReply.trim()) || s.reply;
+    setTimeout(() => { append({ who: "vendor", text: reply }); s.commit && s.commit(); radarWire(thread); }, 350);
+  }
+
+  render();
+  document.getElementById("send").addEventListener("click", () => {
+    const inp = document.getElementById("composer-input");
+    advance(inp.value); inp.value = "";
+  });
+  document.getElementById("composer-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { advance(e.target.value); e.target.value = ""; }
+  });
+})();
+</script>
+</body>
+</html>

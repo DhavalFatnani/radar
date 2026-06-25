@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Holding pool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* screen-specific LAYOUT only — all colors via var(--token) */
+  .hold-intro { max-width: 64ch; margin-bottom: var(--space-6); }
+  .hold-intro p { color: var(--text-muted); font-size: var(--text-md); line-height: var(--leading-normal); margin-top: var(--space-2); }
+  .hold-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-5); }
+
+  .hold-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--space-4); align-items: start; }
+  .hold-card { display: flex; flex-direction: column; gap: var(--space-4); }
+  .hold-card .co h3 { font-size: var(--text-lg); letter-spacing: -0.01em; }
+  .hold-card .co .does { color: var(--text-muted); font-size: var(--text-sm); margin-top: 2px; }
+
+  /* the REASON it is held — the key, prominent field */
+  .hold-reason {
+    border-left: 2px solid var(--accent);
+    background: var(--surface-2);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: var(--space-3) var(--space-4);
+  }
+  .hold-reason .eyebrow { margin-bottom: var(--space-2); }
+  .hold-reason p { font-size: var(--text-md); color: var(--text); line-height: var(--leading-snug); }
+
+  .hold-source { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .hold-source .dot { color: var(--text-faint); }
+
+  .hold-foot { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding-top: var(--space-4); border-top: var(--border-w) solid var(--border); margin-top: auto; }
+  .hold-foot .future { color: var(--text-faint); }
+
+  @media (max-width: 560px) { .hold-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-screen="holding" data-title="Holding pool">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="hold-intro">
+        <span class="eyebrow">Holding pool</span>
+        <p>Good leads that no current vendor can fulfil — captured the moment they surface, so nothing is lost.
+           Reverse vendor-sourcing comes later; for now Radar holds them, with the reason, until a fit exists.</p>
+      </div>
+
+      <div class="hold-toolbar">
+        <div class="filters" id="filters"></div>
+        <div class="toggle" role="switch" aria-checked="false" tabindex="0" id="empty-demo" data-toggle
+             data-on="Empty-state preview" data-off="Showing pool"
+             data-toast-on="Previewing the empty pool" data-toast-off="Showing the holding pool">
+          <span class="switch"></span>
+          <span class="labels"><span class="state">Showing pool</span><span class="desc">demo empty state</span></span>
+        </div>
+      </div>
+
+      <div class="panel-head" style="margin-bottom:var(--space-4)">
+        <span class="eyebrow" id="hold-count">held</span>
+        <span class="eyebrow">no current vendor fit</span>
+      </div>
+
+      <div id="pool"></div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  const sigName = (id) => (R.signalById(id) || {}).name || id;
+  const sigFamily = (id) => (R.signalById(id) || {}).family || "other";
+
+  // family of the source signal becomes the filter axis
+  const familiesInPool = [...new Set(R.holding.map((h) => sigFamily(h.signal)))];
+
+  let state = { family: "all", emptyDemo: false };
+
+  function filtered() {
+    return R.holding.filter((h) => state.family === "all" || sigFamily(h.signal) === state.family);
+  }
+
+  function renderFilters() {
+    const opts = [["all", "All reasons"]].concat(familiesInPool.map((f) => [f, f]));
+    const filters = document.getElementById("filters");
+    filters.innerHTML =
+      `<span class="fchip-label">Source</span>` +
+      opts.map(([val, txt]) =>
+        `<button class="fchip" data-fval="${val}" aria-pressed="${state.family === val}">${txt}</button>`).join("");
+    filters.querySelectorAll("[data-fval]").forEach((b) =>
+      b.addEventListener("click", () => { state.family = b.dataset.fval; render(); }));
+  }
+
+  function emptyState() {
+    return `
+      <div class="empty">
+        <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M3 7h18M3 12h18M3 17h18"/>
+        </svg>
+        <h3>The pool is clear</h3>
+        <p>Every captured lead currently maps to a vendor. New leads with no fit will land here automatically — with the reason attached.</p>
+      </div>`;
+  }
+
+  function card(h) {
+    return `
+      <article class="card card-pad hold-card">
+        <div class="co">
+          <h3>${h.company}</h3>
+          <div class="does">${h.does}</div>
+        </div>
+
+        <div class="hold-reason">
+          <div class="eyebrow">Why it's held</div>
+          <p>${h.reason}</p>
+        </div>
+
+        <div class="hold-source">
+          <span class="tag">${h.signal}</span>
+          <span>${sigName(h.signal)}</span>
+          <span class="dot">·</span>
+          <span class="ago">${R.ago(h.date)}</span>
+        </div>
+
+        <div class="hold-foot">
+          <button class="btn btn-ghost" disabled aria-disabled="true" title="Reverse vendor-sourcing comes later">
+            Source a vendor for this
+          </button>
+          <span class="eyebrow future">future</span>
+        </div>
+      </article>`;
+  }
+
+  function renderPool() {
+    const list = filtered();
+    const countEl = document.getElementById("hold-count");
+    const pool = document.getElementById("pool");
+
+    if (state.emptyDemo || list.length === 0) {
+      countEl.textContent = state.emptyDemo ? "empty preview" : "0 held";
+      pool.innerHTML = emptyState();
+      return;
+    }
+
+    countEl.textContent = `${list.length} held`;
+    pool.innerHTML = `<div class="hold-grid">${list.map(card).join("")}</div>`;
+  }
+
+  function render() {
+    renderFilters();
+    renderPool();
+    // scope wiring to the freshly-injected regions only, so static controls
+    // (the toggle) aren't re-bound on every re-render
+    radarWire(document.getElementById("pool"));
+    radarPaintScores(document.getElementById("pool"));
+  }
+
+  render();
+
+  // the empty-state demo toggle: ui.js flips its visual state (aria/label/toast)
+  // via [data-toggle]; this listener flips the actual visible set. Wired once.
+  radarWire(document.querySelector(".hold-toolbar"));
+  document.getElementById("empty-demo").addEventListener("click", () => {
+    state.emptyDemo = !state.emptyDemo;
+    renderPool();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+/* ============================================================================
+   Radar v2 — Direction A: COMMAND CENTER
+   Dense operator cockpit. Compact rail, command-bar topbar, three-zone work
+   surfaces (rail -> list -> live inspector), bento dashboards. Crisp depth,
+   no glass. Loaded after tokens.css + base.css + components.css + v2.css.
+   ========================================================================== */
+
+.v2-app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+.v2-rail {
+  position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+  background: var(--surface); border-right: var(--border-w) solid var(--border);
+  display: flex; flex-direction: column; padding: var(--space-4) var(--space-3); z-index: var(--z-rail);
+}
+.v2-rail .brand { padding: var(--space-2) var(--space-2) var(--space-5); }
+.v2-rail .brand-name small { text-transform: uppercase; }
+
+.v2-main { min-width: 0; display: flex; flex-direction: column; }
+.v2-topbar {
+  position: sticky; top: 0; z-index: var(--z-header); display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: blur(10px);
+  border-bottom: var(--border-w) solid var(--border);
+}
+.v2-topbar .v2-title { font-size: var(--text-lg); font-weight: var(--weight-semibold); margin-left: var(--space-2); }
+.v2-topbar .cmdk-trigger { min-width: 200px; }
+.v2-actions { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+.v2-wayslot { padding: var(--space-3) var(--space-5) 0; }
+.v2-content { padding: var(--space-5); max-width: var(--content-max); width: 100%; }
+
+/* ---- Direction primitive: three-zone (list -> inspector) ---------------- */
+.cmd-split { display: grid; grid-template-columns: minmax(320px, 380px) 1fr; gap: var(--space-5); align-items: start; }
+.cmd-zone-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
+.cmd-zone-head .eyebrow { color: var(--text-faint); }
+.cmd-list { display: flex; flex-direction: column; gap: var(--space-2); position: sticky; top: calc(112px); max-height: calc(100vh - 150px); overflow-y: auto; padding-right: 2px; }
+.cmd-inspector { min-width: 0; }
+
+/* ---- Bento dashboard grid ----------------------------------------------- */
+.cmd-bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-4); }
+.cmd-bento > .tile { grid-column: span 6; }
+.cmd-bento > .tile.wide { grid-column: span 12; }
+.cmd-bento > .tile.third { grid-column: span 4; }
+.tile { background: var(--surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); box-shadow: var(--depth-1); }
+.tile .tile-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+.tile .tile-head h3 { font-size: var(--text-md); }
+.tile .metric { font-family: var(--font-mono); font-weight: var(--weight-bold); font-size: var(--text-3xl); line-height: 1; }
+
+/* ---- Command-center row (work list item) -------------------------------- */
+.cmd-row {
+  display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); width: 100%; text-align: left;
+  padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
+}
+.cmd-row:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.cmd-row[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--glow-soft); }
+.cmd-row .co { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.cmd-row .sub { color: var(--text-muted); font-size: var(--text-xs); margin-top: 1px; }
+.cmd-row .tags { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.cmd-row .vendor { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+.cmd-row .right { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+
+/* responsive */
+.rail-toggle { display: none; }
+@media (max-width: 1080px) { .cmd-split { grid-template-columns: 1fr; } .cmd-list { position: static; max-height: none; } .cmd-bento > .tile, .cmd-bento > .tile.third { grid-column: span 12; } }
+@media (max-width: 880px) {
+  .v2-app { grid-template-columns: 1fr; }
+  .v2-rail { position: fixed; left: 0; top: 0; width: min(80vw, 240px); transform: translateX(-100%); transition: transform var(--dur-base) var(--ease-out); box-shadow: var(--depth-3); }
+  .v2-app[data-rail-open] .v2-rail { transform: none; }
+  .rail-toggle { display: grid; }
+  .v2-content { padding: var(--space-4); overflow-x: hidden; }
+  /* topbar must fit a phone: ⌘K collapses to an icon, theme seg hides (mode toggle stays), title truncates */
+  .v2-topbar { padding: var(--space-3) var(--space-4); gap: var(--space-2); }
+  .v2-topbar .cmdk-trigger { min-width: 0; width: 40px; padding: var(--space-2); justify-content: center; flex: none; }
+  .v2-topbar .cmdk-trigger span, .v2-topbar .cmdk-trigger kbd { display: none; }
+  .v2-title { font-size: var(--text-md); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 0; }
+  .v2-actions { margin-left: 0; }
+  .v2-actions .seg { display: none; }
+  /* wayfinding wraps instead of overflowing */
+  .v2-wayslot { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .v2-wayslot .wayfind { flex-wrap: wrap; }
+  .v2-wayslot .wayfind .go { margin-left: 0; }
+}

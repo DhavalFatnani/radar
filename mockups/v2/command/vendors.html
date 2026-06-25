@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Vendors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/tokens.css" />
+<link rel="stylesheet" href="../../assets/base.css" />
+<link rel="stylesheet" href="../../assets/components.css" />
+<link rel="stylesheet" href="../assets/v2.css" />
+<link rel="stylesheet" href="../assets/command.css" />
+<style>
+  .vn-split { display: grid; grid-template-columns: 320px 1fr; gap: var(--space-5); align-items: start; }
+  .vn-list { display: flex; flex-direction: column; gap: var(--space-3); position: sticky; top: 112px; align-self: start; }
+  .vn-card { padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); background: var(--surface); cursor: pointer; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); text-align: left; width: 100%; }
+  .vn-card:hover { border-color: var(--border-strong); }
+  .vn-card[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .vn-card .nm { font-weight: var(--weight-semibold); }
+  .vn-card .cap { color: var(--text-muted); font-size: var(--text-xs); margin: var(--space-1) 0 var(--space-2); }
+  .vn-card .act { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .vn-profile .vp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .vn-profile h2 { font-size: var(--text-2xl); letter-spacing: -0.02em; }
+  .vp-sec { padding: var(--space-5) 0; border-bottom: var(--border-w) solid var(--border); }
+  .vp-sec:last-child { border-bottom: 0; }
+  .vp-sec h3 { font-size: var(--text-md); margin-bottom: var(--space-3); }
+  .vp-grid { display: grid; grid-template-columns: 180px 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm); }
+  .vp-grid .k { color: var(--text-muted); }
+  .timeline { display: flex; flex-direction: column; gap: var(--space-3); }
+  .tl-item { display: grid; grid-template-columns: 16px 1fr; gap: var(--space-3); }
+  .tl-item .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); margin-top: 5px; }
+  .tl-item.old .dot { background: var(--border-strong); }
+  @media (max-width: 980px) { .vn-split { grid-template-columns: 1fr; } .vn-list { position: static; flex-direction: row; flex-wrap: wrap; } .vn-card { flex: 1; min-width: 220px; } }
+</style>
+</head>
+<body data-dir="command" data-screen="vendors" data-title="Vendors">
+<div class="v2-app">
+  <div class="v2-main">
+    <main class="v2-content">
+      <div class="vn-split">
+        <aside class="vn-list" id="list"></aside>
+        <section class="vn-profile card card-pad" id="profile" aria-live="polite"></section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../../assets/data.js"></script>
+<script src="../../assets/ui.js"></script>
+<script src="../assets/motion.js"></script>
+<script src="../assets/wayfinding.js"></script>
+<script src="../assets/nav.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+  let selected = R.vendors[0].vendor_id;
+  // plausible constraints per vendor (synthesised for the mockup)
+  const CON = {
+    "VEN-INFRA-01": { min: "₹15 lakh", max: "₹2.5 cr", capacity: "3 concurrent fit-outs", capital: "Floats materials up to ₹2 cr", lead: "6–8 weeks turnkey" },
+    "VEN-MKTG-01": { min: "₹3 lakh", max: "₹40 lakh", capacity: "4 concurrent activations", capital: "Net-30 on media spend", lead: "48-hr launch activation" },
+  };
+
+  function renderList() {
+    document.getElementById("list").innerHTML = R.vendors.map((v)=>`
+      <button class="vn-card" data-v="${v.vendor_id}" aria-selected="${v.vendor_id===selected}">
+        <div class="row between"><span class="nm">${v.name}</span><span class="badge badge-approved" style="background:var(--accent-soft);color:var(--accent)">v${v.version}</span></div>
+        <div class="cap">${v.capability}</div>
+        <div class="row between"><span class="act">${v.leads_active} active · ${v.leads_won} won</span><span class="act">${v.geographies.length} regions</span></div>
+      </button>`).join("");
+    document.querySelectorAll("[data-v]").forEach((b)=>b.addEventListener("click",()=>{ selected=b.dataset.v; render(); }));
+  }
+  function tags(arr){ return arr.map((t)=>`<span class="tag">${t}</span>`).join(""); }
+  function renderProfile() {
+    const v = R.vendors.find((x)=>x.vendor_id===selected); const c = CON[v.vendor_id]||{};
+    const recipe = (v.recipe||[]).map((mid)=>{ const m=R.mappings.find((x)=>x.mapping_id===mid); return m?`<a class="tag" href="mappings.html" style="text-decoration:none">${m.name}</a>`:mid; }).join(" ");
+    document.getElementById("profile").innerHTML = `
+      <div class="vp-head">
+        <div><div class="mono faint" style="font-size:var(--text-2xs)">${v.vendor_id}</div><h2>${v.name}</h2>
+          <div class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2)">${v.capability}</div></div>
+        <div class="col" style="gap:var(--space-2);align-items:flex-end">
+          <a class="btn btn-primary btn-sm" href="interview.html">Start re-interview →</a>
+          <a class="btn btn-ghost btn-sm" href="leads.html">See ${v.leads_active} leads</a></div>
+      </div>
+      <div class="vp-sec"><h3>Capabilities &amp; reach</h3><div class="vp-grid">
+        <span class="k">geographies</span><span>${tags(v.geographies)}</span>
+        <span class="k">project size</span><span>${v.size}</span>
+        <span class="k">ideal customer</span><span>${v.ideal_customer}</span></div></div>
+      <div class="vp-sec"><h3>Constraints</h3><div class="vp-grid">
+        <span class="k">min / max size</span><span class="mono">${c.min} – ${c.max}</span>
+        <span class="k">capacity</span><span>${c.capacity}</span>
+        <span class="k">working capital</span><span>${c.capital}</span>
+        <span class="k">lead time</span><span>${c.lead}</span></div></div>
+      <div class="vp-sec"><h3>Differentiators</h3><p style="font-size:var(--text-sm)">${v.differentiators}</p></div>
+      <div class="vp-sec"><h3>Signal recipe</h3><div>${recipe}</div><p class="faint" style="font-size:var(--text-xs);margin-top:var(--space-2)">The mappings derived from this profile that source this vendor's leads.</p></div>
+      <div class="vp-sec"><h3>Interview history</h3><div class="timeline">
+        ${Array.from({length:v.version},(_,i)=>v.version-i).map((ver,idx)=>`<div class="tl-item ${idx>0?"old":""}"><span class="dot"></span><div><div style="font-size:var(--text-sm);font-weight:var(--weight-medium)">v${ver}${idx===0?" · current":""}</div><div class="faint" style="font-size:var(--text-xs)">${ver===v.version?"Latest re-interview — appended & amended":ver===1?"Initial intake interview":"Re-interview — refined capabilities"}</div></div></div>`).join("")}
+      </div></div>`;
+  }
+  function render(){ renderList(); renderProfile(); }
+  render();
+})();
+</script>
+</body>
+</html>

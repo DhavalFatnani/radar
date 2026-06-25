@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Vendors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* LAYOUT ONLY — all color via var(--token) */
+  .vendors-layout { display: grid; grid-template-columns: minmax(300px, 360px) 1fr; gap: var(--space-5); align-items: start; }
+  .vlist { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: calc(56px + var(--space-6)); }
+  .vlist-cards { display: flex; flex-direction: column; gap: var(--space-3); max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 2px; }
+  .vcard {
+    display: block; width: 100%; text-align: left;
+    padding: var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); transition: all var(--dur-fast) var(--ease-out);
+  }
+  .vcard:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .vcard[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--surface); }
+  .vcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+  .vcard-name { font-weight: var(--weight-semibold); font-size: var(--text-sm); letter-spacing: -0.01em; }
+  .vcard-cap { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; line-height: var(--leading-snug); }
+  .vcard-geo { display: flex; flex-wrap: wrap; gap: 2px; margin-top: var(--space-3); }
+  .vcard-meta { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .vcard-meta .dot { color: var(--text-faint); }
+  .vchip { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); background: var(--surface-inset); padding: 1px var(--space-2); border-radius: var(--radius-sm); flex: none; }
+
+  .vprofile { min-width: 0; }
+  .vp-head { display: flex; gap: var(--space-5); align-items: flex-start; padding-bottom: var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .vp-head .co { flex: 1; min-width: 0; }
+  .vp-head .co h2 { font-size: var(--text-2xl); letter-spacing: -0.02em; }
+  .vp-head .co .cap { color: var(--text-muted); margin-top: var(--space-1); }
+  .vp-head .co .meta { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-3); }
+  .vp-controls { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); flex: none; }
+  .vp-stat { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-align: right; }
+  .vp-stat b { color: var(--text); font-size: var(--text-md); font-weight: var(--weight-bold); }
+
+  .recipe-link { display: block; padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); transition: all var(--dur-fast) var(--ease-out); }
+  .recipe-link + .recipe-link { margin-top: var(--space-2); }
+  .recipe-link:hover { border-color: var(--accent); }
+  .recipe-link .r-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+  .recipe-link .r-name { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+  .recipe-link .r-intent { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; }
+  .recipe-link .r-go { color: var(--accent); font-family: var(--font-mono); font-size: var(--text-2xs); }
+
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-item { display: grid; grid-template-columns: 18px 1fr; gap: var(--space-3); padding-bottom: var(--space-4); position: relative; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot { width: 18px; display: flex; flex-direction: column; align-items: center; }
+  .tl-dot::before { content: ""; width: 9px; height: 9px; border-radius: var(--radius-full); background: var(--accent); margin-top: 4px; flex: none; }
+  .tl-item:not(:last-child) .tl-dot::after { content: ""; width: 2px; flex: 1; background: var(--border); margin-top: 4px; }
+  .tl-item.past .tl-dot::before { background: var(--border-strong); }
+  .tl-ver { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .tl-title { font-size: var(--text-sm); font-weight: var(--weight-medium); margin-top: 1px; }
+  .tl-note { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; }
+
+  .act-bar { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-5); padding-top: var(--space-5); border-top: var(--border-w) solid var(--border); }
+
+  .brief-body { padding-top: var(--space-2); }
+
+  @media (max-width: 980px) {
+    .vendors-layout { grid-template-columns: 1fr; }
+    .vlist { position: static; }
+    .vlist-cards { max-height: none; }
+  }
+</style>
+</head>
+<body data-screen="vendors" data-title="Vendors">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+      <div class="vendors-layout">
+        <!-- ZONE 1: vendor list -->
+        <aside class="vlist">
+          <div class="filters" id="filters"></div>
+          <div class="panel-head" style="margin:0">
+            <span class="eyebrow" id="vlist-count">vendors</span>
+            <span class="eyebrow">profiles</span>
+          </div>
+          <div class="vlist-cards" id="vcards" role="listbox" aria-label="Vendor list"></div>
+        </aside>
+        <!-- ZONE 2: vendor profile -->
+        <section class="vprofile card card-pad" id="profile" aria-live="polite"></section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+
+  let state = { geo: "all", selected: R.vendors[0] && R.vendors[0].vendor_id };
+
+  // Synthesized-but-plausible constraints, derived from each vendor's own fields.
+  const CONSTRAINTS = {
+    "VEN-INFRA-01": {
+      max_project: "100,000 sq ft turnkey fit-out",
+      min_project: "10,000 sq ft (below this, refer out)",
+      capacity: "3–4 concurrent fit-outs",
+      working_capital: "Can float materials up to ₹2cr per project",
+      lead_time: "6–8 weeks turnkey; 2–3 weeks for racking-only",
+    },
+    "VEN-MKTG-01": {
+      max_project: "Multi-city simultaneous launch (up to 6 metros)",
+      min_project: "Single-store activation",
+      capacity: "8–10 concurrent activations",
+      working_capital: "Print & promoter float up to ₹35L per campaign",
+      lead_time: "48-hr launch activation; 1–2 weeks for full city push",
+    },
+  };
+
+  const allGeos = [...new Set(R.vendors.flatMap((v) => v.geographies))].sort();
+
+  function filtered() {
+    return R.vendors.filter((v) => state.geo === "all" || v.geographies.includes(state.geo));
+  }
+
+  function renderFilters() {
+    const opts = [["all", "All regions"]].concat(allGeos.map((g) => [g, g]));
+    const seg = (label, list, key) =>
+      `<span class="fchip-label">${label}</span>` +
+      list.map(([val, txt]) =>
+        `<button class="fchip" data-fkey="${key}" data-fval="${val}" aria-pressed="${state[key] === val}">${txt}</button>`).join("");
+    document.getElementById("filters").innerHTML =
+      `<div class="filters">${seg("Region", opts, "geo")}</div>`;
+    document.querySelectorAll("[data-fkey]").forEach((b) =>
+      b.addEventListener("click", () => { state[b.dataset.fkey] = b.dataset.fval; render(); }));
+  }
+
+  function renderList() {
+    const list = filtered();
+    document.getElementById("vlist-count").textContent = `${list.length} vendor${list.length !== 1 ? "s" : ""}`;
+    document.getElementById("vcards").innerHTML = list.map((v) => `
+      <button class="vcard" role="option" data-vendor="${v.vendor_id}" aria-selected="${v.vendor_id === state.selected}">
+        <div class="vcard-top">
+          <div style="min-width:0">
+            <div class="vcard-name">${v.name}</div>
+            <div class="vcard-cap">${v.capability}</div>
+          </div>
+          <span class="vchip">v${v.version}</span>
+        </div>
+        <div class="vcard-geo">${v.geographies.map((g) => `<span class="tag">${g}</span>`).join("")}</div>
+        <div class="vcard-meta">
+          <span>${v.leads_active} active</span><span class="dot">·</span><span>${v.leads_won} won</span>
+        </div>
+      </button>`).join("");
+    document.querySelectorAll(".vcard").forEach((c) =>
+      c.addEventListener("click", () => { state.selected = c.dataset.vendor; render(); }));
+  }
+
+  function recipeBlock(v) {
+    const maps = (v.recipe || []).map((mid) => R.mappings.find((m) => m.mapping_id === mid)).filter(Boolean);
+    if (!maps.length) return `<div class="empty" style="padding:var(--space-6)"><h3>No mapping yet</h3><p>This vendor has no approved signal recipe.</p></div>`;
+    return maps.map((m) => `
+      <a class="recipe-link" href="mappings.html#${m.mapping_id}">
+        <div class="r-top">
+          <span class="r-name">${m.name}</span>
+          <span class="badge badge-${m.status}">${m.status}</span>
+        </div>
+        <div class="r-intent">${m.intent}</div>
+        <div class="r-go">${m.mapping_id} · ${(m.required || []).length} required · ${(m.supporting || []).length} supporting → open mapping</div>
+      </a>`).join("");
+  }
+
+  function interviewTimeline(v) {
+    // synthesize a version history consistent with vendor.version
+    const blurbs = {
+      1: "Initial profile captured — capabilities, geographies, ideal customer.",
+      2: "Refined constraints and differentiators; tuned the signal recipe.",
+      3: "Re-interview surfaced a new candidate signal (cold-chain capacity).",
+    };
+    const items = [];
+    for (let ver = v.version; ver >= 1; ver--) {
+      items.push({ ver, current: ver === v.version, note: blurbs[ver] || "Profile updated." });
+    }
+    return `<div class="timeline">${items.map((it) => `
+      <div class="tl-item ${it.current ? "" : "past"}">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-ver">v${it.ver}${it.current ? " · current" : ""}</div>
+          <div class="tl-title">${it.current ? "Current profile" : `Interview revision v${it.ver}`}</div>
+          <div class="tl-note">${it.note}</div>
+        </div>
+      </div>`).join("")}</div>`;
+  }
+
+  function renderProfile() {
+    const v = filtered().find((x) => x.vendor_id === state.selected) || filtered()[0];
+    if (!v) {
+      document.getElementById("profile").innerHTML = `<div class="empty"><h3>No vendors match</h3><p>Loosen the region filter to see vendor profiles.</p></div>`;
+      return;
+    }
+    state.selected = v.vendor_id;
+    const c = CONSTRAINTS[v.vendor_id] || {};
+    const leadCount = R.leadsForVendor(v.vendor_id).length;
+
+    const html = `
+      <div class="vp-head">
+        <div class="co">
+          <div class="mono faint" style="font-size:var(--text-2xs)">${v.vendor_id}</div>
+          <h2>${v.name}</h2>
+          <div class="cap">${v.capability}</div>
+          <div class="meta">
+            <span class="vchip">v${v.version}</span>
+            ${v.geographies.map((g) => `<span class="tag">${g}</span>`).join("")}
+          </div>
+        </div>
+        <div class="vp-controls">
+          <span class="vp-stat"><b>${v.leads_active}</b> active leads</span>
+          <span class="vp-stat"><b>${v.leads_won}</b> won</span>
+        </div>
+      </div>
+
+      <div class="brief-body">
+        <div class="brief-block">
+          <h3>Capabilities</h3>
+          <p>${v.capability}</p>
+          <div class="field"><div class="k">Project size band</div><div class="v">${v.size}</div></div>
+        </div>
+
+        <div class="brief-block">
+          <h3>Constraints</h3>
+          <div class="field"><div class="k">Max project size</div><div class="v">${c.max_project || "—"}</div></div>
+          <div class="field"><div class="k">Min project size</div><div class="v">${c.min_project || "—"}</div></div>
+          <div class="field"><div class="k">Geographies served</div><div class="v">${v.geographies.map((g) => `<span class="tag">${g}</span>`).join("")}</div></div>
+          <div class="field"><div class="k">Capacity</div><div class="v">${c.capacity || "—"}</div></div>
+          <div class="field"><div class="k">Working-capital limit</div><div class="v">${c.working_capital || "—"}</div></div>
+          <div class="field"><div class="k">Lead times</div><div class="v">${c.lead_time || "—"}</div></div>
+        </div>
+
+        <div class="brief-block">
+          <h3>Ideal customer</h3>
+          <p>${v.ideal_customer}</p>
+        </div>
+
+        <div class="brief-block">
+          <h3>Differentiators</h3>
+          <p>${v.differentiators}</p>
+        </div>
+
+        <div class="brief-block">
+          <h3>Signal recipe <span class="eyebrow" style="font-weight:400">how Radar finds this vendor's leads</span></h3>
+          ${recipeBlock(v)}
+        </div>
+
+        <div class="brief-block">
+          <h3>Interview history <span class="eyebrow" style="font-weight:400">v${v.version} · SIA-captured</span></h3>
+          ${interviewTimeline(v)}
+        </div>
+
+        <div class="act-bar">
+          <a class="btn btn-primary" href="interview.html">Start re-interview</a>
+          <a class="btn btn-ghost" href="leads.html">See ${leadCount} lead${leadCount !== 1 ? "s" : ""}</a>
+          <a class="btn btn-ghost" href="mappings.html#${(v.recipe || [])[0] || ""}">Open mapping</a>
+        </div>
+      </div>`;
+
+    const profile = document.getElementById("profile");
+    profile.innerHTML = html;
+    radarPaintScores(profile);
+    radarWire(profile);
+  }
+
+  function render() {
+    renderFilters();
+    renderList();
+    renderProfile();
+  }
+  render();
+})();
+</script>
+</body>
+</html>

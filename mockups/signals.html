@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radar — Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/base.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<style>
+  /* LAYOUT ONLY — every color comes from a --token */
+  .sig-layout { display: grid; grid-template-columns: 1fr minmax(360px, 460px); gap: var(--space-5); align-items: start; }
+  .sig-main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-5); }
+  .sig-side { position: sticky; top: calc(56px + var(--space-6)); min-width: 0; }
+
+  .filter-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  /* approval queue band */
+  .queue-band { padding: 0; overflow: hidden; }
+  .queue-band .qb-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: var(--border-w) solid var(--border); }
+  .qb-row {
+    display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: center;
+    padding: var(--space-4) var(--space-5); border-bottom: var(--border-w) solid var(--border);
+  }
+  .qb-row:last-child { border-bottom: 0; }
+  .qb-meta { min-width: 0; }
+  .qb-id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
+  .qb-name { font-weight: var(--weight-semibold); font-size: var(--text-md); margin-top: 2px; }
+  .qb-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+  .qb-actions { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3); }
+
+  /* library table cells */
+  .lib-table { width: 100%; }
+  .lib-id { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+  .lib-name { font-weight: var(--weight-medium); }
+  .lib-window { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+  .tbl tbody tr[aria-selected="true"] { background: var(--accent-soft); }
+  .tbl tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+
+  .record-empty { display: flex; align-items: center; justify-content: center; min-height: 300px; }
+
+  @media (max-width: 1040px) {
+    .sig-layout { grid-template-columns: 1fr; }
+    .sig-side { position: static; }
+  }
+</style>
+</head>
+<body data-screen="signals" data-title="Signals">
+<div class="app" data-rail="closed">
+  <div class="main">
+    <div class="content">
+
+      <!-- FILTER BAR -->
+      <div class="filter-stack" style="margin-bottom:var(--space-5)">
+        <div class="filters" id="family-filters"></div>
+        <div class="filters" id="status-filters"></div>
+      </div>
+
+      <div class="sig-layout">
+        <!-- LEFT: approval queue + full library -->
+        <div class="sig-main">
+          <!-- Approval queue band (proposed signals) -->
+          <section class="card queue-band" id="queue-band" aria-label="Approval queue"></section>
+
+          <!-- Full library -->
+          <section class="card" style="padding:0;overflow:hidden">
+            <div class="panel-head" style="margin:0;padding:var(--space-4) var(--space-5)">
+              <h2 style="font-size:var(--text-md)">Signal library</h2>
+              <span class="count-pill" id="lib-count">0</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="tbl lib-table">
+                <thead>
+                  <tr>
+                    <th>signal_id</th>
+                    <th>name</th>
+                    <th>family</th>
+                    <th>strength</th>
+                    <th>status</th>
+                    <th>fresh</th>
+                  </tr>
+                </thead>
+                <tbody id="lib-body"></tbody>
+              </table>
+            </div>
+            <div id="lib-empty"></div>
+          </section>
+        </div>
+
+        <!-- RIGHT: canonical signal record card -->
+        <aside class="sig-side">
+          <div class="panel-head" style="margin-bottom:var(--space-3)">
+            <span class="eyebrow">Signal record</span>
+            <span class="eyebrow">canonical · 5 groups</span>
+          </div>
+          <div id="record" aria-live="polite"></div>
+        </aside>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const R = window.RADAR;
+
+  const STRENGTH_LABEL = { low: "low", medium: "medium", high: "high", very_high: "very high" };
+  const STATUS_LABEL = { proposed: "proposed", approved: "approved", retired: "retired" };
+
+  let state = { family: "all", status: "all", selected: null };
+
+  // approved / retired swaps are remembered so re-render keeps them live
+  const approvedNow = new Set();
+  const retiredNow = new Set();
+  function statusOf(sig) {
+    if (retiredNow.has(sig.signal_id)) return "retired";
+    if (approvedNow.has(sig.signal_id)) return "approved";
+    return sig.status;
+  }
+
+  function esc(v) { return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function strengthEl(level) {
+    return `<span class="strength" data-level="${level}"><span class="strength-bars"><i></i><i></i><i></i><i></i></span><span class="lvl">${STRENGTH_LABEL[level] || level}</span></span>`;
+  }
+  function statusBadge(status) {
+    return `<span class="badge badge-${status}">${STATUS_LABEL[status] || status}</span>`;
+  }
+
+  /* ---------- filtering ---------- */
+  function libraryList() {
+    return R.signals
+      .filter((s) => state.family === "all" || s.family === state.family)
+      .filter((s) => state.status === "all" || statusOf(s) === state.status);
+  }
+  function proposedList() {
+    // proposed band respects the family filter, ignores the status filter
+    return R.signals
+      .filter((s) => statusOf(s) === "proposed")
+      .filter((s) => state.family === "all" || s.family === state.family);
+  }
+
+  /* ---------- filter chips ---------- */
+  function renderFilters() {
+    const families = [["all", "All families"]].concat(R.families.map((f) => [f, f]));
+    const statuses = [["all", "All"], ["proposed", "proposed"], ["approved", "approved"], ["retired", "retired"]];
+
+    const seg = (label, opts, key) =>
+      `<span class="fchip-label">${label}</span>` +
+      opts.map(([val, txt]) =>
+        `<button class="fchip" data-fkey="${key}" data-fval="${val}" aria-pressed="${state[key] === val}">${esc(txt)}</button>`).join("");
+
+    document.getElementById("family-filters").innerHTML = seg("Family", families, "family");
+    document.getElementById("status-filters").innerHTML = seg("Status", statuses, "status");
+
+    document.querySelectorAll("[data-fkey]").forEach((b) =>
+      b.addEventListener("click", () => { state[b.dataset.fkey] = b.dataset.fval; render(); }));
+  }
+
+  /* ---------- approval queue band ---------- */
+  function renderQueue() {
+    const band = document.getElementById("queue-band");
+    const list = proposedList();
+
+    if (!list.length) {
+      band.innerHTML = `
+        <div style="padding:var(--space-5)">
+          <div class="empty">
+            <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <h3>Approval queue clear</h3>
+            <p>No proposed signals waiting${state.family !== "all" ? ` in the ${esc(state.family)} family` : ""}. New candidates surfaced by SIA land here for your approval.</p>
+          </div>
+        </div>`;
+      return;
+    }
+
+    band.innerHTML = `
+      <div class="qb-head">
+        <span class="eyebrow">Approval queue — proposed signals</span>
+        <span class="count-pill">${list.length} waiting</span>
+      </div>
+      ${list.map((s) => {
+        const badgeId = `qb-badge-${s.signal_id}`;
+        return `
+        <div class="qb-row">
+          <div class="qb-meta">
+            <div class="qb-id">${esc(s.signal_id)}</div>
+            <div class="qb-name">${esc(s.name)}</div>
+            <div class="qb-sub">
+              <span class="tag">${esc(s.family)}</span>
+              ${strengthEl(s.strength)}
+              <span class="faint" style="font-size:var(--text-xs)">${esc(s.origin || "Surfaced by SIA")}</span>
+            </div>
+          </div>
+          <div class="qb-actions">
+            <span class="badge badge-proposed" id="${badgeId}">proposed</span>
+            <div class="approve-bar">
+              <button class="btn-approve btn-sm" data-approve="${badgeId}" data-label="${esc(s.name)} approved — now live"
+                      data-sig="${esc(s.signal_id)}">Approve</button>
+              <button class="btn-reject btn-sm" data-reject data-sig="${esc(s.signal_id)}">Reject</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("")}`;
+
+    // remember approvals so the library + record stay in sync after re-render
+    band.querySelectorAll("[data-approve]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        approvedNow.add(btn.dataset.sig);
+        // refresh the dependent surfaces without rebuilding the band (preserve its motion)
+        setTimeout(() => { renderLibrary(); renderRecord(); renderFilters(); }, 450);
+      }));
+    band.querySelectorAll("[data-reject]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        retiredNow.add(btn.dataset.sig);
+        const badge = document.getElementById(`qb-badge-${btn.dataset.sig}`);
+        if (badge) { badge.className = "badge badge-retired"; badge.textContent = "retired"; }
+        btn.closest(".approve-bar").querySelector("[data-approve]").style.display = "none";
+        btn.style.display = "none";
+        radarToast(`Rejected ${btn.dataset.sig}`);
+        // keep dependent surfaces in sync without disturbing this band's motion
+        setTimeout(() => { renderLibrary(); renderRecord(); renderFilters(); }, 450);
+      }));
+
+    radarWire(band);
+  }
+
+  /* ---------- full library table ---------- */
+  function renderLibrary() {
+    const list = libraryList();
+    document.getElementById("lib-count").textContent = `${list.length} signal${list.length !== 1 ? "s" : ""}`;
+
+    const body = document.getElementById("lib-body");
+    const emptyHost = document.getElementById("lib-empty");
+
+    if (!list.length) {
+      body.innerHTML = "";
+      emptyHost.innerHTML = `
+        <div style="padding:var(--space-5)">
+          <div class="empty">
+            <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h10"/></svg>
+            <h3>No signals match</h3>
+            <p>Loosen the family or status filter to see the library.</p>
+          </div>
+        </div>`;
+      return;
+    }
+    emptyHost.innerHTML = "";
+
+    body.innerHTML = list.map((s) => {
+      const st = statusOf(s);
+      return `
+      <tr role="button" tabindex="0" data-sig="${esc(s.signal_id)}" aria-selected="${s.signal_id === state.selected}">
+        <td><span class="lib-id">${esc(s.signal_id)}</span></td>
+        <td><span class="lib-name">${esc(s.name)}</span></td>
+        <td><span class="tag">${esc(s.family)}</span></td>
+        <td>${strengthEl(s.strength)}</td>
+        <td>${statusBadge(st)}</td>
+        <td><span class="lib-window">${s.freshness_window || "—"}d</span></td>
+      </tr>`;
+    }).join("");
+
+    body.querySelectorAll("tr[data-sig]").forEach((tr) => {
+      const open = () => { state.selected = tr.dataset.sig; renderLibrary(); renderRecord(); };
+      tr.addEventListener("click", open);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    });
+  }
+
+  /* ---------- canonical signal record card ---------- */
+  const NS = `<span class="v faint">not specified</span>`;
+  function field(k, vHTML, hint) {
+    return `<div class="field"><span class="k">${esc(k)}</span><span class="v">${vHTML}${hint ? `<span class="hint">${esc(hint)}</span>` : ""}</span></div>`;
+  }
+  function tags(arr) {
+    if (!arr || !arr.length) return null;
+    return arr.map((t) => `<span class="tag">${esc(t)}</span>`).join("");
+  }
+
+  function recordCard(s) {
+    const st = statusOf(s);
+
+    // Identity & meaning
+    const identity = [
+      field("family", `<span class="tag">${esc(s.family)}</span>`),
+      field("entity type", s.entity ? `<span class="tag">${esc(s.entity)}</span>` : NS),
+      field("polarity", s.polarity ? `<span class="tag">${esc(s.polarity)}</span>` : NS),
+      field("serves", s.serves ? `<span class="tag">${esc(s.serves)}</span>` : NS),
+    ].join("");
+
+    // Detection
+    const detection = [
+      field("trigger rule", s.trigger ? esc(s.trigger) : NS, s.trigger ? "The precise, observable yes/no rule." : null),
+      field("sources", tags(s.sources) || NS),
+      field("method", s.method ? `<span class="tag">${esc(s.method)}</span>` : NS),
+      field("proof captured", s.proof_captured ? esc(s.proof_captured) : NS, s.proof_captured ? "What we store when it fires — the receipt." : null),
+      field("confirmation", s.confirmation ? esc(s.confirmation) : NS),
+      field("recheck", s.recheck ? `<span class="tag">${esc(s.recheck)}</span>` : NS),
+    ].join("");
+
+    // Weighting & quality
+    const weighting = [
+      field("strength", `<span class="tag">${esc(s.strength)}</span>`),
+      field("noise", s.noise ? `<span class="tag">${esc(s.noise)}</span>` : NS),
+      field("false-positive risk", s.fp_risk ? `<span class="tag">${esc(s.fp_risk)}</span>` : NS),
+      field("freshness window", s.freshness_window ? `<span class="mono">${s.freshness_window} days</span>` : NS, s.freshness_window ? "How long it stays meaningful before decaying." : null),
+      s.source_unconfirmed ? field("source status", `<span class="tag">unconfirmed source</span>`) : "",
+    ].join("");
+
+    // Meaning & combination
+    const meaning = [
+      field("pairs with", tags(s.pairs) || NS),
+      field("geography", tags(s.geography) || NS),
+      s.note ? field("note", `<span style="font-style:italic">${esc(s.note)}</span>`) : "",
+    ].join("");
+
+    // History & track record
+    const addedReviewed = s.added
+      ? `<span class="mono">${R.fmtDate(s.added)}</span>${s.reviewed ? ` · <span class="mono">${R.fmtDate(s.reviewed)}</span>` : ""}`
+      : NS;
+    const history = [
+      field("origin", s.origin ? esc(s.origin) : NS),
+      field("proposed by", s.proposed_by ? `<span class="tag">${esc(s.proposed_by)}</span>` : NS),
+      field("added · reviewed", addedReviewed),
+      field("example", s.example ? `<span style="font-style:italic">${esc(s.example)}</span>` : NS),
+      field("track record", `<span class="faint">Empty until outcomes accumulate — reads honestly, not faked.</span>`),
+    ].join("");
+
+    return `
+      <div class="card signal-card">
+        <div class="sig-head">
+          <div style="flex:1;min-width:0">
+            <div class="sig-id">${esc(s.signal_id)}</div>
+            <div class="sig-name">${esc(s.name)}</div>
+            <p class="muted" style="font-size:var(--text-sm);margin-top:var(--space-2)">${s.trigger ? esc(s.trigger) : "Trigger rule not specified."}</p>
+          </div>
+          <div class="col" style="align-items:flex-end;gap:var(--space-3)">
+            ${statusBadge(st)}
+            ${strengthEl(s.strength)}
+            <div class="row" style="gap:var(--space-2)">
+              <button class="btn btn-ghost btn-sm" data-edit data-sig="${esc(s.signal_id)}">Edit</button>
+              ${st !== "retired"
+                ? `<button class="btn btn-ghost btn-sm" data-retire data-sig="${esc(s.signal_id)}" data-name="${esc(s.name)}">Retire</button>`
+                : ""}
+            </div>
+          </div>
+        </div>
+        <div class="sig-group"><div class="eyebrow">Identity &amp; meaning</div>${identity}</div>
+        <div class="sig-group"><div class="eyebrow">Detection — how the engine finds &amp; proves it</div>${detection}</div>
+        <div class="sig-group"><div class="eyebrow">Weighting &amp; quality</div>${weighting}</div>
+        <div class="sig-group"><div class="eyebrow">Meaning &amp; combination</div>${meaning}</div>
+        <div class="sig-group"><div class="eyebrow">History &amp; track record</div>${history}</div>
+      </div>`;
+  }
+
+  function renderRecord() {
+    const host = document.getElementById("record");
+    // selection follows the visible library; default to first row
+    const list = libraryList();
+    let s = R.signalById(state.selected);
+    if (!s || (!list.includes(s) && list.length)) s = list[0];
+
+    if (!s) {
+      host.innerHTML = `<div class="record-empty">
+        <div class="empty" style="border:none;background:transparent">
+          <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <h3>Select a signal</h3>
+          <p>Pick a row from the library to open its full record card.</p>
+        </div>
+      </div>`;
+      return;
+    }
+    state.selected = s.signal_id;
+    host.innerHTML = recordCard(s);
+    radarPaintScores(host);
+    radarWire(host);
+
+    const editBtn = host.querySelector("[data-edit]");
+    if (editBtn) editBtn.addEventListener("click", () =>
+      radarToast(`Edit ${editBtn.dataset.sig} — opens the signal editor`));
+
+    const retireBtn = host.querySelector("[data-retire]");
+    if (retireBtn) retireBtn.addEventListener("click", () => {
+      retiredNow.add(retireBtn.dataset.sig);
+      approvedNow.delete(retireBtn.dataset.sig);
+      radarToast(`${retireBtn.dataset.name} retired — no longer scored`);
+      renderQueue(); renderLibrary(); renderRecord(); renderFilters();
+    });
+  }
+
+  function render() {
+    renderFilters();
+    renderQueue();
+    renderLibrary();
+    renderRecord();
+  }
+  render();
+})();
+</script>
+</body>
+</html>
