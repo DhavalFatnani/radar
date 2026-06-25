@@ -18,7 +18,9 @@
   .approve-band { border: var(--border-w) solid color-mix(in srgb, var(--status-proposed) 35%, transparent); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--status-proposed) 7%, var(--surface)); padding: var(--space-4); }
   .approve-band .ab-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
   .approve-band .ab-head .t { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
-  .ab-item { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-3); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .ab-item { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-3); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); }
+  .ab-item:hover { border-color: var(--border-strong); }
+  .ab-item[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .ab-item + .ab-item { margin-top: var(--space-2); }
   .ab-item .nm { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
   .ab-item .id { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-faint); }
@@ -72,10 +74,12 @@
     if (!proposed.length) { band.style.display = "none"; return; }
     band.style.display = "block";
     band.innerHTML = `<div class="ab-head"><span class="badge badge-proposed">${proposed.length} need approval</span><span class="t">Clear the gate</span></div>` +
-      proposed.map((s) => `<div class="ab-item"><div><div class="nm">${s.name}</div><div class="id">${s.signal_id} · ${s.family}</div></div>
+      proposed.map((s) => `<div class="ab-item" data-sig="${s.signal_id}" role="button" tabindex="0" aria-selected="${s.signal_id===selected}"><div><div class="nm">${s.name}</div><div class="id">${s.signal_id} · ${s.family}</div></div>
         <div class="ab-actions"><button class="btn-approve btn-sm" data-ap="${s.signal_id}">Approve</button><button class="btn-reject btn-sm" data-rj="${s.signal_id}">Reject</button></div></div>`).join("");
-    band.querySelectorAll("[data-ap]").forEach((b)=>b.addEventListener("click",()=>{ approved.add(b.dataset.ap); radarToast(`${b.dataset.ap} approved — now live`); rerender(); }));
-    band.querySelectorAll("[data-rj]").forEach((b)=>b.addEventListener("click",()=>{ approved.delete(b.dataset.rj); radarToast(`${b.dataset.rj} rejected`); rerender(); }));
+    // clicking the proposed signal opens its record (buttons stop propagation)
+    band.querySelectorAll(".ab-item").forEach((it)=>it.addEventListener("click",()=>{ selected=it.dataset.sig; renderList(); renderRecord(); }));
+    band.querySelectorAll("[data-ap]").forEach((b)=>b.addEventListener("click",(e)=>{ e.stopPropagation(); approved.add(b.dataset.ap); radarToast(`${b.dataset.ap} approved — now live`); rerender(); }));
+    band.querySelectorAll("[data-rj]").forEach((b)=>b.addEventListener("click",(e)=>{ e.stopPropagation(); approved.delete(b.dataset.rj); radarToast(`${b.dataset.rj} rejected`); rerender(); }));
   }
 
   function renderFilters() {
@@ -100,7 +104,10 @@
   }
 
   function field(k, v, hint) { return `<div class="field"><span class="k">${k}</span><span class="v">${v}${hint?`<span class="hint">${hint}</span>`:""}</span></div>`; }
-  function tags(arr) { return (arr&&arr.length) ? arr.map((t)=>`<span class="tag">${t}</span>`).join("") : `<span class="faint">not specified</span>`; }
+  function tags(arr) {
+    const vals = (arr || []).filter((t) => t !== undefined && t !== null && t !== "");
+    return vals.length ? vals.map((t) => `<span class="tag">${t}</span>`).join("") : `<span class="faint">not specified</span>`;
+  }
   function renderRecord() {
     const s = R.signalById(selected) || R.signals.find((x)=>statusOf(x)==="proposed") || R.signals[0];
     selected = s.signal_id;
