@@ -43,6 +43,16 @@ npm run dev                  # http://localhost:3000  (healthcheck: /api/v1/heal
 npm run lint && npm run typecheck && npm test && npm run build
 ```
 
+### Database (Slice 2)
+
+```bash
+npm run db:generate   # generate SQL migrations from src/db/schema
+npm run db:migrate    # apply migrations to DATABASE_URL
+npm run db:seed       # insert one sample row per table
+```
+
+Set `DATABASE_URL` (Neon main branch) and `TEST_DATABASE_URL` (Neon test branch) in `.env.local`.
+
 ## Key MCPs for this project
 
 - **Neon** — Postgres branches and SQL
