@@ -1,5 +1,3 @@
-// Allow TypeScript to accept side-effect CSS imports (e.g. import "./styles/tokens.css")
-declare module "*.css" {
-  const content: Record<string, string>;
-  export default content;
-}
+// Allow TypeScript to accept side-effect CSS imports (e.g. import "./styles/tokens.css").
+// These are plain global stylesheets, not CSS Modules — no exported shape.
+declare module "*.css";
