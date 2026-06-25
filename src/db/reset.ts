@@ -14,8 +14,15 @@ const client = postgres(url, { max: 1, prepare: false });
 const db = drizzle(client);
 
 (async () => {
-  await db.execute(sql.raw("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"));
+  // Drop BOTH public (tables) AND drizzle (the migration journal) — otherwise the
+  // surviving journal makes migrate() think every migration is applied and it
+  // re-creates nothing, so a repeat reset would leave an empty `public`.
+  await db.execute(
+    sql.raw(
+      "DROP SCHEMA IF EXISTS public CASCADE; DROP SCHEMA IF EXISTS drizzle CASCADE; CREATE SCHEMA public;",
+    ),
+  );
   await migrate(db, { migrationsFolder: "./src/db/migrations" });
   await client.end();
-  console.log("Reset complete: public schema dropped and migrations re-applied.");
+  console.log("Reset complete: public + drizzle schemas dropped and migrations re-applied.");
 })();
