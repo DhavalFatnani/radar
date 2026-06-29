@@ -54,8 +54,13 @@ Single operator, env-based. Set in `.env.local`:
 ```bash
 AUTH_SECRET="$(openssl rand -base64 33)"
 OPERATOR_EMAIL=you@example.com
-OPERATOR_PASSWORD_HASH="$(node scripts/hash-password.mjs 'your-password')"
+# Prints an .env-ready hash with the `$` chars escaped as `\$` — paste it verbatim.
+OPERATOR_PASSWORD_HASH=$(node scripts/hash-password.mjs 'your-password')
 ```
+
+The hash is stored with backslash-escaped `$` (e.g. `\$2b\$12\$...`) on purpose:
+Next.js loads env through `@next/env`, which runs dotenv-expand, so an unescaped
+`$2b$12$...` gets its `$2b`/`$12`/… expanded into empty variables and login fails.
 
 Then `npm run dev` and sign in at `/login`. Unauthenticated requests to app routes redirect to `/login`.
 
