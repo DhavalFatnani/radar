@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { listVendors } from "@/lib/vendors/data";
@@ -20,7 +21,9 @@ export default async function VendorsPage() {
       ) : (
         <ul className="vendor-list">
           {vendors.map((v) => (
-            <li key={v.vendorId}>{v.name}</li>
+            <li key={v.vendorId}>
+              <Link href={`/vendors/${v.vendorId}`}>{v.name}</Link>
+            </li>
           ))}
         </ul>
       )}

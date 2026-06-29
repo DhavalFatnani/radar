@@ -102,3 +102,14 @@
 .add-vendor-form [role="alert"] { flex-basis: 100%; margin: 0; color: var(--warning); font-size: var(--text-sm); }
 .vendor-list { display: grid; gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
 .vendor-list li { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text); }
+
+/* --- Phase 2 Slice 2.1: vendor profile detail + edit form --- */
+.profile-meta { margin: 0 0 var(--space-4); color: var(--text-muted); font-size: var(--text-sm); }
+.profile-form { display: grid; gap: var(--space-4); max-width: 640px; }
+.profile-form label { display: grid; gap: var(--space-1); font-size: var(--text-sm); color: var(--text-muted); }
+.profile-form input, .profile-form textarea { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text); font: inherit; }
+.profile-form fieldset { display: grid; gap: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-4); }
+.profile-form legend { padding: 0 var(--space-2); color: var(--text); font-size: var(--text-sm); }
+.profile-form [role="alert"] { margin: 0; color: var(--warning); font-size: var(--text-sm); }
+.vendor-list li a { color: var(--text); text-decoration: none; }
+.vendor-list li a:hover { text-decoration: underline; }

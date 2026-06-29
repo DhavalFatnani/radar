@@ -51,6 +51,10 @@ After signing in, the app has a Command-style rail (Operate: Dashboard/Leads/Pip
 
 The Vendors screen proves the end-to-end path: add a vendor by name (a server action validates and persists it), and the list — read by the page and by `GET /api/v1/vendors` — shows it back after submit and reload. This completes Phase 1 (architecture proven end to end).
 
+### Vendor profiles (Phase 2 · Slice 2.1)
+
+Each vendor has a detail page at `/vendors/[id]` where the operator edits the full profile — capabilities, constraints, ideal customer, known-good signals, differentiators, and credibility. Saves are versioned: every change bumps `version` and appends a dated entry to `interview_history`. The SIA interview (later) writes through this same path.
+
 ### Auth (Slice 3)
 
 Single operator, env-based. Set in `.env.local`:
