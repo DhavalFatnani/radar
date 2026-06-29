@@ -47,6 +47,10 @@ npm run lint && npm run typecheck && npm test && npm run build
 
 After signing in, the app has a Command-style rail (Operate: Dashboard/Leads/Pipeline/Contacts · Build: Vendors/Signals/Mappings), a topbar with a light/dark toggle, and a clear empty state per section. Visual system ported from `mockups/` (`tokens.css` + the v2 Command shell).
 
+### Vendors create/list (Slice 5)
+
+The Vendors screen proves the end-to-end path: add a vendor by name (a server action validates and persists it), and the list — read by the page and by `GET /api/v1/vendors` — shows it back after submit and reload. This completes Phase 1 (architecture proven end to end).
+
 ### Auth (Slice 3)
 
 Single operator, env-based. Set in `.env.local`:
