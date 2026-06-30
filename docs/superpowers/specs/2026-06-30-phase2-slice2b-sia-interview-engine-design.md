@@ -5,6 +5,12 @@
 **Source spec:** `Phase0_Platform_Specification.md` §3 (system loop, step 1), §7.1 (Vendor Intake Interview / SIA), §4.4 (Vendor Profile data model); `AGENTS.md` (`src/ai/` = SIA orchestration, **no direct DB**).
 **Builds on:** Slice 2.1 (`vendorProfileSchema`, `getVendor`, `updateVendorProfile` in `src/lib/vendors/data.ts`) and Slice 2.2a (`generateText` / `generateObject(schema)` in `src/ai/llm/`).
 
+## Prerequisite refactor — extract a DB-free schema module
+
+`vendorProfileSchema` and the vendor types currently live in `src/lib/vendors/data.ts`, which imports `@/db/client` at the top — and `db/client.ts` opens the Postgres connection at module load. So importing the schema transitively boots the DB. The SIA engine must import the schema yet stay DB-free (per `AGENTS.md`), and its unit tests must not need a database.
+
+**Fix (Task 1 of the plan):** move the pure pieces — `vendorStubSchema`, `vendorProfileSchema`, the internal zod helpers (`stringList`, `optionalText`, `constraintsSchema`), and the types (`VendorStubInput`, `VendorListItem`, `VendorConstraints`, `InterviewHistoryEntry`, `VendorProfile`, `VendorProfileInput`) — into a new, import-side-effect-free `src/lib/vendors/schema.ts`. `data.ts` imports from `./schema` and **re-exports** all of them, so every existing importer (`actions.ts`, `page.tsx`, the tests, etc.) keeps working with zero changes. The SIA engine and its tests import `vendorProfileSchema` and the types **only** from `@/lib/vendors/schema`, never from `@/lib/vendors/data`.
+
 ## Goal
 
 A pure, DB-free engine in `src/ai/sia/` that (1) generates the **next adaptive, precision-probing interview question** given the conversation so far, and (2) **extracts a `vendorProfileSchema`-valid profile** from a completed transcript — built entirely on the Slice 2.2a LLM layer, and unit-tested at $0 by mocking that layer.
@@ -52,8 +58,12 @@ export type InterviewArea =
 
 // Reuses the LLM layer's message shape; one transcript turn.
 export type InterviewState = {
-  messages: LlmMessage[];                 // full conversation so far (system msg is added by the engine, not stored here)
-  existingProfile?: VendorProfile | null; // present on a re-interview; null/undefined on a first interview
+  messages: LlmMessage[];                 // full conversation so far (system msg is added by the engine, not stored here).
+                                          // Assistant turns carry an engine-appended [area:X] tag line; user turns are raw answers.
+  existingProfile?: VendorProfile | null; // the vendor's CURRENT persisted profile. A vendor always exists before an interview
+                                          // (created via createVendorStub), so the caller passes getVendor(vendorId) here — at
+                                          // minimum the stub (name set, other fields empty) on a first interview, a fuller profile
+                                          // on a re-interview. Supplies the authoritative name and prior-knowledge context.
 };
 
 export type CoverageReport = {
@@ -70,20 +80,21 @@ export type NextQuestion = {
 };
 ```
 
-`LlmMessage` is imported from `@/ai/llm`; `VendorProfile` and `VendorProfileInput` from `@/lib/vendors/data`.
+`LlmMessage` is imported from `@/ai/llm`; `VendorProfile` and `VendorProfileInput` from `@/lib/vendors/schema` (the DB-free module from the prerequisite refactor) — never from `@/lib/vendors/data`.
 
 ## Data flow
 
 **Next question** — `nextQuestion(state): Promise<NextQuestion>`
 1. `assessCoverage(state)` inspects the transcript and returns a `CoverageReport`; the first `remaining` area is the `targetArea` (if `remaining` is empty, the target is the last area for a closing/confirmation probe and `coverage.isComplete` is `true`).
-2. `prompts.ts` builds an `LlmMessage[]`: the SIA system prompt (personality + precision rules + the existing profile, if re-interviewing) + the transcript + a final instruction biased to probe `targetArea` for precision.
-3. `generateText(messages)` produces the raw question text (ending in an `[area:…]` tag line).
-4. Return `{ question, transcriptEntry, targetArea, coverage }`: `question` is the clean string with the tag line stripped (for display); `transcriptEntry` is the **raw** assistant turn (`{ role: "assistant", content: <raw, tag retained> }`). The caller displays `question`, appends `transcriptEntry` to `state.messages`, then appends the vendor's answer (`{ role: "user", content: … }`) — so the next turn's `assessCoverage` can read the tags.
+2. `prompts.ts` builds an `LlmMessage[]`: the SIA system prompt (personality + precision rules + the existing profile, when present) + a **tag-stripped view of the transcript** (the engine removes its internal `[area:…]` tag lines from assistant turns so the model never sees them) + a final instruction biased to probe `targetArea` for precision. The model is **not** told about tags — it just writes a question.
+3. `generateText(messages)` produces the question text.
+4. The engine builds the outputs: `question` is the model's text verbatim (for display); `transcriptEntry` is `{ role: "assistant", content: question + "\n[area:" + targetArea + "]" }` — the **engine itself appends** the deterministic tag. Return `{ question, transcriptEntry, targetArea, coverage }`. The caller displays `question`, appends `transcriptEntry` to `state.messages`, then appends the vendor's answer (`{ role: "user", content: … }`) — so the next turn's `assessCoverage` reads the engine-written tags. Because the engine owns the tag, coverage never depends on the model remembering to emit it.
 
 **Extract profile** — `extractProfile(state): Promise<LlmResult<VendorProfileInput>>`
-1. `prompts.ts` builds an extraction `LlmMessage[]`: a system prompt instructing structured extraction across the five areas + the full transcript (+ the existing profile for a re-interview, so unchanged fields are preserved rather than blanked).
+1. `prompts.ts` builds an extraction `LlmMessage[]`: a system prompt instructing structured extraction across the five areas + the tag-stripped transcript + the existing profile (so unchanged fields are preserved rather than blanked, and the known vendor name is given as context).
 2. `generateObject(vendorProfileSchema, messages)` returns a zod-validated `VendorProfileInput` plus the `provider` that served it.
-3. Return the `LlmResult` unchanged. The caller passes `.value` to `updateVendorProfile(vendorId, value)`, which already handles field-diffing, version bump, and `interviewHistory` append.
+3. **Name pinning.** `name` is authoritative from the persisted profile, not the transcript. When `state.existingProfile?.name` is set, the engine overrides the returned `value.name` with it before returning — so a model that mis-reads or invents a name can never cause `updateVendorProfile` to rename the vendor. (With no `existingProfile`, the model-extracted name stands as a fallback.)
+4. Return the `LlmResult` (with the pinned name). The caller passes `.value` to `updateVendorProfile(vendorId, value)`, which already handles field-diffing, version bump, and `interviewHistory` append.
 
 **Re-interview** — the caller loads the current profile via `getVendor(vendorId)` and sets `state.existingProfile`. The engine injects it into both system prompts so SIA opens *knowing what's on file* and asks only what's new or changed. Versioning/history is downstream (`updateVendorProfile`), unchanged.
 
@@ -91,10 +102,10 @@ export type NextQuestion = {
 
 `assessCoverage` is pure and deterministic — no LLM, no DB, directly unit-testable.
 
-- **Mechanism — hidden area tags.** The engine is stateless across turns, so coverage must be re-derivable from the transcript alone. The SIA system prompt therefore instructs the model to **end every question with a hidden area tag** on its own final line, of the form `[area:capabilities]`. `coverage.ts` reads those tags from assistant turns by exact string match — no fragile free-text heuristics. This makes "which areas have been asked about" a deterministic string-matching operation over `state.messages`.
-- **Substantively addressed.** An area counts as `covered` only when a tagged question for that area is **followed by a user turn whose trimmed length clears a minimal threshold** (a non-trivial answer). A tagged question with no answer yet, or a one-word answer, does not count.
-- **Tag stripping.** `nextQuestion` returns the clean `question` (tag line removed) for display **and** the raw `transcriptEntry` (tag retained) for the caller to append to `state.messages`. The tag therefore never reaches the UI but always survives in the stored transcript for the next call's coverage pass.
-- **Ordering.** `remaining` is returned in the fixed area order above (capabilities → constraints → idealCustomer → knownGoodSignals → differentiators), so questioning has a stable, sensible progression. `isComplete` is `true` when every area has a tagged-question + substantive-answer pair.
+- **Mechanism — engine-written area tags.** The engine is stateless across turns, so coverage must be re-derivable from the transcript alone. The engine therefore **appends a tag line of the form `[area:capabilities]`** to each assistant turn it produces (in `transcriptEntry`) — see the next-question data flow. `coverage.ts` reads those tags by exact string match (one regex, `/\[area:(\w+)\]\s*$/m`), so "which areas have been asked about" is a deterministic string operation over `state.messages`. Crucially the **engine** writes the tag, not the model — coverage cannot break because a model forgot or reformatted it. The model never sees the tags (they are stripped from the transcript before every LLM call).
+- **Substantively addressed.** An area counts as `covered` only when a tagged assistant turn for that area is **immediately followed by a user turn whose trimmed length clears a minimal threshold** (the plan fixes the exact value — e.g. ≥ 15 characters). A tagged question with no answer yet, or a one-word answer, does not count.
+- **Tag visibility.** The tag lives only in the stored transcript (`state.messages`). It is never displayed (the UI shows `nextQuestion`'s clean `question`) and never sent to the model (stripped before each LLM call). It exists solely as coverage's deterministic marker.
+- **Ordering.** `remaining` is returned in the fixed area order above (capabilities → constraints → idealCustomer → knownGoodSignals → differentiators), so questioning has a stable, sensible progression. `isComplete` is `true` when every area has a tagged-turn + substantive-answer pair.
 
 ## Error handling
 
@@ -106,10 +117,11 @@ export type NextQuestion = {
 
 All tests live in `tests/unit/ai/` and mock `@/ai/llm` (`generateText` / `generateObject`) via `vi.mock` + `vi.hoisted()`, matching Slice 2.2a's pattern. No network, no keys.
 
-- **`coverage.ts` (pure, no mocking):** empty transcript → all areas remaining, `isComplete:false`; a transcript with tagged questions + substantive answers for some areas → those covered, the rest remaining in fixed order; trivial/short user answers do not count as covered; all five covered → `isComplete:true`.
-- **`interview.ts` (mock `generateText`):** first turn targets `capabilities` and asks a broad opener; mid-interview targets the first remaining area; the built system prompt includes the existing profile on a re-interview (assert the mock received it in `messages`); the returned `question` has the `[area:…]` tag line stripped while `transcriptEntry.content` retains it; `targetArea` matches coverage's first remaining area.
-- **`extract.ts` (mock `generateObject`):** returns the mock's validated `VendorProfileInput` and propagates `provider`; the extraction `messages` include the full transcript; on a re-interview the existing profile is included in the prompt; an `AllProvidersFailedError` from the mock propagates (not swallowed).
+- **`coverage.ts` (pure, no mocking):** empty transcript → all areas remaining, `isComplete:false`; a transcript whose assistant turns carry `[area:X]` tags followed by substantive answers → those areas covered, the rest remaining in fixed order; trivial/short user answers do not count as covered; all five covered → `isComplete:true`.
+- **`interview.ts` (mock `generateText`):** first turn targets `capabilities` and asks a broad opener; mid-interview targets the first remaining area; the messages passed to the mock contain **no** `[area:…]` tags (history is stripped) yet **do** include the existing profile on a re-interview; the returned `question` equals the mock's text verbatim (no tag) while `transcriptEntry.content` ends with `\n[area:<targetArea>]`; `targetArea` matches coverage's first remaining area.
+- **`extract.ts` (mock `generateObject`):** returns the mock's validated `VendorProfileInput` and propagates `provider`; the extraction `messages` include the transcript and the existing profile; **name pinning** — when `existingProfile.name` is set, the returned `value.name` equals it even if the mock returned a different name; with no `existingProfile`, the mock's name stands; an `AllProvidersFailedError` from the mock propagates (not swallowed).
 - **`index.ts` (smoke):** the three public functions delegate to the right internal modules with the right arguments.
+- **`schema.ts` (prerequisite refactor):** the existing Slice 2.1 vendor tests (`vendors-data`, `vendors-profile-data`) still pass unchanged against the re-exporting `data.ts`; a new unit test imports `vendorProfileSchema` from `@/lib/vendors/schema` and parses a sample object **without** any DB connection (proving the module is DB-free).
 
 ## Out of scope (YAGNI / later slices)
 
@@ -117,14 +129,14 @@ The interview UI / operator-co-piloted chat (2.3); persisting interview sessions
 
 ## Acceptance criteria
 
-1. `nextQuestion(state)` returns a clean question string (tag line stripped), the raw `transcriptEntry` to append, the `targetArea` it drills, and a `CoverageReport`.
+1. `nextQuestion(state)` returns the model's `question` verbatim (for display), a `transcriptEntry` whose content has an engine-appended `\n[area:<targetArea>]` tag, the `targetArea` it drills, and a `CoverageReport`. The model never sees tags (history is stripped before the call).
 2. On an empty transcript, `nextQuestion` returns a broad opening question targeting `capabilities` (never an error).
-3. `assessCoverage` is pure and deterministic: same transcript → same report; areas with a tagged question + substantive answer are `covered`, the rest are `remaining` in fixed area order; all covered → `isComplete:true`.
-4. `extractProfile(state)` returns a `vendorProfileSchema`-validated `VendorProfileInput` plus the serving `provider`, suitable to pass straight to `updateVendorProfile`.
-5. On a re-interview (`existingProfile` set), both `nextQuestion` and `extractProfile` include the existing profile in the prompt sent to the LLM layer.
-6. The engine imports **no** DB module (`src/db/*`, `@/lib/vendors/data` types only — not its DB functions); all persistence is the caller's job.
+3. `assessCoverage` is pure and deterministic: same transcript → same report; areas whose tagged assistant turn is followed by a substantive answer are `covered`, the rest are `remaining` in fixed area order; all covered → `isComplete:true`.
+4. `extractProfile(state)` returns a `vendorProfileSchema`-validated `VendorProfileInput` plus the serving `provider`, suitable to pass straight to `updateVendorProfile`; `name` is pinned from `existingProfile` when present (never taken from a model hallucination).
+5. On a re-interview (`existingProfile` populated beyond the stub), both `nextQuestion` and `extractProfile` include the existing profile in the prompt sent to the LLM layer.
+6. The engine imports **no** DB module: schema and types come from `@/lib/vendors/schema` (DB-free) and `@/ai/llm`; nothing under `src/ai/sia/` imports `@/db/*` or `@/lib/vendors/data`. All persistence is the caller's job.
 7. `AllProvidersFailedError` propagates to the caller; no secrets or stack traces are added by the engine.
-8. The whole engine builds and **all tests pass with no API key** (mocked LLM layer).
+8. The whole engine builds and **all tests pass with no API key** (mocked LLM layer), and the prerequisite schema refactor leaves all Slice 2.1 vendor tests green.
 
 ## Done gate
 
