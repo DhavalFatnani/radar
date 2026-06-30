@@ -17,6 +17,8 @@ const AREA_TAG_RE = /\[area:([A-Za-z]+)\]\s*$/;
 
 // Engine appends this to each assistant turn so coverage is re-derivable from
 // the transcript alone. The model never produces it; it is never displayed.
+// Note: trimEnd() is intentional — the round-trip contract is
+// `stripAreaTag(appendAreaTag(t, a)) === t.trimEnd()`.
 export function appendAreaTag(text: string, area: InterviewArea): string {
   return `${text.trimEnd()}\n[area:${area}]`;
 }

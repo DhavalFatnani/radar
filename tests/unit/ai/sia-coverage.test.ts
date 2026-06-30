@@ -27,6 +27,10 @@ describe("tag helpers", () => {
   it("parseAreaTag returns null when there is no tag", () => {
     expect(parseAreaTag("just a plain question")).toBeNull();
   });
+
+  it("parseAreaTag returns null for an unknown tag word", () => {
+    expect(parseAreaTag("Question?\n[area:bogus]")).toBeNull();
+  });
 });
 
 describe("assessCoverage", () => {
