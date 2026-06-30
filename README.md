@@ -55,6 +55,36 @@ The Vendors screen proves the end-to-end path: add a vendor by name (a server ac
 
 Each vendor has a detail page at `/vendors/[id]` where the operator edits the full profile — capabilities, constraints, ideal customer, known-good signals, differentiators, and credibility. Saves are versioned: every change bumps `version` and appends a dated entry to `interview_history`. The SIA interview (later) writes through this same path.
 
+### LLM providers (Phase 2 · Slice 2.2a)
+
+The platform uses a provider-agnostic LLM layer (`src/ai/llm/`) that falls back
+across providers in order. No API key is needed for dev/test — all tests pass via
+mocks. You only need a key when actually running an interview.
+
+**Free/local first fallback order (default):** `ollama → deepseek → grok → openai → anthropic`
+
+Override with `AI_PROVIDER_ORDER=comma,separated,names` in `.env.local`.
+
+**Quickstart with Ollama (free, local):**
+
+```bash
+# Install Ollama: https://ollama.com
+ollama pull llama3.2
+# Add to .env.local:
+echo 'OLLAMA_MODEL=llama3.2' >> .env.local
+```
+
+**Quickstart with a paid provider:**
+
+```bash
+# .env.local — add whichever you have:
+ANTHROPIC_API_KEY=sk-ant-...
+# or: OPENAI_API_KEY=sk-...
+# or: DEEPSEEK_API_KEY=sk-...  (very cheap)
+```
+
+All other providers are optional. Unconfigured providers are silently skipped.
+
 ### Auth (Slice 3)
 
 Single operator, env-based. Set in `.env.local`:
