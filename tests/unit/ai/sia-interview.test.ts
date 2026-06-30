@@ -40,4 +40,17 @@ describe("nextQuestion", () => {
     const sent = mockGenerateText.mock.calls[0][0] as LlmMessage[];
     expect(sent.every((m) => !m.content.includes("[area:"))).toBe(true);
   });
+
+  it("falls back to the last area and reports isComplete when all areas are covered", async () => {
+    const areas: Array<"capabilities" | "constraints" | "idealCustomer" | "knownGoodSignals" | "differentiators"> =
+      ["capabilities", "constraints", "idealCustomer", "knownGoodSignals", "differentiators"];
+    const messages: LlmMessage[] = areas.flatMap((area) => [
+      { role: "assistant" as const, content: appendAreaTag("Tell me about this area.", area) },
+      { role: "user" as const, content: "Substantive answer about this topic." },
+    ]);
+    const result = await nextQuestion({ messages });
+    expect(result.targetArea).toBe("differentiators");
+    expect(result.coverage.isComplete).toBe(true);
+    expect(result.coverage.remaining).toEqual([]);
+  });
 });

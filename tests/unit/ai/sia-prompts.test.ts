@@ -60,5 +60,6 @@ describe("buildExtractionMessages", () => {
     expect(noTags(messages)).toBe(true);
     expect(messages.at(-1)?.role).toBe("user");
     expect(messages.at(-1)?.content.toLowerCase()).toContain("produce");
+    expect(messages.some((m) => m.content.includes("Maharashtra"))).toBe(true);
   });
 });
