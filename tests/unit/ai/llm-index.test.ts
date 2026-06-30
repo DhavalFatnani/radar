@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect } from "vitest";
 
 // Mock the three internal modules so no env vars or real models are needed.
 vi.mock("@/ai/llm/config", () => ({
