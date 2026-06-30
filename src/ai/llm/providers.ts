@@ -1,8 +1,8 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { createXai } from "@ai-sdk/xai";
-import { createOllama } from "ollama-ai-provider";
 import type { LanguageModel } from "ai";
 import type { ProviderSpec } from "./types";
 
@@ -25,10 +25,12 @@ export function getModel(spec: ProviderSpec): LanguageModel {
       return p(spec.model) as LanguageModel;
     }
     case "ollama": {
-      const p = createOllama({
+      const p = createOpenAICompatible({
+        name: "ollama",
+        apiKey: "ollama", // Ollama ignores the API key; field is required by the interface
         baseURL: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434/v1",
       });
-      return p(spec.model) as unknown as LanguageModel;
+      return p(spec.model);
     }
     case "gateway": {
       const p = createOpenAI({
