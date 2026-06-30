@@ -85,6 +85,34 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 All other providers are optional. Unconfigured providers are silently skipped.
 
+### SIA interview engine (Phase 2 · Slice 2.2b)
+
+`src/ai/sia/` is a pure, DB-free engine over the LLM layer. The caller (the
+interview UI, Slice 2.3) holds the conversation and persistence; the engine
+only generates questions and extracts a structured profile.
+
+```ts
+import { nextQuestion, extractProfile, assessCoverage } from "@/ai/sia";
+import { getVendor, updateVendorProfile } from "@/lib/vendors/data";
+
+const existingProfile = await getVendor(vendorId);
+const state = { messages, existingProfile };
+
+// One interview turn:
+const { question, transcriptEntry, coverage } = await nextQuestion(state);
+// → display `question`; append `transcriptEntry` then the vendor's answer to `messages`.
+
+// When `coverage.isComplete` (or the operator stops):
+const { value } = await extractProfile(state);
+await updateVendorProfile(vendorId, value); // versioning + history handled here
+```
+
+Coverage of the five interview areas (capabilities, constraints, ideal
+customer, buying signals, differentiators) is tracked deterministically — the
+engine appends a hidden `[area:X]` tag to each assistant turn (never shown to
+the vendor, never sent back to the model). Runs free on Ollama; uses any
+configured paid provider via the 2.2a fallback chain.
+
 ### Auth (Slice 3)
 
 Single operator, env-based. Set in `.env.local`:
