@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { catalogueLayout } from "@/app/(app)/catalogue/layout";
+import { catalogueLayout } from "@/app/(app)/catalogue/graph-layout";
 import type { CatalogueGraph } from "@/lib/catalogue/schema";
 
 function graph(): CatalogueGraph {
