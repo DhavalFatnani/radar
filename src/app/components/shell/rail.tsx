@@ -18,6 +18,7 @@ const NAV: { group: string; items: [string, string, NavIconName][] }[] = [
     group: "Build",
     items: [
       ["/vendors", "Vendors", "vendors"],
+      ["/catalogue", "Catalogue", "catalogue"],
       ["/signals", "Signals", "signals"],
       ["/mappings", "Mappings", "mappings"],
     ],

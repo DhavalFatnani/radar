@@ -6,7 +6,7 @@ import { Rail } from "@/app/components/shell/rail";
 vi.mock("next/navigation", () => ({ usePathname: () => "/leads" }));
 
 describe("Rail", () => {
-  it("renders all 7 nav links grouped Operate/Build", () => {
+  it("renders all 8 nav links grouped Operate/Build", () => {
     render(<Rail />);
     for (const label of [
       "Dashboard",
@@ -14,6 +14,7 @@ describe("Rail", () => {
       "Pipeline",
       "Contacts",
       "Vendors",
+      "Catalogue",
       "Signals",
       "Mappings",
     ]) {
