@@ -20,9 +20,10 @@ export type VendorConstraints = {
 export type InterviewHistoryEntry = {
   at: string;
   actor: "operator";
-  kind: "manual_edit";
+  kind: "manual_edit" | "interview";
   changed: string[];
   version: number;
+  interviewId?: string;
 };
 
 export type VendorProfile = {

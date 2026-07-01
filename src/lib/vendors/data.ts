@@ -139,6 +139,7 @@ export async function getVendor(vendorId: string): Promise<VendorProfile | null>
 export async function updateVendorProfile(
   vendorId: string,
   input: VendorProfileInput,
+  source: { kind: "manual_edit" | "interview"; interviewId?: string } = { kind: "manual_edit" },
 ): Promise<VendorProfile> {
   const current = await getVendor(vendorId);
   if (!current) throw new Error("Vendor not found");
@@ -150,7 +151,14 @@ export async function updateVendorProfile(
   const newVersion = current.version + 1;
   const history: InterviewHistoryEntry[] = [
     ...current.interviewHistory,
-    { at: new Date().toISOString(), actor: "operator", kind: "manual_edit", changed, version: newVersion },
+    {
+      at: new Date().toISOString(),
+      actor: "operator",
+      kind: source.kind,
+      changed,
+      version: newVersion,
+      ...(source.interviewId ? { interviewId: source.interviewId } : {}),
+    },
   ];
 
   await db
