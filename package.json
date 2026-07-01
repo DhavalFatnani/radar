@@ -19,7 +19,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:reset": "tsx src/db/reset.ts",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "db:seed:signals": "tsx src/db/seed-signals.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.3",
