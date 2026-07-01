@@ -102,6 +102,10 @@ export function InterviewScreen({
     setAnswer("");
     startTransition(async () => apply(await submitAnswer(turn.interviewId, value)));
   }
+  function onRetry() {
+    if (!turn) return;
+    startTransition(async () => apply(await advanceInterview(turn.interviewId)));
+  }
   function onSave() {
     if (!turn) return;
     startTransition(async () => {
@@ -212,7 +216,7 @@ export function InterviewScreen({
             id="ci"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type the vendor's answer, or press Continue…"
+            placeholder="Type the vendor's answer…"
             aria-label="Vendor answer"
             disabled={isPending}
           />
@@ -234,9 +238,17 @@ export function InterviewScreen({
           </button>
         </div>
         {error && (
-          <p role="alert" className="muted" style={{ marginTop: "var(--space-2)" }}>
-            {error}
-          </p>
+          <div
+            className="row"
+            style={{ marginTop: "var(--space-2)", gap: "var(--space-3)", alignItems: "center" }}
+          >
+            <p role="alert" className="muted" style={{ margin: 0 }}>
+              {error}
+            </p>
+            <button type="button" className="btn btn-ghost" onClick={onRetry} disabled={isPending}>
+              Retry
+            </button>
+          </div>
         )}
       </section>
 

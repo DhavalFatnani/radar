@@ -16,7 +16,7 @@ vi.mock("@/app/(app)/vendors/[vendorId]/interview/actions", () => ({
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
-import { submitAnswer, saveInterview } from "@/app/(app)/vendors/[vendorId]/interview/actions";
+import { submitAnswer, saveInterview, advanceInterview } from "@/app/(app)/vendors/[vendorId]/interview/actions";
 
 const vendor: VendorProfile = {
   vendorId: "v1",
@@ -81,5 +81,20 @@ describe("InterviewScreen", () => {
     render(<InterviewScreen vendor={vendor} initialTurn={activeTurn()} past={[]} />);
     await user.click(screen.getByRole("button", { name: "Save & version v3" }));
     expect(saveInterview).toHaveBeenCalledWith("iv1");
+  });
+
+  it("shows a Retry control on a failed answer and retries via advanceInterview", async () => {
+    (submitAnswer as Mock).mockResolvedValue({
+      ok: false,
+      error: "SIA is unavailable right now. Press retry to continue.",
+    });
+    (advanceInterview as Mock).mockResolvedValue(activeTurn());
+    const user = userEvent.setup();
+    render(<InterviewScreen vendor={vendor} initialTurn={activeTurn()} past={[]} />);
+    await user.type(screen.getByLabelText("Vendor answer"), "We serve Maharashtra.");
+    await user.click(screen.getByRole("button", { name: "Continue interview" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/unavailable/i);
+    await user.click(await screen.findByRole("button", { name: "Retry" }));
+    expect(advanceInterview).toHaveBeenCalledWith("iv1");
   });
 });
