@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { vendorProfiles } from "@/db/schema";
+import { populateCatalogueFromProfile } from "@/lib/catalogue/data";
 import {
   vendorStubSchema,
   vendorProfileSchema,
@@ -178,5 +179,6 @@ export async function updateVendorProfile(
 
   const updated = await getVendor(vendorId);
   if (!updated) throw new Error("Vendor not found");
+  await populateCatalogueFromProfile(vendorId);
   return updated;
 }

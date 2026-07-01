@@ -8,7 +8,7 @@ beforeAll(async () => {
   await migrateTestDb();
 });
 afterEach(async () => {
-  await truncateAll(["vendor_profiles"]);
+  await truncateAll(["catalogue_edges", "catalogue_nodes", "vendor_profiles"]);
 });
 afterAll(async () => {
   await closeTestDb();

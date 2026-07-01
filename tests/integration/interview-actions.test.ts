@@ -47,7 +47,7 @@ beforeAll(async () => {
 });
 afterEach(async () => {
   vi.clearAllMocks();
-  await truncateAll(["vendor_interviews", "vendor_profiles"]);
+  await truncateAll(["catalogue_edges", "catalogue_nodes", "vendor_interviews", "vendor_profiles"]);
 });
 afterAll(async () => {
   await closeTestDb();
