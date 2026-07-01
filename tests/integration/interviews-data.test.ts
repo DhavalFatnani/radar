@@ -76,4 +76,10 @@ describe("interviews data layer", () => {
     expect(got?.status).toBe("abandoned");
     expect(await getActiveInterview(vendorId)).toBeNull();
   });
+
+  it("throws when appending to a non-existent interview", async () => {
+    await expect(
+      appendMessages("00000000-0000-0000-0000-000000000000", [{ role: "user", content: "x" }]),
+    ).rejects.toThrow(/no interview/i);
+  });
 });

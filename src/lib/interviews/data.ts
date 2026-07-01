@@ -92,10 +92,14 @@ export async function listInterviews(vendorId: string): Promise<InterviewSummary
 // Atomic DB-side append: messages = messages || $msgs::jsonb. No read-modify-write,
 // so concurrent turns cannot lose each other. $msgs is a bound parameter.
 export async function appendMessages(interviewId: string, msgs: LlmMessage[]): Promise<void> {
-  await db
+  const updated = await db
     .update(vendorInterviews)
     .set({ messages: sql`${vendorInterviews.messages} || ${JSON.stringify(msgs)}::jsonb` })
-    .where(eq(vendorInterviews.interviewId, interviewId));
+    .where(eq(vendorInterviews.interviewId, interviewId))
+    .returning({ interviewId: vendorInterviews.interviewId });
+  if (updated.length === 0) {
+    throw new Error(`appendMessages: no interview found with id ${interviewId}`);
+  }
 }
 
 export async function completeInterview(
