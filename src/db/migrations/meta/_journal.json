@@ -64,6 +64,13 @@
       "when": 1782375651798,
       "tag": "0008_living_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1782865842202,
+      "tag": "0009_redundant_puck",
+      "breakpoints": true
     }
   ]
 }

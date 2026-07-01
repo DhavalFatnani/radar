@@ -25,3 +25,6 @@ export const outreachMode = pgEnum("outreach_mode", ["operator_handles", "handed
 export const catalogueNodeType = pgEnum("catalogue_node_type", [
   "vendor", "capability", "sub_capability", "geography", "project_size_range",
 ]);
+
+// SIA interview session (§7.1)
+export const interviewStatus = pgEnum("interview_status", ["in_progress", "completed", "abandoned"]);
