@@ -1,11 +1,9 @@
 import Link from "next/link";
-import type { SignalDefinition, LifecycleStatus, SignalFamily } from "@/lib/signals/schema";
+import type { SignalDefinition, LifecycleStatus } from "@/lib/signals/schema";
 import { LIFECYCLE_STATUSES } from "@/lib/signals/schema";
 
 interface SignalListProps {
   signals: SignalDefinition[];
-  activeStatus?: LifecycleStatus;
-  activeFamily?: SignalFamily;
 }
 
 export function SignalList({ signals }: SignalListProps) {

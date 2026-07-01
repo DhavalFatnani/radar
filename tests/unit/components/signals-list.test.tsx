@@ -53,8 +53,9 @@ describe("SignalList", () => {
   });
 
   it("renders a family label 'hiring'", () => {
-    render(<SignalList signals={fixtures} />);
-    expect(screen.getByText(/hiring/)).toBeInTheDocument();
+    const { container } = render(<SignalList signals={fixtures} />);
+    const meta = container.querySelector(".signal-meta");
+    expect(meta?.textContent).toContain("hiring");
   });
 
   it("renders empty message when signals array is empty", () => {

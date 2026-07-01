@@ -95,7 +95,7 @@ export default async function SignalsPage({
           description="Seed the library with `npm run db:seed:signals`, or propose a signal — each enters as proposed for your approval."
         />
       ) : (
-        <SignalList signals={signals} activeStatus={status} activeFamily={family} />
+        <SignalList signals={signals} />
       )}
     </>
   );
