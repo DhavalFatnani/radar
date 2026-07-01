@@ -95,6 +95,62 @@
   .v2-wayslot .wayfind .go { margin-left: 0; }
 }
 
+/* --- Slice 6: add-signal disclosure + form --- */
+.add-signal-disclosure {
+  margin-bottom: var(--space-5);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.add-signal-disclosure > summary {
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  list-style: none;
+  user-select: none;
+}
+.add-signal-disclosure > summary::-webkit-details-marker { display: none; }
+.add-signal-disclosure > summary::before { content: "▸ "; color: var(--text-faint); }
+.add-signal-disclosure[open] > summary::before { content: "▾ "; }
+.add-signal-disclosure > section { padding: 0 var(--space-4) var(--space-4); }
+.add-signal-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+.add-signal-form label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.add-signal-form input,
+.add-signal-form select,
+.add-signal-form textarea {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  width: 100%;
+}
+.add-signal-form textarea { resize: vertical; min-height: 72px; }
+.add-signal-form .field-hint { font-size: var(--text-2xs); color: var(--text-faint); }
+.add-signal-form .add-signal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: var(--border-w) solid var(--border);
+}
+.add-signal-form [role="alert"] { margin: 0; color: var(--warning); font-size: var(--text-sm); }
+
 /* --- Slice 5: add-vendor form + vendor list --- */
 .add-vendor-form { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: end; margin-bottom: var(--space-5); }
 .add-vendor-form label { display: grid; gap: var(--space-1); font-size: var(--text-sm); color: var(--text-muted); }

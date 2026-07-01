@@ -5,6 +5,7 @@ import { listSignals } from "@/lib/signals/data";
 import { LIFECYCLE_STATUSES, SIGNAL_FAMILIES } from "@/lib/signals/schema";
 import type { LifecycleStatus, SignalFamily } from "@/lib/signals/schema";
 import { SignalList } from "./signal-list";
+import { AddSignalForm } from "./add-signal-form";
 
 export const metadata = { title: "Signals — Radar" };
 
@@ -45,7 +46,7 @@ export default async function SignalsPage({
   return (
     <>
       <PageHeader eyebrow="Build" title="Signals" />
-      {/* AddSignalForm wired in Task 6 */}
+      <AddSignalForm />
 
       <nav aria-label="Filter signals" className="filter-bar">
         <div className="filter-row">
