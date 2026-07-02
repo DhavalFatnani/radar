@@ -18,16 +18,21 @@ export function ReadinessPanel({
   requiredRefs: SignalRef[];
   supportingRefs: SignalRef[];
 }) {
+  const hasRequired = requiredRefs.length > 0;
   const allRequiredApproved =
-    requiredRefs.length > 0 && requiredRefs.every((r) => r.status === "approved");
+    hasRequired && requiredRefs.every((r) => r.status === "approved");
+
+  const readinessMessage = !hasRequired
+    ? "No required signals defined — add at least one before this mapping can be approved."
+    : allRequiredApproved
+      ? "All required signals are approved — this mapping can be approved."
+      : "Some required signals are not approved — approval is blocked until they are.";
 
   return (
     <section className="readiness-panel" aria-label="Signal readiness">
       <h2>Signal readiness</h2>
       <p className={allRequiredApproved ? "readiness-ok" : "readiness-warn"}>
-        {allRequiredApproved
-          ? "All required signals are approved — this mapping can be approved."
-          : "Some required signals are not approved — approval is blocked until they are."}
+        {readinessMessage}
       </p>
       <h3>Required</h3>
       <ul className="readiness-list">
