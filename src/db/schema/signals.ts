@@ -1,4 +1,4 @@
-import { pgTable, text, integer, jsonb, date, timestamp, uuid, real } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, jsonb, date, timestamp, uuid, real, uniqueIndex } from "drizzle-orm/pg-core";
 import {
   signalFamily, detectionMethod, signalStrength, falsePositiveRisk,
   signalPolarity, entityType, lifecycleStatus,
@@ -33,13 +33,20 @@ export const signalDefinitions = pgTable("signal_definitions", {
   trackRecord: jsonb("track_record"),                       // computed; empty until outcomes
 });
 
-export const signalObservations = pgTable("signal_observations", {
-  observationId: uuid("observation_id").primaryKey().defaultRandom(),
-  signalId: text("signal_id").notNull().references(() => signalDefinitions.signalId),
-  companyId: uuid("company_id").notNull().references(() => companies.companyId),
-  detectedAt: timestamp("detected_at", { withTimezone: true }).notNull(),   // MANDATORY (proof)
-  source: text("source").notNull(),                                          // MANDATORY (proof)
-  evidence: text("evidence").array().notNull(),                              // MANDATORY (proof)
-  freshnessVerdict: text("freshness_verdict"),               // computed: recent | stale
-  entityMatchConfidence: real("entity_match_confidence"),    // computed
-});
+export const signalObservations = pgTable(
+  "signal_observations",
+  {
+    observationId: uuid("observation_id").primaryKey().defaultRandom(),
+    signalId: text("signal_id").notNull().references(() => signalDefinitions.signalId),
+    companyId: uuid("company_id").notNull().references(() => companies.companyId),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).notNull(),   // MANDATORY (proof)
+    source: text("source").notNull(),                                          // MANDATORY (proof)
+    evidence: text("evidence").array().notNull(),                              // MANDATORY (proof)
+    freshnessVerdict: text("freshness_verdict"),               // computed: recent | stale
+    entityMatchConfidence: real("entity_match_confidence"),    // computed
+    sourceRef: text("source_ref"),                             // source event id; dedup key
+  },
+  (t) => [
+    uniqueIndex("signal_observations_dedupe_uq").on(t.signalId, t.companyId, t.sourceRef),
+  ],
+);
