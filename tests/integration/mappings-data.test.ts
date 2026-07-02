@@ -76,6 +76,12 @@ describe("setMappingStatus (approval + validation gate)", () => {
     if (r.ok) throw new Error("expected failure");
     expect(r.error).toBe("Mapping not found.");
   });
+  it("returns not found for a non-uuid id (no DB cast error)", async () => {
+    const r = await setMappingStatus("not-a-uuid", "approved");
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error("expected failure");
+    expect(r.error).toBe("Mapping not found.");
+  });
 });
 
 describe("resolveSignalRefs", () => {

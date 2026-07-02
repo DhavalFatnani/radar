@@ -100,6 +100,8 @@ export async function setMappingStatus(
   mappingId: string,
   to: LifecycleStatus,
 ): Promise<{ ok: true; mapping: MappingDefinition } | { ok: false; error: string }> {
+  if (!UUID_RE.test(mappingId)) return { ok: false, error: "Mapping not found." };
+
   const [current] = await db
     .select({ status: mappings.status, requiredSignals: mappings.requiredSignals })
     .from(mappings)
