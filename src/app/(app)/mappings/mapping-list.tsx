@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import type { MappingDefinition, LifecycleStatus } from "@/lib/mappings/schema";
 import { LIFECYCLE_STATUSES } from "@/lib/mappings/schema";
