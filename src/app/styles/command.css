@@ -335,3 +335,17 @@
 .mapping-list li a:hover { text-decoration: underline; }
 .mapping-meta { margin: 0; font-size: var(--text-xs); color: var(--text-faint); flex: 1; min-width: 0; }
 .mapping-empty { color: var(--text-muted); font-size: var(--text-sm); padding: var(--space-5) 0; }
+
+/* --- Phase 3 Slice 3.2 (mappings): detail + readiness panel --- */
+.mapping-detail { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-2) var(--space-4); margin: var(--space-5) 0; }
+.mapping-detail dt { font-weight: var(--weight-semibold); color: var(--text-muted); }
+.mapping-detail dd { margin: 0; }
+.readiness-panel { border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-4); margin: var(--space-4) 0; }
+.readiness-panel h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); }
+.readiness-panel h3 { margin: var(--space-3) 0 var(--space-1); font-size: var(--text-sm); color: var(--text-muted); }
+.readiness-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-1); }
+.readiness-list li { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+.readiness-id { font-size: var(--text-2xs); color: var(--text-faint); }
+.readiness-ok { color: var(--success, #2f855a); font-size: var(--text-sm); }
+.readiness-warn { color: var(--warning); font-size: var(--text-sm); }
+.badge-missing { background: var(--surface-2, #ececec); color: var(--text-muted); }
