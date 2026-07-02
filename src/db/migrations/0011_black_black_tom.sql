@@ -1,0 +1,2 @@
+ALTER TABLE "vendor_profiles" ADD COLUMN "vendor_type" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "leads_vendor_company_mapping_uq" ON "leads" USING btree ("vendor_id","company_id","matched_mapping_id");

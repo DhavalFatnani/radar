@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, real, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, real, jsonb, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { pipelineStage, outreachMode } from "./enums";
 import { vendorProfiles } from "./vendors";
 import { companies } from "./companies";
@@ -16,4 +16,6 @@ export const leads = pgTable("leads", {
   brief: jsonb("brief"),                 // { why_them, why_now[], what_they_need, hook, ... }
   contactBlock: jsonb("contact_block"),  // { decision_makers[] { name, role, contact_paths[] } }
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  uniqueIndex("leads_vendor_company_mapping_uq").on(t.vendorId, t.companyId, t.matchedMappingId),
+]);

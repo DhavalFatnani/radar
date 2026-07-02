@@ -3,6 +3,7 @@ import { pgTable, uuid, text, integer, jsonb } from "drizzle-orm/pg-core";
 export const vendorProfiles = pgTable("vendor_profiles", {
   vendorId: uuid("vendor_id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  vendorType: text("vendor_type"),          // matches mappings.serves_vendor_type (case-insensitive), e.g. "Infra" | "Mktg"
   capabilities: text("capabilities").array(),
   constraints: jsonb("constraints"),          // { max/min_project_size, geographies_served, ... }
   idealCustomer: jsonb("ideal_customer"),
