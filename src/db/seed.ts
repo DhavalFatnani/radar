@@ -34,7 +34,7 @@ export async function seed(db: DB) {
   }).returning();
 
   const [vendor] = await db.insert(vendorProfiles).values({
-    name: "RackPro Infra", capabilities: ["racking", "cctv"],
+    name: "RackPro Infra", vendorType: "Infra", capabilities: ["racking", "cctv"],
     constraints: { geographies_served: ["maharashtra"] },
   }).returning();
 
