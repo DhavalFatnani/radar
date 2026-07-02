@@ -1,0 +1,13 @@
+[
+  { "ref": "J-1", "title": "Head of Supply Chain", "company": "Zephyr Retail Pvt Ltd", "city": "Bengaluru", "url": "https://jobs.example.com/j-1", "postedAt": "2026-06-20T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-2", "title": "Warehouse Operations Executive", "company": "Meridian Logistics", "city": "Pune", "url": "https://jobs.example.com/j-2", "postedAt": "2026-06-10T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-3", "title": "Logistics Coordinator", "company": "Meridian Logistics", "city": "Pune", "url": "https://jobs.example.com/j-3", "postedAt": "2026-06-12T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-4", "title": "Fulfilment Associate", "company": "Meridian Logistics", "city": "Pune", "url": "https://jobs.example.com/j-4", "postedAt": "2026-06-15T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-5", "title": "Operations Team Lead", "company": "Meridian Logistics", "city": "Nagpur", "url": "https://jobs.example.com/j-5", "postedAt": "2026-06-18T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-6", "title": "Warehouse Supervisor", "company": "Meridian Logistics", "city": "Pune", "url": "https://jobs.example.com/j-6", "postedAt": "2026-06-22T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-7", "title": "Brand Promoter", "company": "Vantage Brands", "city": "Mumbai", "url": "https://jobs.example.com/j-7", "postedAt": "2026-06-11T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-8", "title": "Field Marketing Executive", "company": "Vantage Brands", "city": "Delhi", "url": "https://jobs.example.com/j-8", "postedAt": "2026-06-13T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-9", "title": "Store Launch Coordinator", "company": "Vantage Brands", "city": "Hyderabad", "url": "https://jobs.example.com/j-9", "postedAt": "2026-06-19T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-10", "title": "Senior Software Engineer", "company": "Nimbus Tech", "city": "Bengaluru", "url": "https://jobs.example.com/j-10", "postedAt": "2026-06-21T00:00:00Z", "sourceName": "jobboard-fixture" },
+  { "ref": "J-11", "company": "Broken Co", "city": "Pune", "postedAt": "2026-06-01T00:00:00Z", "sourceName": "jobboard-fixture" }
+]
