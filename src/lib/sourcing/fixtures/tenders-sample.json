@@ -1,0 +1,63 @@
+[
+  {
+    "ref": "CPPP/2026/RACK/00187",
+    "title": "Supply and installation of heavy-duty pallet racking for regional warehouse",
+    "issuingBody": "Maharashtra State Warehousing Corporation",
+    "description": "Open tender for design, supply and installation of selective pallet racking systems.",
+    "keywordsText": "racking, warehouse, storage",
+    "publishedAt": "2026-06-20T00:00:00Z",
+    "deadline": "2026-07-15T00:00:00Z",
+    "url": "https://eprocure.gov.in/cppp/tender/CPPP-2026-RACK-00187",
+    "sourceName": "CPPP"
+  },
+  {
+    "ref": "GEM/2026/CCTV/44521",
+    "title": "Procurement of CCTV surveillance system for municipal offices",
+    "issuingBody": "Pune Municipal Corporation",
+    "description": "Supply, installation, testing and commissioning of IP CCTV cameras and NVR.",
+    "keywordsText": "cctv, surveillance, security",
+    "publishedAt": "2026-06-25T00:00:00Z",
+    "url": "https://gem.gov.in/tender/GEM-2026-CCTV-44521",
+    "sourceName": "GeM"
+  },
+  {
+    "ref": "GEM/2026/SIGN/44900",
+    "title": "Fabrication and installation of directional signage across campus",
+    "issuingBody": "Pune Municipal Corporation",
+    "description": "Interior and exterior signage boards and wayfinding.",
+    "keywordsText": "signage, boards",
+    "publishedAt": "2026-06-28T00:00:00Z",
+    "sourceName": "GeM"
+  },
+  {
+    "ref": "CPPP/2026/RACK/00187",
+    "title": "CORRIGENDUM: heavy-duty pallet racking supply — submission deadline extended",
+    "issuingBody": "Maharashtra State Warehousing Corporation",
+    "description": "Corrigendum extending the submission deadline for the racking tender.",
+    "keywordsText": "racking, corrigendum",
+    "publishedAt": "2026-06-30T00:00:00Z",
+    "deadline": "2026-07-30T00:00:00Z",
+    "url": "https://eprocure.gov.in/cppp/tender/CPPP-2026-RACK-00187",
+    "isAmendment": true,
+    "sourceName": "CPPP"
+  },
+  {
+    "ref": "CPPP/2026/ROAD/01230",
+    "title": "Construction of rural approach road package IV",
+    "issuingBody": "Public Works Department, Nashik",
+    "description": "Earthwork, bituminous surfacing and culverts for rural road.",
+    "keywordsText": "road, civil, construction",
+    "publishedAt": "2026-06-22T00:00:00Z",
+    "sourceName": "CPPP"
+  },
+  {
+    "ref": "GEM/2026/PRINT/45010",
+    "title": "Annual rate contract for commercial printing of brochures and forms",
+    "issuingBody": "Directorate of Information and Public Relations",
+    "description": "Offset and digital printing services.",
+    "keywordsText": "printing, offset, brochures",
+    "publishedAt": "2026-06-18T00:00:00Z",
+    "url": "https://gem.gov.in/tender/GEM-2026-PRINT-45010",
+    "sourceName": "GeM"
+  }
+]
