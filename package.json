@@ -23,7 +23,8 @@
     "db:seed:signals": "tsx src/db/seed-signals.ts",
     "db:seed:mappings": "tsx src/db/seed-mappings.ts",
     "db:source:tenders": "tsx src/db/source-tenders.ts",
-    "db:source:leads": "tsx src/db/source-leads.ts"
+    "db:source:leads": "tsx src/db/source-leads.ts",
+    "db:brief:generate": "tsx src/db/brief-generate.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.3",
