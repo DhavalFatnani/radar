@@ -35,6 +35,8 @@ async function makeLead(opts: {
   stage?: PipelineStage;
   brief?: unknown;
   contactBlock?: unknown;
+  outreachStatus?: "pending" | "drafted" | "sent";
+  outreachDraft?: unknown;
 }): Promise<string> {
   const [row] = await testDb
     .insert(leads)
@@ -46,6 +48,8 @@ async function makeLead(opts: {
       pipelineStage: opts.stage ?? "sourced",
       brief: opts.brief ?? null,
       contactBlock: opts.contactBlock ?? null,
+      outreachStatus: opts.outreachStatus ?? "pending",
+      outreachDraft: opts.outreachDraft ?? null,
     })
     .returning();
   return row.leadId;
@@ -152,5 +156,51 @@ describe("getLeadDetail", () => {
   it("returns null for a malformed (non-UUID) id", async () => {
     const detail = await getLeadDetail(testDb, "not-a-uuid");
     expect(detail).toBeNull();
+  });
+});
+
+describe("getLeadDetail — outreach columns", () => {
+  it("surfaces a valid outreach draft and status", async () => {
+    const companyId = await makeCompany("Zephyr Retail");
+    const vendorId = await makeVendor("Acme Infra");
+    const leadId = await makeLead({
+      companyId,
+      vendorId,
+      outreachStatus: "drafted",
+      outreachDraft: { subject: "Hello", body: "Let's talk." },
+    });
+
+    const detail = await getLeadDetail(testDb, leadId);
+    expect(detail).not.toBeNull();
+    expect(detail!.outreachStatus).toBe("drafted");
+    expect(detail!.outreachDraft).toEqual({ subject: "Hello", body: "Let's talk." });
+  });
+
+  it("degrades a malformed outreach draft to null with status intact", async () => {
+    const companyId = await makeCompany("Vantage Foods");
+    const vendorId = await makeVendor("Acme Infra");
+    const leadId = await makeLead({
+      companyId,
+      vendorId,
+      outreachStatus: "drafted",
+      outreachDraft: { subject: "" }, // empty subject + missing body -> invalid
+    });
+
+    const detail = await getLeadDetail(testDb, leadId);
+    expect(detail).not.toBeNull();
+    expect(detail!.outreachDraft).toBeNull();
+    expect(detail!.outreachStatus).toBe("drafted");
+  });
+
+  it("defaults a fresh lead to status 'pending' with a null draft", async () => {
+    const companyId = await makeCompany("Meridian Logistics");
+    const vendorId = await makeVendor("Beacon Marketing");
+    const leadId = await makeLead({ companyId, vendorId });
+
+    const detail = await getLeadDetail(testDb, leadId);
+    expect(detail!.outreachStatus).toBe("pending");
+    expect(detail!.outreachDraft).toBeNull();
+    expect(detail!.outreachDraftGeneratedAt).toBeNull();
+    expect(detail!.outreachSentAt).toBeNull();
   });
 });

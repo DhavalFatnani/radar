@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { LeadBrief } from "@/ai/brief/schema";
 import type { ContactBlock } from "@/lib/sourcing/contacts-schema";
 import type { PipelineStage } from "@/lib/pipeline/schema";
+import type { OutreachStatus, OutreachDraft } from "@/lib/outreach/schema";
 
 /** Operator's outreach posture for a lead (mirrors the `outreach_mode` enum). */
 export type OutreachMode = "operator_handles" | "handed_to_vendor";
@@ -44,6 +45,10 @@ export type LeadDetail = {
   score: number | null;
   stage: PipelineStage;
   outreachMode: OutreachMode | null;
+  outreachStatus: OutreachStatus;
+  outreachDraft: OutreachDraft | null;
+  outreachDraftGeneratedAt: Date | null;
+  outreachSentAt: Date | null;
   brief: LeadBrief | null;
   contactBlock: ContactBlock | null;
   createdAt: Date;

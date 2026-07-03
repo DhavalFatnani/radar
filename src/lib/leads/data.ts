@@ -4,6 +4,8 @@ import { leads, companies, vendorProfiles } from "@/db/schema";
 import { contactBlockSchema } from "@/lib/sourcing/contacts-schema";
 import type { PipelineStage } from "@/lib/pipeline/schema";
 import { leadBriefSchema, type LeadDetail } from "./schema";
+import { outreachDraftSchema } from "@/lib/outreach/schema";
+import type { OutreachStatus } from "@/lib/outreach/schema";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +32,10 @@ export async function getLeadDetail(
       score: leads.score,
       stage: leads.pipelineStage,
       outreachMode: leads.outreachMode,
+      outreachStatus: leads.outreachStatus,
+      outreachDraft: leads.outreachDraft,
+      outreachDraftGeneratedAt: leads.outreachDraftGeneratedAt,
+      outreachSentAt: leads.outreachSentAt,
       brief: leads.brief,
       contactBlock: leads.contactBlock,
       createdAt: leads.createdAt,
@@ -47,6 +53,8 @@ export async function getLeadDetail(
     row.brief == null ? null : leadBriefSchema.safeParse(row.brief);
   const contactParsed =
     row.contactBlock == null ? null : contactBlockSchema.safeParse(row.contactBlock);
+  const outreachDraftParsed =
+    row.outreachDraft == null ? null : outreachDraftSchema.safeParse(row.outreachDraft);
 
   return {
     leadId: row.leadId,
@@ -58,6 +66,11 @@ export async function getLeadDetail(
     score: row.score,
     stage: row.stage as PipelineStage,
     outreachMode: row.outreachMode,
+    outreachStatus: row.outreachStatus as OutreachStatus,
+    outreachDraft:
+      outreachDraftParsed && outreachDraftParsed.success ? outreachDraftParsed.data : null,
+    outreachDraftGeneratedAt: row.outreachDraftGeneratedAt,
+    outreachSentAt: row.outreachSentAt,
     brief: briefParsed && briefParsed.success ? briefParsed.data : null,
     contactBlock: contactParsed && contactParsed.success ? contactParsed.data : null,
     createdAt: row.createdAt,
