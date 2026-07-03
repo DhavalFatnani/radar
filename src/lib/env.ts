@@ -13,6 +13,8 @@ const envSchema = z.object({
   DIRECT_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   // Dedicated test database (a Neon branch). Falls back to DIRECT_URL/DATABASE_URL.
   TEST_DATABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+  RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  OUTREACH_FROM_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
 });
 
 export type Env = z.infer<typeof envSchema>;

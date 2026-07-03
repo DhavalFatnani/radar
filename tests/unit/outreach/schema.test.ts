@@ -5,8 +5,10 @@ import {
   outreachDraftSchema,
   canMarkSent,
   nextStatuses,
+  primaryRecipientEmail,
   type OutreachStatus,
 } from "@/lib/outreach/schema";
+import type { ContactBlock } from "@/lib/sourcing/contacts-schema";
 
 const ENUM_ORDER: OutreachStatus[] = ["pending", "drafted", "sent"];
 
@@ -50,5 +52,68 @@ describe("outreachDraftSchema", () => {
 
   it("rejects a missing field", () => {
     expect(outreachDraftSchema.safeParse({ subject: "x" }).success).toBe(false);
+  });
+});
+
+function block(
+  paths: { type: string; val: string | null }[],
+): ContactBlock {
+  return {
+    decision_makers: [
+      {
+        name: "Dana Ops",
+        role: "COO",
+        why: "runs ops",
+        paths: paths.map((p) => ({ type: p.type, val: p.val, conf: null, source: null })),
+        warm: { status: "cold", detail: null },
+      },
+    ],
+    status: "resolved",
+    resolvedBy: "test",
+    resolvedAt: "2026-07-03T00:00:00.000Z",
+  };
+}
+
+describe("primaryRecipientEmail", () => {
+  it("returns the first email path with a value", () => {
+    expect(
+      primaryRecipientEmail(block([{ type: "email", val: "dana@acme.test" }])),
+    ).toBe("dana@acme.test");
+  });
+
+  it("skips an email path whose val is null and takes the next usable email", () => {
+    expect(
+      primaryRecipientEmail(
+        block([
+          { type: "email", val: null },
+          { type: "email", val: "dana@acme.test" },
+        ]),
+      ),
+    ).toBe("dana@acme.test");
+  });
+
+  it("ignores non-email path types", () => {
+    expect(
+      primaryRecipientEmail(
+        block([
+          { type: "phone", val: "+1-555" },
+          { type: "linkedin", val: "in/dana" },
+        ]),
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null when no email path exists", () => {
+    expect(primaryRecipientEmail(block([]))).toBeNull();
+  });
+
+  it("returns null when decision_makers is empty", () => {
+    const b = block([{ type: "email", val: "x@y.test" }]);
+    b.decision_makers = [];
+    expect(primaryRecipientEmail(b)).toBeNull();
+  });
+
+  it("returns null for a null block", () => {
+    expect(primaryRecipientEmail(null)).toBeNull();
   });
 });

@@ -2,6 +2,7 @@
 // src/db/schema/enums.ts. No imports from @/db, @/ai, or server-only — safe to
 // import from client components and tests. Mirrors the pipeline schema precedent.
 import { z } from "zod";
+import type { ContactBlock } from "@/lib/sourcing/contacts-schema";
 
 // Enum union — mirror src/db/schema/enums.ts outreachStatus EXACTLY, same order.
 export const OUTREACH_STATUSES = ["pending", "drafted", "sent"] as const;
@@ -43,4 +44,21 @@ export function nextStatuses(status: OutreachStatus): OutreachStatus[] {
 
 export function canMarkSent(status: OutreachStatus): boolean {
   return nextStatuses(status).includes("sent");
+}
+
+/**
+ * The email address outreach should be sent to: the first decision-maker
+ * contact path of type "email" that has a non-empty value. Returns null when
+ * the block is missing or no usable email exists. Pure — client-safe.
+ */
+export function primaryRecipientEmail(block: ContactBlock | null): string | null {
+  if (!block) return null;
+  for (const dm of block.decision_makers) {
+    for (const path of dm.paths) {
+      if (path.type === "email" && path.val !== null && path.val.length > 0) {
+        return path.val;
+      }
+    }
+  }
+  return null;
 }
