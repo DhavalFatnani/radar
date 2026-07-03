@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("@/app/(app)/leads/actions", () => ({
@@ -95,5 +95,33 @@ describe("OutreachPanel", () => {
       />,
     );
     expect(screen.queryByRole("button", { name: /mark as sent/i })).not.toBeInTheDocument();
+  });
+
+  it("surfaces the error string inline and does not call refresh on a failed action", async () => {
+    vi.mocked(setOutreachModeAction).mockResolvedValueOnce({ ok: false, error: "Something went wrong" });
+    render(<OutreachPanel leadId={ID} mode="operator_handles" status="pending" draft={null} hasBrief />);
+    await userEvent.click(screen.getByRole("button", { name: /handed to vendor/i }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Something went wrong");
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("calls router.refresh() after a successful action", async () => {
+    vi.mocked(setOutreachModeAction).mockResolvedValueOnce({ ok: true });
+    render(<OutreachPanel leadId={ID} mode="operator_handles" status="pending" draft={null} hasBrief />);
+    await userEvent.click(screen.getByRole("button", { name: /handed to vendor/i }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it("does not render the draft region when draft is null", () => {
+    render(<OutreachPanel leadId={ID} mode="operator_handles" status="pending" draft={null} hasBrief />);
+    expect(screen.queryByLabelText(/generated draft/i)).not.toBeInTheDocument();
+  });
+
+  it("does not show the generate-brief-first note when hasBrief is true", () => {
+    render(<OutreachPanel leadId={ID} mode="operator_handles" status="pending" draft={null} hasBrief />);
+    expect(
+      screen.queryByText(/generate the brief first/i),
+    ).not.toBeInTheDocument();
   });
 });
