@@ -659,3 +659,84 @@
     grid-template-columns: 2fr 2fr auto auto auto;
   }
 }
+
+/* ── Outreach panel (lead detail) ── */
+.outreach-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 0.5rem);
+}
+.outreach-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.outreach-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.outreach-status {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.outreach-status-sent {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+.outreach-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.outreach-generate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.outreach-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.outreach-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.outreach-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.outreach-field input,
+.outreach-field textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--surface, transparent);
+  color: var(--text);
+  font: inherit;
+}
+.outreach-field textarea {
+  resize: vertical;
+}
+.outreach-error {
+  margin: 0;
+  color: var(--danger, #b91c1c);
+  font-size: 0.85rem;
+}
+@media (min-width: 768px) {
+  .outreach-modes {
+    align-items: center;
+  }
+}

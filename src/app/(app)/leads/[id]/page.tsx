@@ -4,8 +4,9 @@ import { db } from "@/db/client";
 import { getLeadDetail } from "@/lib/leads/data";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { STAGE_LABELS } from "@/lib/pipeline/schema";
-import { formatScore, OUTREACH_LABELS } from "@/lib/leads/schema";
+import { formatScore } from "@/lib/leads/schema";
 import { StageControls } from "@/app/(app)/pipeline/stage-controls";
+import { OutreachPanel } from "./outreach-panel";
 import { BriefView } from "./brief-view";
 import { ContactBlockView } from "./contact-block-view";
 
@@ -51,15 +52,16 @@ export default async function LeadDetailPage({
               <dt>Score</dt>
               <dd>{formatScore(lead.score)}</dd>
             </div>
-            {lead.outreachMode && (
-              <div className="fact">
-                <dt>Outreach</dt>
-                <dd>{OUTREACH_LABELS[lead.outreachMode]}</dd>
-              </div>
-            )}
           </dl>
           <StageControls leadId={lead.leadId} stage={lead.stage} />
         </section>
+        <OutreachPanel
+          leadId={lead.leadId}
+          mode={lead.outreachMode}
+          status={lead.outreachStatus}
+          draft={lead.outreachDraft}
+          hasBrief={lead.brief != null}
+        />
         {lead.brief ? (
           <BriefView brief={lead.brief} />
         ) : (
