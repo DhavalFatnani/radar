@@ -20,6 +20,7 @@ export const pipelineStage = pgEnum("pipeline_stage", [
   "sourced", "contacted", "engaged", "pitched", "won", "lost", "delivered", "paid",
 ]);
 export const outreachMode = pgEnum("outreach_mode", ["operator_handles", "handed_to_vendor"]);
+export const outreachStatus = pgEnum("outreach_status", ["pending", "drafted", "sent"]);
 
 // Catalogue (§4.6)
 export const catalogueNodeType = pgEnum("catalogue_node_type", [

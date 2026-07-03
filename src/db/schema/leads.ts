@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, real, jsonb, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
-import { pipelineStage, outreachMode } from "./enums";
+import { pipelineStage, outreachMode, outreachStatus } from "./enums";
 import { vendorProfiles } from "./vendors";
 import { companies } from "./companies";
 import { mappings } from "./mappings";
@@ -13,6 +13,10 @@ export const leads = pgTable("leads", {
   score: real("score"),
   pipelineStage: pipelineStage("pipeline_stage").notNull().default("sourced"),
   outreachMode: outreachMode("outreach_mode"),
+  outreachStatus: outreachStatus("outreach_status").notNull().default("pending"),
+  outreachDraft: jsonb("outreach_draft"),                        // { subject, body }
+  outreachDraftGeneratedAt: timestamp("outreach_draft_generated_at", { withTimezone: true }),
+  outreachSentAt: timestamp("outreach_sent_at", { withTimezone: true }),
   brief: jsonb("brief"),                 // { why_them, why_now[], what_they_need, hook, ... }
   contactBlock: jsonb("contact_block"),  // { decision_makers[] { name, role, contact_paths[] } }
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
