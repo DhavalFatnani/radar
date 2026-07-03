@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterEach, afterAll, vi, type Mock } from "vitest";
+import type { OutreachMode } from "@/lib/leads/schema";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { email: "op@test" } })) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -78,12 +79,30 @@ describe("setOutreachModeAction", () => {
     const leadId = await makeLead();
     const r = await setOutreachModeAction(leadId, "handed_to_vendor");
     expect(r.ok).toBe(false);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("rejects an unknown mode", async () => {
     const leadId = await makeLead();
     const r = await setOutreachModeAction(leadId, "nope" as never);
     expect(r).toEqual({ ok: false, error: "Unknown mode." });
+  });
+
+  it("accepts operator_handles and persists it", async () => {
+    const leadId = await makeLead();
+    const r = await setOutreachModeAction(leadId, "operator_handles");
+    expect(r).toEqual({ ok: true });
+    const [row] = await testDb.select().from(leads).where(eq(leads.leadId, leadId));
+    expect(row.outreachMode).toBe("operator_handles");
+  });
+
+  it("rejects a prototype-chain key as an unknown mode without touching the DB", async () => {
+    const leadId = await makeLead();
+    const result = await setOutreachModeAction(leadId, "toString" as OutreachMode);
+    expect(result).toEqual({ ok: false, error: "Unknown mode." });
+    expect(revalidatePath).not.toHaveBeenCalled();
+    const [row] = await testDb.select().from(leads).where(eq(leads.leadId, leadId));
+    expect(row.outreachMode).toBeNull();
   });
 });
 
@@ -153,5 +172,6 @@ describe("setOutreachStatusAction", () => {
     const leadId = await makeLead();
     const r = await setOutreachStatusAction(leadId, "sent");
     expect(r.ok).toBe(false);
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

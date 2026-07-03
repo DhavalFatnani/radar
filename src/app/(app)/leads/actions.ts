@@ -24,7 +24,7 @@ export async function setOutreachModeAction(
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(await signedIn())) return { ok: false, error: "Not signed in." };
   // Never trust the client value — validate it is a real mode before the DB.
-  if (!(mode in OUTREACH_LABELS)) return { ok: false, error: "Unknown mode." };
+  if (!Object.hasOwn(OUTREACH_LABELS, mode)) return { ok: false, error: "Unknown mode." };
 
   const r = await setOutreachMode(db, leadId, mode);
   if (r.ok) {
