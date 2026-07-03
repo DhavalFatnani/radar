@@ -46,6 +46,7 @@ describe("generateOutreach", () => {
     const result = await generateOutreach(input);
     expect(mockGenerateObject).toHaveBeenCalledTimes(1);
     expect(mockGenerateObject.mock.calls[0][0]).toBe(outreachDraftSchema);
+    expect(mockGenerateObject.mock.calls[0][1]).toEqual(buildOutreachMessages(input));
     expect(result.value).toEqual(draft);
     expect(result.provider).toBe("anthropic");
   });
@@ -62,5 +63,8 @@ describe("outreachDraftSchema", () => {
   });
   it("rejects an empty body", () => {
     expect(outreachDraftSchema.safeParse({ subject: "x", body: "" }).success).toBe(false);
+  });
+  it("rejects an empty subject", () => {
+    expect(outreachDraftSchema.safeParse({ subject: "", body: "x" }).success).toBe(false);
   });
 });
