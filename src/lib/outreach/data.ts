@@ -16,7 +16,12 @@ export async function setOutreachMode(
   mode: OutreachMode,
 ): Promise<Result> {
   if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
-  await db.update(leads).set({ outreachMode: mode }).where(eq(leads.leadId, leadId));
+  const result = await db
+    .update(leads)
+    .set({ outreachMode: mode })
+    .where(eq(leads.leadId, leadId))
+    .returning({ id: leads.leadId });
+  if (result.length === 0) return { ok: false, error: "Lead not found." };
   return { ok: true };
 }
 
@@ -30,14 +35,16 @@ export async function saveOutreachDraft(
   draft: OutreachDraft,
 ): Promise<Result> {
   if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
-  await db
+  const result = await db
     .update(leads)
     .set({
       outreachDraft: draft,
       outreachStatus: "drafted",
       outreachDraftGeneratedAt: new Date(),
     })
-    .where(eq(leads.leadId, leadId));
+    .where(eq(leads.leadId, leadId))
+    .returning({ id: leads.leadId });
+  if (result.length === 0) return { ok: false, error: "Lead not found." };
   return { ok: true };
 }
 
@@ -51,12 +58,14 @@ export async function setOutreachStatus(
   status: OutreachStatus,
 ): Promise<Result> {
   if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
-  await db
+  const result = await db
     .update(leads)
     .set({
       outreachStatus: status,
       ...(status === "sent" ? { outreachSentAt: new Date() } : {}),
     })
-    .where(eq(leads.leadId, leadId));
+    .where(eq(leads.leadId, leadId))
+    .returning({ id: leads.leadId });
+  if (result.length === 0) return { ok: false, error: "Lead not found." };
   return { ok: true };
 }

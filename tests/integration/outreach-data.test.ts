@@ -35,8 +35,14 @@ async function makeLead(): Promise<string> {
 }
 
 const BAD_UUID = "not-a-uuid";
+const MISSING_UUID = "00000000-0000-4000-8000-000000000000";
 
 describe("setOutreachMode", () => {
+  it("returns not-found for a valid-format unknown id", async () => {
+    const r = await setOutreachMode(testDb, MISSING_UUID, "handed_to_vendor");
+    expect(r).toEqual({ ok: false, error: "Lead not found." });
+  });
+
   it("persists the mode", async () => {
     const leadId = await makeLead();
     const r = await setOutreachMode(testDb, leadId, "handed_to_vendor");
@@ -52,6 +58,11 @@ describe("setOutreachMode", () => {
 });
 
 describe("saveOutreachDraft", () => {
+  it("returns not-found for a valid-format unknown id", async () => {
+    const r = await saveOutreachDraft(testDb, MISSING_UUID, { subject: "Hi", body: "x" });
+    expect(r).toEqual({ ok: false, error: "Lead not found." });
+  });
+
   it("sets the draft, status 'drafted', and generatedAt", async () => {
     const leadId = await makeLead();
     const r = await saveOutreachDraft(testDb, leadId, { subject: "Hi", body: "Let's talk." });
@@ -70,6 +81,11 @@ describe("saveOutreachDraft", () => {
 });
 
 describe("setOutreachStatus", () => {
+  it("returns not-found for a valid-format unknown id", async () => {
+    const r = await setOutreachStatus(testDb, MISSING_UUID, "sent");
+    expect(r).toEqual({ ok: false, error: "Lead not found." });
+  });
+
   it("stamps sentAt when moving to 'sent'", async () => {
     const leadId = await makeLead();
     const r = await setOutreachStatus(testDb, leadId, "sent");
