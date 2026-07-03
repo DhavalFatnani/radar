@@ -48,7 +48,7 @@ export function BriefView({ brief }: { brief: LeadBrief }) {
           <h3>Objections</h3>
           <ul className="brief-objections">
             {brief.objections.map((o, i) => (
-              <li key={i} className="objection">
+              <li key={i} className="brief-objection">
                 <p className="objection-q">{o.objection}</p>
                 <p className="objection-a">{o.response}</p>
               </li>
