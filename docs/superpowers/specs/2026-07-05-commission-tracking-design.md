@@ -83,12 +83,12 @@ The `projects` table already exists as an all-jsonb skeleton (`project_id`, `lea
 | `vendor_id` | `uuid` NOT NULL → `vendor_profiles.vendor_id` | unchanged |
 | `commission_status` | `commission_status` enum NOT NULL default `'pending'` | **NEW typed column** — project-level lifecycle |
 | `commission_terms` | `jsonb` (nullable) | `CommissionTerms` (Zod-validated) |
-| `commission_cycles` | `jsonb` NOT NULL default `'{"cycles":[]}'` | `{ cycles: CommissionCycle[] }` (Zod-validated) — renamed from skeleton `commission_due` |
+| `commission_due` (TS `commissionCycles`) | `jsonb` NOT NULL default `'{"cycles":[]}'` | `{ cycles: CommissionCycle[] }` (Zod-validated) — legacy DB name kept; clean TS property |
 | `disclosure_log` | `jsonb` NOT NULL default `'[]'` | `DisclosureEntry[]` |
 | `introduction_log` | `jsonb` NOT NULL default `'[]'` | `IntroductionEntry[]` |
-| `dispute_log` | `jsonb` NOT NULL default `'[]'` | `DisputeEntry[]` — renamed from skeleton `dispute_record` for array semantics |
+| `dispute_record` (TS `disputeLog`) | `jsonb` NOT NULL default `'[]'` | `DisputeEntry[]` — legacy DB name kept; clean TS property |
 
-Skeleton columns `commission_due`, `recurring_tracking`, and `dispute_record` are removed/renamed by the migration (the table is empty, so drop+add is safe). One row per won lead (a project). Unique constraint on `lead_id` (a lead maps to at most one project).
+**Migration approach (refined from the original drop+rename plan):** `drizzle-kit generate` prompts interactively when it detects column drop+add of similar types (rename detection), which would hang an autonomous run. So the migration is **additive-only**: it adds the `commission_status` enum + column, drops only the genuinely-unused `recurring_tracking`, and sets NOT NULL defaults on the existing jsonb columns. The two repurposed columns keep their **legacy DB names** (`commission_due`, `dispute_record`) mapped under clean Drizzle/TS property names (`commissionCycles`, `disputeLog`); app code uses only the TS names. One row per won lead (a project). Unique constraint on `lead_id` (a lead maps to at most one project).
 
 **Money is never a typed column** — all amounts live inside the jsonb payloads as plain integers (paise). Crore-scale deals are safe: ₹100 crore = 1e11 paise, well under `Number.MAX_SAFE_INTEGER` (9.007e15) and valid JSON.
 
@@ -233,7 +233,7 @@ Panel regions:
 ## 10. Migration
 
 - Add `commission_status` enum + column to `projects`.
-- Rename/replace jsonb columns: drop `commission_due`, `recurring_tracking`, `dispute_record`; add `commission_cycles`, `dispute_log` (with NOT NULL defaults); keep `commission_terms`, `disclosure_log`, `introduction_log` (add NOT NULL defaults where appropriate).
+- **Additive-only** (avoids drizzle-kit rename prompts): drop only `recurring_tracking`; set NOT NULL defaults on the existing jsonb columns (`commission_due`, `disclosure_log`, `introduction_log`, `dispute_record`); keep `commission_terms` nullable. No column renames — `commission_due` and `dispute_record` are repurposed under the TS property names `commissionCycles` / `disputeLog`.
 - Add a UNIQUE constraint on `projects.lead_id`.
 - Generated via `npm run db:generate` (drizzle-kit) into `src/db/migrations/00NN_<slug>.sql`; applied with `npm run db:migrate`. Integration tests pick it up automatically through `migrateTestDb()` (runs the real migrations against the Neon test branch). The table is empty in every environment, so no backfill.
 
