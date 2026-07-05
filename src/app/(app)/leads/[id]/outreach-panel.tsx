@@ -13,6 +13,7 @@ import {
   setOutreachModeAction,
   generateOutreachDraftAction,
   setOutreachStatusAction,
+  sendOutreachAction,
 } from "../actions";
 
 const MODES: OutreachMode[] = ["operator_handles", "handed_to_vendor"];
@@ -23,16 +24,21 @@ export function OutreachPanel({
   status,
   draft,
   hasBrief,
+  sendConfigured,
+  recipientEmail,
 }: {
   leadId: string;
   mode: OutreachMode | null;
   status: OutreachStatus;
   draft: OutreachDraft | null;
   hasBrief: boolean;
+  sendConfigured: boolean;
+  recipientEmail: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>();
+  const [confirming, setConfirming] = useState(false);
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>) {
     setError(undefined);
@@ -94,6 +100,52 @@ export function OutreachPanel({
             <textarea readOnly rows={6} value={draft.body} />
           </label>
         </form>
+      )}
+
+      {status === "drafted" && (mode === "operator_handles" || mode === null) && (
+        <div className="outreach-send" role="group" aria-label="Send outreach email">
+          {!confirming ? (
+            <>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={pending || !sendConfigured || !recipientEmail}
+                onClick={() => setConfirming(true)}
+              >
+                Send now
+              </button>
+              {sendConfigured && recipientEmail && (
+                <p className="outreach-hint">To: {recipientEmail}</p>
+              )}
+              {!sendConfigured && (
+                <p className="outreach-hint">Email sending isn&apos;t configured.</p>
+              )}
+              {sendConfigured && !recipientEmail && (
+                <p className="outreach-hint">No email address on file for this lead.</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="outreach-confirm">Send to {recipientEmail}?</p>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={pending}
+                onClick={() => run(() => sendOutreachAction(leadId))}
+              >
+                Confirm send
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={pending}
+                onClick={() => setConfirming(false)}
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {canMarkSent(status) && (

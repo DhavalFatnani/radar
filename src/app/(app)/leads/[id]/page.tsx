@@ -9,6 +9,8 @@ import { StageControls } from "@/app/(app)/pipeline/stage-controls";
 import { OutreachPanel } from "./outreach-panel";
 import { BriefView } from "./brief-view";
 import { ContactBlockView } from "./contact-block-view";
+import { isSendConfigured } from "@/lib/outreach/sender";
+import { primaryRecipientEmail } from "@/lib/outreach/schema";
 
 export const metadata = { title: "Lead — Radar" };
 
@@ -20,6 +22,9 @@ export default async function LeadDetailPage({
   const { id } = await params;
   const lead = await getLeadDetail(db, id);
   if (!lead) notFound();
+
+  const sendConfigured = isSendConfigured();
+  const recipientEmail = primaryRecipientEmail(lead.contactBlock);
 
   return (
     <>
@@ -61,6 +66,8 @@ export default async function LeadDetailPage({
           status={lead.outreachStatus}
           draft={lead.outreachDraft}
           hasBrief={lead.brief != null}
+          sendConfigured={sendConfigured}
+          recipientEmail={recipientEmail}
         />
         {lead.brief ? (
           <BriefView brief={lead.brief} />

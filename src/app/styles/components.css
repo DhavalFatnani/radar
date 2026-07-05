@@ -740,3 +740,20 @@
     align-items: center;
   }
 }
+.outreach-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.outreach-hint,
+.outreach-confirm {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted, #64748b);
+}
+.outreach-confirm {
+  font-weight: 600;
+  color: inherit;
+}
