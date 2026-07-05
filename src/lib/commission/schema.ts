@@ -135,9 +135,15 @@ export type CommissionRecord = {
 /** Per-cycle commission amount in paise. percentage: floor(dealValue * rateBps / 10000); flat: amount. */
 export function computeCycleAmountInr(terms: CommissionTerms): number {
   if (terms.basis === "percentage") {
-    return Math.floor((terms.dealValueInr! * terms.rateBps!) / 10000);
+    if (terms.dealValueInr === undefined || terms.rateBps === undefined) {
+      throw new Error("Invariant: percentage terms require dealValueInr and rateBps");
+    }
+    return Math.floor((terms.dealValueInr * terms.rateBps) / 10000);
   }
-  return terms.amountInr!;
+  if (terms.amountInr === undefined) {
+    throw new Error("Invariant: flat terms require amountInr");
+  }
+  return terms.amountInr;
 }
 
 /** Add whole calendar months to a YYYY-MM-DD date, clamping the day to the target month's length. */
@@ -192,7 +198,11 @@ export function isCommissionEligible(stage: string): boolean {
   return (COMMISSION_ELIGIBLE_STAGES as readonly string[]).includes(stage);
 }
 
-/** Format paise as ₹ with Indian digit grouping, always two decimals. e.g. 1234500 → "₹12,345.00". */
+/**
+ * Format INR paise as a ₹ string with Indian (2-2-3) digit grouping and two decimals.
+ * Relies on a full-ICU runtime (Node 18+ / browsers ship full ICU by default) for correct
+ * `en-IN` grouping; a stripped-ICU build would fall back to Western grouping.
+ */
 export function formatInr(paise: number): string {
   const rupees = paise / 100;
   return `₹${rupees.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

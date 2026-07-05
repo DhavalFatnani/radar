@@ -13,6 +13,7 @@ import {
   isCommissionEligible,
   formatInr,
   type CommissionCycle,
+  type CommissionTerms,
 } from "@/lib/commission/schema";
 
 const pctTerms = { type: "one_time", basis: "percentage", dealValueInr: 5_000_000, rateBps: 1000 } as const;
@@ -50,6 +51,10 @@ describe("commission terms schema", () => {
     expect(commissionTermsSchema.safeParse({ ...pctTerms, rateBps: 0 }).success).toBe(false);
     expect(commissionTermsSchema.safeParse({ ...pctTerms, rateBps: 10001 }).success).toBe(false);
   });
+  it("accepts inclusive boundary values for rateBps (1 and 10000)", () => {
+    expect(commissionTermsSchema.safeParse({ ...pctTerms, rateBps: 1 }).success).toBe(true);
+    expect(commissionTermsSchema.safeParse({ ...pctTerms, rateBps: 10000 }).success).toBe(true);
+  });
   it("rejects a negative or non-integer amount", () => {
     expect(commissionTermsSchema.safeParse({ type: "one_time", basis: "flat", amountInr: -1 }).success).toBe(false);
     expect(commissionTermsSchema.safeParse({ type: "one_time", basis: "flat", amountInr: 1.5 }).success).toBe(false);
@@ -66,6 +71,12 @@ describe("computeCycleAmountInr", () => {
   });
   it("handles crore-scale deal values without overflow", () => {
     expect(computeCycleAmountInr({ type: "one_time", basis: "percentage", dealValueInr: 100_00_00_000, rateBps: 500 })).toBe(5_00_00_000);
+  });
+  it("throws on invariant violation: percentage term missing required fields", () => {
+    expect(() => computeCycleAmountInr({ type: "one_time", basis: "percentage" } as CommissionTerms)).toThrow();
+  });
+  it("throws on invariant violation: flat term missing amountInr", () => {
+    expect(() => computeCycleAmountInr({ type: "one_time", basis: "flat" } as CommissionTerms)).toThrow();
   });
 });
 
