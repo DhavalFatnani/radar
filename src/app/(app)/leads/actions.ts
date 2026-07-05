@@ -12,6 +12,8 @@ import {
   setOutreachStatus,
 } from "@/lib/outreach/data";
 import { generateOutreach } from "@/ai/outreach";
+import { sendEmail, isSendConfigured } from "@/lib/outreach/sender";
+import { primaryRecipientEmail } from "@/lib/outreach/schema";
 
 async function signedIn(): Promise<boolean> {
   const session = await auth();
@@ -86,6 +88,43 @@ export async function setOutreachStatusAction(
   }
 
   const r = await setOutreachStatus(db, leadId, status);
+  if (r.ok) {
+    revalidatePath(`/leads/${leadId}`);
+    return { ok: true };
+  }
+  return { ok: false, error: r.error };
+}
+
+export async function sendOutreachAction(
+  leadId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await signedIn())) return { ok: false, error: "Not signed in." };
+
+  const lead = await getLeadDetail(db, leadId);
+  if (!lead) return { ok: false, error: "Lead not found." };
+  if (!lead.outreachDraft) return { ok: false, error: "Generate the draft first." };
+  if (lead.outreachStatus === "sent") return { ok: false, error: "Already sent." };
+
+  const mode = lead.outreachMode ?? "operator_handles";
+  if (mode !== "operator_handles") {
+    return { ok: false, error: "This lead is handed to the vendor; sending is disabled." };
+  }
+
+  if (!isSendConfigured()) {
+    return { ok: false, error: "Email sending is not configured." };
+  }
+
+  const to = primaryRecipientEmail(lead.contactBlock);
+  if (!to) return { ok: false, error: "No email address on file for this lead." };
+
+  const sent = await sendEmail({
+    to,
+    subject: lead.outreachDraft.subject,
+    body: lead.outreachDraft.body,
+  });
+  if (!sent.ok) return { ok: false, error: sent.error };
+
+  const r = await setOutreachStatus(db, leadId, "sent");
   if (r.ok) {
     revalidatePath(`/leads/${leadId}`);
     return { ok: true };
