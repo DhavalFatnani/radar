@@ -59,9 +59,9 @@
             }
           ],
           "isUnique": true,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -326,37 +326,37 @@
             }
           ],
           "isUnique": true,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "signal_observations_signal_id_signal_definitions_signal_id_fk": {
           "name": "signal_observations_signal_id_signal_definitions_signal_id_fk",
           "tableFrom": "signal_observations",
+          "tableTo": "signal_definitions",
           "columnsFrom": [
             "signal_id"
           ],
-          "tableTo": "signal_definitions",
           "columnsTo": [
             "signal_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "signal_observations_company_id_companies_company_id_fk": {
           "name": "signal_observations_company_id_companies_company_id_fk",
           "tableFrom": "signal_observations",
+          "tableTo": "companies",
           "columnsFrom": [
             "company_id"
           ],
-          "tableTo": "companies",
           "columnsTo": [
             "company_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -616,9 +616,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "vendor_interviews_one_open_per_vendor": {
           "name": "vendor_interviews_one_open_per_vendor",
@@ -631,25 +631,25 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"vendor_interviews\".\"status\" = 'in_progress'",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
         "vendor_interviews_vendor_id_vendor_profiles_vendor_id_fk": {
           "name": "vendor_interviews_vendor_id_vendor_profiles_vendor_id_fk",
           "tableFrom": "vendor_interviews",
+          "tableTo": "vendor_profiles",
           "columnsFrom": [
             "vendor_id"
           ],
-          "tableTo": "vendor_profiles",
           "columnsTo": [
             "vendor_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -784,50 +784,50 @@
             }
           ],
           "isUnique": true,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "leads_company_id_companies_company_id_fk": {
           "name": "leads_company_id_companies_company_id_fk",
           "tableFrom": "leads",
+          "tableTo": "companies",
           "columnsFrom": [
             "company_id"
           ],
-          "tableTo": "companies",
           "columnsTo": [
             "company_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "leads_vendor_id_vendor_profiles_vendor_id_fk": {
           "name": "leads_vendor_id_vendor_profiles_vendor_id_fk",
           "tableFrom": "leads",
+          "tableTo": "vendor_profiles",
           "columnsFrom": [
             "vendor_id"
           ],
-          "tableTo": "vendor_profiles",
           "columnsTo": [
             "vendor_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "leads_matched_mapping_id_mappings_mapping_id_fk": {
           "name": "leads_matched_mapping_id_mappings_mapping_id_fk",
           "tableFrom": "leads",
+          "tableTo": "mappings",
           "columnsFrom": [
             "matched_mapping_id"
           ],
-          "tableTo": "mappings",
           "columnsTo": [
             "mapping_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -884,9 +884,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "catalogue_edges_to_type_idx": {
           "name": "catalogue_edges_to_type_idx",
@@ -905,37 +905,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "catalogue_edges_from_node_id_catalogue_nodes_node_id_fk": {
           "name": "catalogue_edges_from_node_id_catalogue_nodes_node_id_fk",
           "tableFrom": "catalogue_edges",
+          "tableTo": "catalogue_nodes",
           "columnsFrom": [
             "from_node_id"
           ],
-          "tableTo": "catalogue_nodes",
           "columnsTo": [
             "node_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "catalogue_edges_to_node_id_catalogue_nodes_node_id_fk": {
           "name": "catalogue_edges_to_node_id_catalogue_nodes_node_id_fk",
           "tableFrom": "catalogue_edges",
+          "tableTo": "catalogue_nodes",
           "columnsFrom": [
             "to_node_id"
           ],
-          "tableTo": "catalogue_nodes",
           "columnsTo": [
             "node_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -987,9 +987,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -1064,15 +1064,15 @@
         "contacts_source_lead_id_leads_lead_id_fk": {
           "name": "contacts_source_lead_id_leads_lead_id_fk",
           "tableFrom": "contacts",
+          "tableTo": "leads",
           "columnsFrom": [
             "source_lead_id"
           ],
-          "tableTo": "leads",
           "columnsTo": [
             "lead_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1104,6 +1104,14 @@
           "primaryKey": false,
           "notNull": true
         },
+        "commission_status": {
+          "name": "commission_status",
+          "type": "commission_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
         "commission_terms": {
           "name": "commission_terms",
           "type": "jsonb",
@@ -1115,36 +1123,28 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\\'cycles\\':[]}'"
+          "default": "'{\"cycles\":[]}'::jsonb"
         },
         "disclosure_log": {
           "name": "disclosure_log",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'[]'"
+          "default": "'[]'::jsonb"
         },
         "introduction_log": {
           "name": "introduction_log",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'[]'"
+          "default": "'[]'::jsonb"
         },
         "dispute_record": {
           "name": "dispute_record",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'[]'"
-        },
-        "commission_status": {
-          "name": "commission_status",
-          "type": "commission_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pending'"
+          "default": "'[]'::jsonb"
         }
       },
       "indexes": {
@@ -1168,28 +1168,28 @@
         "projects_lead_id_leads_lead_id_fk": {
           "name": "projects_lead_id_leads_lead_id_fk",
           "tableFrom": "projects",
+          "tableTo": "leads",
           "columnsFrom": [
             "lead_id"
           ],
-          "tableTo": "leads",
           "columnsTo": [
             "lead_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "projects_vendor_id_vendor_profiles_vendor_id_fk": {
           "name": "projects_vendor_id_vendor_profiles_vendor_id_fk",
           "tableFrom": "projects",
+          "tableTo": "vendor_profiles",
           "columnsFrom": [
             "vendor_id"
           ],
-          "tableTo": "vendor_profiles",
           "columnsTo": [
             "vendor_id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1209,6 +1209,17 @@
         "sub_capability",
         "geography",
         "project_size_range"
+      ]
+    },
+    "public.commission_status": {
+      "name": "commission_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "active",
+        "closed",
+        "disputed",
+        "void"
       ]
     },
     "public.detection_method": {
@@ -1319,24 +1330,13 @@
         "high",
         "very_high"
       ]
-    },
-    "public.commission_status": {
-      "name": "commission_status",
-      "schema": "public",
-      "values": [
-        "pending",
-        "active",
-        "closed",
-        "disputed",
-        "void"
-      ]
     }
   },
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},
