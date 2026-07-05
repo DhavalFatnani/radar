@@ -29,3 +29,8 @@ export const catalogueNodeType = pgEnum("catalogue_node_type", [
 
 // SIA interview session (§7.1)
 export const interviewStatus = pgEnum("interview_status", ["in_progress", "completed", "abandoned"]);
+
+// Commission / projects (§4.7, §7.6)
+export const commissionStatus = pgEnum("commission_status", [
+  "pending", "active", "closed", "disputed", "void",
+]);
