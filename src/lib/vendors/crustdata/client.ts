@@ -1,5 +1,3 @@
-import { env } from "@/lib/env";
-
 export const BASE_URL = "https://api.crustdata.com";
 export const API_VERSION = "2025-11-01";
 export const MAX_LIMIT = 25;
@@ -57,7 +55,10 @@ export class CrustdataClient {
   private runSpend = 0;
 
   constructor(opts: { key?: string; fetchImpl?: FetchImpl; sleep?: (ms: number) => Promise<void> } = {}) {
-    const key = (opts.key ?? env.CRUSTDATA_API_KEY ?? "").trim();
+    // Read process.env directly (not the eager @/lib/env module): the client is imported by the
+    // db:campaign:run CLI, whose dotenv config() runs AFTER static imports — importing eager env
+    // here would parse env before .env.local loads and throw "DATABASE_URL: Required". Mirrors crustdata.py.
+    const key = (opts.key ?? process.env.CRUSTDATA_API_KEY ?? "").trim();
     if (!key) throw new CrustdataError("CRUSTDATA_API_KEY is not set — add it to .env.local to run a live campaign.", 0);
     this.key = key;
     this.fetchImpl = opts.fetchImpl ?? fetch;
