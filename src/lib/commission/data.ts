@@ -10,10 +10,14 @@ import {
   buildInitialCycles,
   activateCycles,
   deriveCommissionStatus,
+  nextCycleDueDate,
+  computeCycleAmountInr,
   type CommissionRecord,
   type CommissionStatus,
   type CommissionTerms,
   type CommissionCycle,
+  type DisclosureEntry,
+  type IntroductionEntry,
 } from "@/lib/commission/schema";
 
 export type Result = { ok: true } | { ok: false; error: string };
@@ -124,5 +128,138 @@ export async function activateCommission(db: DB, leadId: string): Promise<Result
   const cycles = activateCycles(state.cycles);
   const status = deriveCommissionStatus("active", cycles);
   await db.update(projects).set({ commissionCycles: { cycles }, commissionStatus: status }).where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Mark a due/missed cycle paid at its expected amount; recompute project status. */
+export async function markCyclePaid(db: DB, leadId: string, seq: number, now: string): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const state = await loadState(db, leadId);
+  if (!state) return { ok: false, error: "No commission for this deal." };
+  const idx = state.cycles.findIndex((c) => c.seq === seq);
+  if (idx === -1) return { ok: false, error: "Cycle not found." };
+  const cycle = state.cycles[idx];
+  if (cycle.status !== "due" && cycle.status !== "missed") {
+    return { ok: false, error: "Only a due or missed cycle can be marked paid." };
+  }
+  const cycles = state.cycles.map((c, i) =>
+    i === idx ? { ...c, status: "paid" as const, paidAt: now, paidAmountInr: c.amountInr } : c,
+  );
+  await db
+    .update(projects)
+    .set({ commissionCycles: { cycles }, commissionStatus: deriveCommissionStatus(state.status, cycles) })
+    .where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Flag a due cycle as missed (record-keeping); status stays active. */
+export async function markCycleMissed(db: DB, leadId: string, seq: number): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const state = await loadState(db, leadId);
+  if (!state) return { ok: false, error: "No commission for this deal." };
+  const idx = state.cycles.findIndex((c) => c.seq === seq);
+  if (idx === -1) return { ok: false, error: "Cycle not found." };
+  if (state.cycles[idx].status !== "due") return { ok: false, error: "Only a due cycle can be marked missed." };
+  const cycles = state.cycles.map((c, i) => (i === idx ? { ...c, status: "missed" as const } : c));
+  await db
+    .update(projects)
+    .set({ commissionCycles: { cycles }, commissionStatus: deriveCommissionStatus(state.status, cycles) })
+    .where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Waive a due/missed cycle — counts as settled for the close derivation. */
+export async function waiveCycle(db: DB, leadId: string, seq: number): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const state = await loadState(db, leadId);
+  if (!state) return { ok: false, error: "No commission for this deal." };
+  const idx = state.cycles.findIndex((c) => c.seq === seq);
+  if (idx === -1) return { ok: false, error: "Cycle not found." };
+  const st = state.cycles[idx].status;
+  if (st !== "due" && st !== "missed") return { ok: false, error: "Only a due or missed cycle can be waived." };
+  const cycles = state.cycles.map((c, i) => (i === idx ? { ...c, status: "waived" as const } : c));
+  await db
+    .update(projects)
+    .set({ commissionCycles: { cycles }, commissionStatus: deriveCommissionStatus(state.status, cycles) })
+    .where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Append the next recurring cycle (due, one cadence interval after the latest). Recurring + active only. */
+export async function addNextCycle(db: DB, leadId: string): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const state = await loadState(db, leadId);
+  if (!state) return { ok: false, error: "No commission for this deal." };
+  if (!state.terms || state.terms.type !== "recurring") {
+    return { ok: false, error: "Only recurring commissions have additional cycles." };
+  }
+  if (state.status !== "active") return { ok: false, error: "Activate the commission first." };
+  const last = state.cycles.reduce((a, b) => (b.seq > a.seq ? b : a));
+  const next = {
+    seq: last.seq + 1,
+    dueDate: nextCycleDueDate(state.terms.cadence!, last.dueDate),
+    amountInr: computeCycleAmountInr(state.terms),
+    status: "due" as const,
+    paidAt: null,
+    paidAmountInr: null,
+  };
+  const cycles = [...state.cycles, next];
+  await db
+    .update(projects)
+    .set({ commissionCycles: { cycles }, commissionStatus: deriveCommissionStatus(state.status, cycles) })
+    .where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Append a disclosure entry (append-only audit trail). */
+export async function appendDisclosure(db: DB, leadId: string, entry: DisclosureEntry): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const [row] = await db.select({ log: projects.disclosureLog }).from(projects).where(eq(projects.leadId, leadId)).limit(1);
+  if (!row) return { ok: false, error: "No commission for this deal." };
+  const parsed = disclosureLogSchema.safeParse(row.log);
+  const log = parsed.success ? parsed.data : [];
+  await db.update(projects).set({ disclosureLog: [...log, entry] }).where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Append an introduction entry (append-only audit trail). */
+export async function appendIntroduction(db: DB, leadId: string, entry: IntroductionEntry): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const [row] = await db.select({ log: projects.introductionLog }).from(projects).where(eq(projects.leadId, leadId)).limit(1);
+  if (!row) return { ok: false, error: "No commission for this deal." };
+  const parsed = introductionLogSchema.safeParse(row.log);
+  const log = parsed.success ? parsed.data : [];
+  await db.update(projects).set({ introductionLog: [...log, entry] }).where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Open a dispute — append an open entry and set status disputed. */
+export async function openDispute(db: DB, leadId: string, reason: string, at: string): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const [row] = await db.select({ log: projects.disputeLog }).from(projects).where(eq(projects.leadId, leadId)).limit(1);
+  if (!row) return { ok: false, error: "No commission for this deal." };
+  const parsed = disputeLogSchema.safeParse(row.log);
+  const log = parsed.success ? parsed.data : [];
+  const next = [...log, { openedAt: at, reason, status: "open" as const, resolvedAt: null, resolution: null }];
+  await db.update(projects).set({ disputeLog: next, commissionStatus: "disputed" }).where(eq(projects.leadId, leadId));
+  return { ok: true };
+}
+
+/** Resolve the latest open dispute and recompute status from the cycles. */
+export async function resolveDispute(db: DB, leadId: string, resolution: string, at: string): Promise<Result> {
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "Lead not found." };
+  const state = await loadState(db, leadId);
+  if (!state) return { ok: false, error: "No commission for this deal." };
+  const [row] = await db.select({ log: projects.disputeLog }).from(projects).where(eq(projects.leadId, leadId)).limit(1);
+  const parsed = disputeLogSchema.safeParse(row!.log);
+  const log = parsed.success ? parsed.data : [];
+  const idx = [...log].map((d) => d.status).lastIndexOf("open");
+  if (idx === -1) return { ok: false, error: "No open dispute to resolve." };
+  const nextLog = log.map((d, i) => (i === idx ? { ...d, status: "resolved" as const, resolvedAt: at, resolution } : d));
+  const base: CommissionStatus = state.cycles.every((c) => c.status === "scheduled") ? "pending" : "active";
+  await db
+    .update(projects)
+    .set({ disputeLog: nextLog, commissionStatus: deriveCommissionStatus(base, state.cycles) })
+    .where(eq(projects.leadId, leadId));
   return { ok: true };
 }
