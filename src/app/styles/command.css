@@ -212,6 +212,12 @@
   color: var(--text-faint);
 }
 
+/* Campaign run statuses (queued|running|done|failed) — mirror the approval-gate badge tokens. */
+.badge-done    { color: var(--status-approved); background: var(--status-approved-bg); }
+.badge-running { color: var(--status-proposed); background: var(--status-proposed-bg); }
+.badge-queued  { color: var(--status-retired);  background: var(--status-retired-bg); }
+.badge-failed  { color: var(--attention); background: color-mix(in srgb, var(--attention) 14%, transparent); }
+
 /* --- Slice 5 (signals): signal detail + status controls --- */
 .signal-detail {
   display: grid;

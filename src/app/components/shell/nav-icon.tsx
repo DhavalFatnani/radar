@@ -6,7 +6,8 @@ export type NavIconName =
   | "vendors"
   | "catalogue"
   | "signals"
-  | "mappings";
+  | "mappings"
+  | "campaigns";
 
 const PATHS: Record<NavIconName, string> = {
   dashboard: `<path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/>`,
@@ -17,6 +18,7 @@ const PATHS: Record<NavIconName, string> = {
   catalogue: `<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6h7M6 8.5v7M18 8.5v7M8.5 18h7"/>`,
   signals: `<path d="M4 12a8 8 0 0 1 8-8M4 12a8 8 0 0 0 8 8"/><circle cx="12" cy="12" r="1.5"/>`,
   mappings: `<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M8.5 6.8 15.5 11M8.5 17.2 15.5 13"/>`,
+  campaigns: `<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>`,
 };
 
 export function NavIcon({ name }: { name: NavIconName }) {
