@@ -27,6 +27,7 @@
     "db:source:jobs": "tsx src/db/source-jobs.ts",
     "db:source:leads": "tsx src/db/source-leads.ts",
     "db:brief:generate": "tsx src/db/brief-generate.ts",
+    "db:campaign:run": "tsx src/db/campaign-run.ts",
     "db:contacts:resolve": "tsx src/db/resolve-contacts.ts"
   },
   "dependencies": {
