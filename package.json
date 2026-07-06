@@ -22,6 +22,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:seed:signals": "tsx src/db/seed-signals.ts",
     "db:seed:mappings": "tsx src/db/seed-mappings.ts",
+    "db:seed:ops-signals": "tsx src/db/seed-ops-signals.ts",
     "db:source:tenders": "tsx src/db/source-tenders.ts",
     "db:source:jobs": "tsx src/db/source-jobs.ts",
     "db:source:leads": "tsx src/db/source-leads.ts",
