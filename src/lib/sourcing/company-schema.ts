@@ -76,8 +76,8 @@ export function detectCompanySignals(
   const base = { sourceRef: record.sourceRef, source: record.sourceName, companyName: record.name };
 
   // Funding — emit when a fundraise with a date is present.
-  if (approvedSignalIds.has(FUNDING_SIGNAL) && record.funding?.date) {
-    const f = record.funding;
+  const f = record.funding;
+  if (approvedSignalIds.has(FUNDING_SIGNAL) && f?.date) {
     const amount = f.amountUsd != null ? `$${(f.amountUsd / 1_000_000).toFixed(1)}M` : "amount undisclosed";
     out.push({
       ...base, signalId: FUNDING_SIGNAL, detectedAt: f.date,
