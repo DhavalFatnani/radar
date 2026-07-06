@@ -46,6 +46,7 @@ export type CompanyQuery = {
 export interface CompanySourceAdapter {
   readonly sourceName: string;
   fetch(query: CompanyQuery): Promise<{ records: CompanyRecord[]; skippedMalformed: number }>;
+  creditsSpent?(): number;
 }
 
 export type DetectedCompanyObservation = {

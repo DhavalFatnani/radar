@@ -118,7 +118,8 @@ export async function runCampaign(
     const stats: CampaignStats = {
       companiesFetched: ingest.touched.length,
       observationsWritten: ingest.written,
-      leadsCreated, leadsUpdated, creditsSpent: 0,
+      leadsCreated, leadsUpdated,
+      creditsSpent: opts.adapter.creditsSpent?.() ?? 0,
     };
     await finishCampaign(db, campaignId, stats);
     return stats;

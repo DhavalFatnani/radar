@@ -45,7 +45,7 @@ function toRawRecord(c: unknown): Record<string, unknown> {
 export function createCrustdataCompanyAdapter(
   client: CrustdataClient,
   opts: { jobEnrichCap?: number; now?: () => Date } = {},
-): CompanySourceAdapter & { creditsSpent(): number } {
+): CompanySourceAdapter {
   const jobEnrichCap = opts.jobEnrichCap ?? 5;
   const nowFn = opts.now ?? (() => new Date());
 
