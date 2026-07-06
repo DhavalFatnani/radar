@@ -25,3 +25,10 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 }
 .field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); align-items: start; }
 @media (max-width: 560px) { .field-pair { grid-template-columns: 1fr; } }
+
+/* ---- 2. Score-heat meter ------------------------------------------------ */
+.score { display: inline-flex; align-items: center; gap: var(--space-2); }
+.score-bar { width: 64px; height: 7px; border-radius: var(--radius-full); background: var(--surface-inset); overflow: hidden; flex: none; }
+.score-fill { display: block; height: 100%; border-radius: var(--radius-full); }
+.score-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: var(--text-sm); font-weight: var(--weight-semibold); min-width: 1.6ch; text-align: right; }
+.score-sm .score-bar { width: 42px; height: 6px; }
