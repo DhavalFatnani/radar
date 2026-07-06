@@ -75,3 +75,17 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform var(--dur-fast); }
 .switch input:checked + .switch-track { background: var(--accent); }
 .switch input:checked + .switch-track::after { transform: translateX(15px); }
+
+/* ---- 8. Search / chips / segmented -------------------------------------- */
+.search { position: relative; flex: 1 1 200px; min-width: 170px; }
+.search svg { position: absolute; left: var(--space-2); top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-faint); }
+.search input { width: 100%; height: 36px; padding: 0 var(--space-3) 0 2rem; border: var(--border-w) solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--text); font: inherit; font-size: var(--text-sm); }
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.chips { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+.chip { font-family: var(--font-mono); font-size: var(--text-xs); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); border: var(--border-w) solid var(--border-strong); background: var(--surface); color: var(--text-muted); cursor: pointer; }
+.chip:hover { color: var(--text); } .chip-on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.seg { display: inline-flex; border: var(--border-w) solid var(--border-strong); border-radius: var(--radius-md); overflow: hidden; }
+.seg button { font-family: var(--font-mono); font-size: var(--text-xs); padding: var(--space-1) var(--space-2); border: 0; background: var(--surface); color: var(--text-muted); cursor: pointer; }
+.seg button + button { border-left: var(--border-w) solid var(--border); }
+.seg button.seg-on { background: var(--accent-soft); color: var(--accent); }
+.cmdbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
