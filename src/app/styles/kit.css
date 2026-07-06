@@ -32,3 +32,14 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .score-fill { display: block; height: 100%; border-radius: var(--radius-full); }
 .score-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: var(--text-sm); font-weight: var(--weight-semibold); min-width: 1.6ch; text-align: right; }
 .score-sm .score-bar { width: 42px; height: 6px; }
+
+/* ---- 3. Stat tile ------------------------------------------------------- */
+.stat-tile { position: relative; overflow: hidden; background: var(--surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: var(--space-3) var(--space-4); }
+.stat-k { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-faint); }
+.stat-v { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.stat-v small { font-size: var(--text-sm); color: var(--text-muted); font-weight: var(--weight-regular); }
+.stat-delta { font-family: var(--font-mono); font-size: var(--text-2xs); margin-top: 2px; }
+.stat-delta.up { color: var(--success); } .stat-delta.down { color: var(--attention); }
+.stat-spark { position: absolute; right: var(--space-3); bottom: var(--space-2); opacity: .9; }
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+@media (max-width: 1080px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
