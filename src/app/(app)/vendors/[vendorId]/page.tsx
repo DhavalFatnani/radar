@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { getVendor } from "@/lib/vendors/data";
 import { getActiveInterview } from "@/lib/interviews/data";
+import { db } from "@/db/client";
+import { getSourcingReadiness } from "@/lib/campaigns/readiness";
 import { EditProfileForm } from "./edit-profile-form";
+import { FindLeadsPanel } from "./find-leads-panel";
 
 export const metadata = { title: "Vendor — Radar" };
 
@@ -17,6 +20,7 @@ export default async function VendorDetailPage({
   if (!vendor) notFound();
 
   const active = await getActiveInterview(vendorId);
+  const readiness = await getSourcingReadiness(db, vendorId);
 
   return (
     <>
@@ -27,6 +31,7 @@ export default async function VendorDetailPage({
           {active ? "Continue interview" : "Start interview"}
         </Link>
       </p>
+      <FindLeadsPanel vendorId={vendorId} readiness={readiness} />
       <EditProfileForm vendor={vendor} />
     </>
   );
