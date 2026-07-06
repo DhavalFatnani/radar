@@ -1,0 +1,14 @@
+[
+  { "name": "Anveshan", "domain": "anveshan.com", "country": "IND", "sourceName": "company-fixture", "sourceRef": "anveshan.com",
+    "funding": { "lastRoundType": "series_b", "amountUsd": 12700000, "date": "2026-05-29" },
+    "headcount": { "total": 162, "growth12mPct": 30 },
+    "jobPostings": [ { "title": "Warehouse Lead" }, { "title": "Supply Chain Manager" }, { "title": "Logistics Executive" }, { "title": "Fulfilment Associate" }, { "title": "Dispatch Supervisor" } ] },
+  { "name": "Nimbus Retail", "domain": "nimbusretail.in", "country": "IND", "sourceName": "company-fixture", "sourceRef": "nimbusretail.in",
+    "funding": { "lastRoundType": "series_a", "amountUsd": 6000000, "date": "2026-04-10" },
+    "headcount": { "total": 90, "growth12mPct": 8 },
+    "jobPostings": [ { "title": "Operations Software Engineer" }, { "title": "DevOps Engineer" } ] },
+  { "name": "Harbor Foods", "domain": "harborfoods.in", "country": "IND", "sourceName": "company-fixture", "sourceRef": "harborfoods.in",
+    "funding": null,
+    "headcount": { "total": 240, "growth12mPct": 18 },
+    "jobPostings": [ { "title": "Warehouse Operations Manager" }, { "title": "Inventory Planner" }, { "title": "Distribution Lead" }, { "title": "Logistics Coordinator" }, { "title": "Dispatch Executive" }, { "title": "Supply Chain Analyst" } ] }
+]
