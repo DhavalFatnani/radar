@@ -43,7 +43,7 @@ Every task's requirements implicitly include this section. Values copied verbati
   - Zod: `commissionTermsSchema`, `commissionCycleSchema`, `commissionCyclesSchema`, `disclosureEntrySchema`, `introductionEntrySchema`, `disputeEntrySchema`, `disclosureLogSchema`, `introductionLogSchema`, `disputeLogSchema`.
   - Functions: `computeCycleAmountInr(terms)`, `addMonths(isoDate, months)`, `nextCycleDueDate(cadence, fromDate)`, `buildInitialCycles(terms, startDate)`, `isCycleOverdue(cycle, today)`, `activateCycles(cycles)`, `deriveCommissionStatus(current, cycles)`, `isCommissionEligible(stage)`, `formatInr(paise)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/commission/schema.test.ts`:
 
@@ -209,12 +209,12 @@ describe("COMMISSION_STATUSES", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/unit/commission/schema.test.ts`
 Expected: FAIL — `Cannot find module '@/lib/commission/schema'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `src/lib/commission/schema.ts`:
 
@@ -420,12 +420,12 @@ export function formatInr(paise: number): string {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/unit/commission/schema.test.ts`
 Expected: PASS (all cases). Then `npx tsc --noEmit` — expected: clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/commission/schema.ts tests/unit/commission/schema.test.ts
@@ -448,7 +448,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Consumes: Task 1 has no runtime dependency here.
 - Produces: the `projects` table with TS properties `commissionStatus`, `commissionTerms`, `commissionCycles` (DB col `commission_due`), `disclosureLog`, `introductionLog`, `disputeLog` (DB col `dispute_record`); the `commissionStatus` pgEnum.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/integration/commission-schema.test.ts`:
 
@@ -513,12 +513,12 @@ describe("projects commission schema", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/integration/commission-schema.test.ts`
 Expected: FAIL — `row.commissionStatus` is undefined / column does not exist (schema not yet migrated).
 
-- [ ] **Step 3: Add the enum**
+- [x] **Step 3: Add the enum**
 
 In `src/db/schema/enums.ts`, add after the `interviewStatus` line:
 
@@ -529,7 +529,7 @@ export const commissionStatus = pgEnum("commission_status", [
 ]);
 ```
 
-- [ ] **Step 4: Redefine the projects table**
+- [x] **Step 4: Redefine the projects table**
 
 Replace the entire contents of `src/db/schema/projects.ts` with:
 
@@ -560,7 +560,7 @@ export const projects = pgTable(
 );
 ```
 
-- [ ] **Step 5: Generate the migration**
+- [x] **Step 5: Generate the migration**
 
 Run: `npm run db:generate`
 Expected: creates `src/db/migrations/0013_<slug>.sql` and updates `src/db/migrations/meta/`. Open the generated `.sql` and confirm it is **non-interactive and additive-only** — it must contain:
@@ -572,12 +572,12 @@ Expected: creates `src/db/migrations/0013_<slug>.sql` and updates `src/db/migrat
 
 If drizzle-kit pauses to ask whether any column was **renamed**, answer **create/drop** (not rename) — but with this schema (only `recurring_tracking` dropped, only the enum column added) it should not prompt.
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `npx vitest run tests/integration/commission-schema.test.ts`
 Expected: PASS (defaults present, round-trip works, unique constraint rejects the duplicate). Then `npx tsc --noEmit` — clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/db/schema/enums.ts src/db/schema/projects.ts src/db/migrations tests/integration/commission-schema.test.ts
@@ -603,7 +603,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   - `activateCommission(db, leadId): Promise<Result>`
   - Shared internal: `UUID_RE`, `Result` type, `toRecord(row)`, `loadState(db, leadId)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/integration/commission-data.test.ts`:
 
@@ -723,12 +723,12 @@ describe("activateCommission", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/integration/commission-data.test.ts`
 Expected: FAIL — `Cannot find module '@/lib/commission/data'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `src/lib/commission/data.ts`:
 
@@ -863,12 +863,12 @@ export async function activateCommission(db: DB, leadId: string): Promise<Result
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/integration/commission-data.test.ts`
 Expected: PASS. Then `npx tsc --noEmit` — clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/commission/data.ts tests/integration/commission-data.test.ts
@@ -897,7 +897,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   - `openDispute(db, leadId, reason, at): Promise<Result>`
   - `resolveDispute(db, leadId, resolution, at): Promise<Result>`
 
-- [ ] **Step 1: Write the failing test (append)**
+- [x] **Step 1: Write the failing test (append)**
 
 Append to `tests/integration/commission-data.test.ts` (add the new imports to the existing import from `@/lib/commission/data`):
 
@@ -1017,12 +1017,12 @@ describe("disputes", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/integration/commission-data.test.ts`
 Expected: FAIL — the new functions are not exported.
 
-- [ ] **Step 3: Write the implementation (append to `src/lib/commission/data.ts`)**
+- [x] **Step 3: Write the implementation (append to `src/lib/commission/data.ts`)**
 
 Add these imports to the existing `@/lib/commission/schema` import block: `nextCycleDueDate`, `computeCycleAmountInr`, and the entry types `DisclosureEntry`, `IntroductionEntry`. Then append:
 
@@ -1161,12 +1161,12 @@ export async function resolveDispute(db: DB, leadId: string, resolution: string,
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/integration/commission-data.test.ts`
 Expected: PASS (all describe blocks). Then `npx tsc --noEmit` — clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/commission/data.ts tests/integration/commission-data.test.ts
@@ -1187,7 +1187,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Consumes: Task 3/4 data functions, Task 1 `commissionTermsSchema` + entry schemas + `isCommissionEligible`, existing `getLeadDetail`, `db`, `auth`.
 - Produces (Task 6 panel consumes these): `setCommissionTermsAction`, `activateCommissionAction`, `markCyclePaidAction`, `markCycleMissedAction`, `waiveCycleAction`, `addNextCycleAction`, `appendDisclosureAction`, `appendIntroductionAction`, `openDisputeAction`, `resolveDisputeAction` — each `Promise<{ ok: boolean; error?: string }>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/integration/commission-actions.test.ts`:
 
@@ -1304,12 +1304,12 @@ describe("markCyclePaidAction + openDisputeAction", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/integration/commission-actions.test.ts`
 Expected: FAIL — commission actions not exported from `@/app/(app)/leads/actions`.
 
-- [ ] **Step 3: Write the implementation (append to `src/app/(app)/leads/actions.ts`)**
+- [x] **Step 3: Write the implementation (append to `src/app/(app)/leads/actions.ts`)**
 
 Add these imports to the top of the file (below the existing imports):
 
@@ -1483,12 +1483,12 @@ export async function resolveDisputeAction(leadId: string, resolution: string): 
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/integration/commission-actions.test.ts`
 Expected: PASS. Then `npx tsc --noEmit` — clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "src/app/(app)/leads/actions.ts" tests/integration/commission-actions.test.ts
@@ -1511,7 +1511,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Consumes: Task 5 actions, Task 1 schema (types, labels, `formatInr`, `isCycleOverdue`, `isCommissionEligible`), `getCommissionForLead` (page), `PipelineStage`.
 - Produces: `<CommissionPanel leadId stage commission today />`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/components/commission-panel.test.tsx`:
 
@@ -1647,12 +1647,12 @@ describe("CommissionPanel", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/unit/components/commission-panel.test.tsx`
 Expected: FAIL — `Cannot find module '.../commission-panel'`.
 
-- [ ] **Step 3: Write the panel**
+- [x] **Step 3: Write the panel**
 
 Create `src/app/(app)/leads/[id]/commission-panel.tsx`:
 
@@ -2030,7 +2030,7 @@ function LeakLogs({
 }
 ```
 
-- [ ] **Step 4: Wire the page**
+- [x] **Step 4: Wire the page**
 
 In `src/app/(app)/leads/[id]/page.tsx`, add imports (with the other imports):
 
@@ -2052,7 +2052,7 @@ Then, in the JSX, render the panel immediately after the `{lead.contactBlock ? .
         <CommissionPanel leadId={lead.leadId} stage={lead.stage} commission={commission} today={today} />
 ```
 
-- [ ] **Step 5: Append styles**
+- [x] **Step 5: Append styles**
 
 Append to the bottom of `src/app/styles/components.css`:
 
@@ -2134,12 +2134,12 @@ Append to the bottom of `src/app/styles/components.css`:
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/unit/components/commission-panel.test.tsx`
 Expected: PASS (all cases). Then `npx tsc --noEmit` — clean, and `rm -rf .next && npm run build` — 13/13 pages (route unchanged; the panel is additive).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add "src/app/(app)/leads/[id]/commission-panel.tsx" "src/app/(app)/leads/[id]/page.tsx" src/app/styles/components.css tests/unit/components/commission-panel.test.tsx
