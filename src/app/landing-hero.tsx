@@ -7,7 +7,7 @@ export function LandingHero() {
   return (
     <main className="landing">
       <section className="landing-inner" aria-labelledby="landing-headline">
-        <Wordmark className="landing-wordmark" />
+        <Wordmark />
         <h1 id="landing-headline" className="landing-headline">
           Lead intelligence,
           <br />
