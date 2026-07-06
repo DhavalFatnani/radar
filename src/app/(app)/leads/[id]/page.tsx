@@ -11,6 +11,8 @@ import { BriefView } from "./brief-view";
 import { ContactBlockView } from "./contact-block-view";
 import { isSendConfigured } from "@/lib/outreach/sender";
 import { primaryRecipientEmail } from "@/lib/outreach/schema";
+import { getCommissionForLead } from "@/lib/commission/data";
+import { CommissionPanel } from "./commission-panel";
 
 export const metadata = { title: "Lead — Radar" };
 
@@ -22,6 +24,9 @@ export default async function LeadDetailPage({
   const { id } = await params;
   const lead = await getLeadDetail(db, id);
   if (!lead) notFound();
+
+  const commission = await getCommissionForLead(db, lead.leadId);
+  const today = new Date().toISOString().slice(0, 10);
 
   const sendConfigured = isSendConfigured();
   const recipientEmail = primaryRecipientEmail(lead.contactBlock);
@@ -79,6 +84,7 @@ export default async function LeadDetailPage({
         ) : (
           <p className="lead-empty-note">No contact block resolved yet.</p>
         )}
+        <CommissionPanel leadId={lead.leadId} stage={lead.stage} commission={commission} today={today} />
       </div>
     </>
   );

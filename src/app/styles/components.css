@@ -757,3 +757,79 @@
   font-weight: 600;
   color: inherit;
 }
+
+/* Commission panel */
+.commission-panel {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.5rem;
+}
+.commission-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.commission-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--muted-bg, #f1f5f9);
+}
+.commission-form,
+.commission-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.commission-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+.commission-cycles {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.commission-cycles th,
+.commission-cycles td {
+  text-align: left;
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+.commission-cycle-actions,
+.commission-confirm {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+.commission-overdue {
+  color: var(--danger, #dc2626);
+  font-weight: 600;
+}
+.commission-logs {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+.commission-log-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.commission-note {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted, #64748b);
+}
+.commission-error {
+  margin-top: 0.75rem;
+  color: var(--danger, #dc2626);
+  font-size: 0.875rem;
+}
