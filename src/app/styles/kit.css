@@ -43,3 +43,9 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .stat-spark { position: absolute; right: var(--space-3); bottom: var(--space-2); opacity: .9; }
 .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
 @media (max-width: 1080px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---- 4. Gauge ----------------------------------------------------------- */
+.gauge { flex: none; }
+.gauge-cluster { display: flex; align-items: center; gap: var(--space-3); }
+.gauge-cluster .big { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.gauge-cluster .sm { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); }
