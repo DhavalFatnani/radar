@@ -1,4 +1,4 @@
-import { eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import type { DB } from "@/db/client"; // type-only — erased at runtime, never loads the env-eager client
 import { leads, mappings, signalDefinitions, signalObservations, vendorProfiles } from "@/db/schema";
 import { scoreMapping, type ScoredObservation, type ScoringMapping } from "@/lib/sourcing/scoring";
@@ -27,12 +27,22 @@ function leadKey(vendorId: string, companyId: string, mappingId: string): string
  * vendor_type, case-insensitively) against every company's observations, then upsert a scored
  * lead for each fired, non-disqualified (vendor, company, mapping). Idempotent via the
  * leads (vendor_id, company_id, matched_mapping_id) unique index. Caller owns the connection.
+ * When `vendorId` is provided, only that vendor is scored — used by the campaign orchestrator
+ * so running one vendor's campaign doesn't create side-effect leads for other same-type vendors.
  */
-export async function generateLeads(db: DB, now: Date = new Date()): Promise<GenerateLeadsResult> {
+export async function generateLeads(
+  db: DB,
+  now: Date = new Date(),
+  vendorId?: string,
+): Promise<GenerateLeadsResult> {
+  const vendorFilter = vendorId
+    ? and(isNotNull(vendorProfiles.vendorType), eq(vendorProfiles.vendorId, vendorId))
+    : isNotNull(vendorProfiles.vendorType);
+
   const vendors = await db
     .select({ vendorId: vendorProfiles.vendorId, vendorType: vendorProfiles.vendorType })
     .from(vendorProfiles)
-    .where(isNotNull(vendorProfiles.vendorType))
+    .where(vendorFilter)
     .limit(VENDOR_LIMIT);
 
   const approvedMappings = await db

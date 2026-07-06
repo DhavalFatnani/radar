@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { DB } from "@/db/client"; // type-only
-import { leads, mappings, signalDefinitions, vendorProfiles } from "@/db/schema";
+import { leads, mappings, signalDefinitions, signalObservations, vendorProfiles } from "@/db/schema";
 import { generateLeads } from "@/lib/sourcing/leads";
 import { buildSourcingPlan, type PlanMapping, type PlanSignalDef } from "@/lib/campaigns/plan";
 import { ingestCompanyObservations } from "@/lib/campaigns/ingest";
@@ -66,8 +66,9 @@ export async function runCampaign(
     const ingest = await ingestCompanyObservations(db, adapter, query);
     const touchedIds = ingest.touched.map((t) => t.companyId);
 
-    // 5. Score matches (existing global matcher; idempotent upsert).
-    await generateLeads(db, now);
+    // 5. Score matches (existing global matcher; idempotent upsert) — scoped to this vendor only,
+    // so running this campaign doesn't (re)create leads for other same-type vendors.
+    await generateLeads(db, now, vendor.vendorId);
 
     // 6. Record this campaign's leads (scoped to the vendor + touched companies) + wasNew + source tag.
     let leadsCreated = 0, leadsUpdated = 0;
@@ -93,9 +94,23 @@ export async function runCampaign(
     }
 
     // 7. Write per-company snapshots (write-only; v2 memory reads these).
+    // verdict: "qualified" if the company produced a lead for this vendor; "disqualified" if it
+    // didn't but carries a negative-polarity observation from this run; "insufficient" otherwise.
+    const disqualifiedIds = new Set<string>();
+    if (touchedIds.length > 0) {
+      const negativeRows = await db
+        .select({ companyId: signalObservations.companyId })
+        .from(signalObservations)
+        .innerJoin(signalDefinitions, eq(signalObservations.signalId, signalDefinitions.signalId))
+        .where(and(inArray(signalObservations.companyId, touchedIds), eq(signalDefinitions.polarity, "negative")));
+      for (const r of negativeRows) disqualifiedIds.add(r.companyId);
+    }
+
     for (const t of ingest.touched) {
+      const qualified = bestScoreByCompany.has(t.companyId);
+      const verdict = qualified ? "qualified" : disqualifiedIds.has(t.companyId) ? "disqualified" : "insufficient";
       await writeCompanySnapshot(db, campaignId, t.companyId, {
-        ...t.snapshot, score: bestScoreByCompany.get(t.companyId) ?? null,
+        ...t.snapshot, score: bestScoreByCompany.get(t.companyId) ?? null, verdict,
       });
     }
 

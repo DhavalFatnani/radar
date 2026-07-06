@@ -51,4 +51,17 @@ describe("ingestCompanyObservations", () => {
     expect(second.written).toBe(0);
     expect(second.skippedDuplicates).toBe(first.written);
   });
+
+  it("leaves snapshot.opsPostings null (not 0) when a record has no jobPostings field at all", async () => {
+    await approve(FUNDING_SIGNAL, "money", 365);
+    const adapter = createCompanyFixtureAdapter([
+      { name: "NoJobs Co", sourceName: "fixture", sourceRef: "nojobs.com", funding: { date: "2026-05-01" } },
+    ]);
+
+    const res = await ingestCompanyObservations(testDb, adapter, QUERY);
+
+    const noJobsCo = res.touched.find((t) => t.name === "NoJobs Co");
+    expect(noJobsCo).toBeTruthy();
+    expect(noJobsCo!.snapshot.opsPostings).toBeNull();
+  });
 });
