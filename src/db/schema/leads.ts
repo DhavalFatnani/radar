@@ -3,6 +3,7 @@ import { pipelineStage, outreachMode, outreachStatus } from "./enums";
 import { vendorProfiles } from "./vendors";
 import { companies } from "./companies";
 import { mappings } from "./mappings";
+import { campaigns } from "./campaigns";
 
 export const leads = pgTable("leads", {
   leadId: uuid("lead_id").primaryKey().defaultRandom(),
@@ -11,6 +12,7 @@ export const leads = pgTable("leads", {
   matchedMappingId: uuid("matched_mapping_id").references(() => mappings.mappingId),
   intent: text("intent"),
   score: real("score"),
+  sourceCampaignId: uuid("source_campaign_id").references(() => campaigns.campaignId),  // nullable — first campaign that created this lead (spec §5.4)
   pipelineStage: pipelineStage("pipeline_stage").notNull().default("sourced"),
   outreachMode: outreachMode("outreach_mode"),
   outreachStatus: outreachStatus("outreach_status").notNull().default("pending"),

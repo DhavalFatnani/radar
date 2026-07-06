@@ -5,6 +5,7 @@ export * from "./mappings";
 export * from "./vendors";
 export * from "./interviews";
 export * from "./leads";
+export * from "./campaigns";
 export * from "./catalogue";
 export * from "./contacts";
 export * from "./projects";

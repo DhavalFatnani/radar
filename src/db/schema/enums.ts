@@ -34,3 +34,6 @@ export const interviewStatus = pgEnum("interview_status", ["in_progress", "compl
 export const commissionStatus = pgEnum("commission_status", [
   "pending", "active", "closed", "disputed", "void",
 ]);
+
+// Campaign run lifecycle (§5.1). `queued` reserved for V2 async/scheduled runs.
+export const campaignStatus = pgEnum("campaign_status", ["queued", "running", "done", "failed"]);
