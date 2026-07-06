@@ -93,8 +93,12 @@ export function createCrustdataCompanyAdapter(
             r.jobPostings = rowsToDicts(fields, rows)
               .map((d) => ({ title: String(d.title ?? ""), updatedAt: (d.date_updated as string | undefined) ?? undefined }))
               .filter((p) => p.title);
-          } catch {
-            // one flaky/slow job_listings call must not sink the run; leave jobPostings unset (null opsPostings)
+          } catch (err) {
+            // One flaky/slow job_listings call must not sink the run; leave jobPostings unset
+            // (null opsPostings = unknown, not zero). Surface it — never swallow silently.
+            console.warn(
+              `[crustdata] job_listings enrichment failed for ${r.domain}: ${err instanceof Error ? err.message : String(err)}`,
+            );
           }
         }));
       }
