@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/components.css";
+import "./styles/auth.css";
 import "./styles/v2.css";
 import "./styles/command.css";
 

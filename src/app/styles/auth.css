@@ -1,0 +1,70 @@
+/* ============================================================================
+   Radar — Auth & landing surfaces (home + login)
+   Public pages, rendered in the default slate/light identity. Tokens only.
+   ========================================================================== */
+
+/* ---- Landing (home) ------------------------------------------------------ */
+.landing {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6) var(--space-5);
+  background: var(--canvas);
+}
+.landing-inner {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text);
+}
+.wordmark-glyph {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+.landing-headline {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+.landing-subcopy {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  max-width: 32rem;
+}
+.landing-cta {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+.landing-capabilities {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-4) 0 0;
+  border-top: var(--border-w) solid var(--border);
+  width: 100%;
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
