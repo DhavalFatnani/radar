@@ -6,6 +6,7 @@ import "./styles/components.css";
 import "./styles/auth.css";
 import "./styles/v2.css";
 import "./styles/command.css";
+import "./styles/kit.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
