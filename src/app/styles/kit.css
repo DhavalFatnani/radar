@@ -89,3 +89,26 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .seg button + button { border-left: var(--border-w) solid var(--border); }
 .seg button.seg-on { background: var(--accent-soft); color: var(--accent); }
 .cmdbar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+
+/* ---- 9. Data table ------------------------------------------------------ */
+.table-wrap { background: var(--surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); min-width: 640px; }
+.data-table thead th { text-align: left; font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-faint); font-weight: var(--weight-medium); padding: var(--space-2) var(--space-4); border-bottom: var(--border-w) solid var(--border); white-space: nowrap; }
+.data-table thead th.sortable { cursor: pointer; user-select: none; }
+.data-table thead th.num { text-align: right; }
+.data-table thead th .arw { margin-left: 2px; font-size: .6rem; }
+.data-table tbody tr { border-bottom: var(--border-w) solid var(--border); }
+.data-table tbody tr:last-child { border-bottom: 0; }
+.data-table tbody tr.clickable { cursor: pointer; } .data-table tbody tr:hover { background: var(--surface-2); }
+.data-table td { padding: var(--space-2) var(--space-4); vertical-align: middle; white-space: nowrap; }
+.data-table td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.data-table td.money { color: var(--money); }
+.cell-co b { font-weight: var(--weight-semibold); font-size: var(--text-sm); display: block; }
+.cell-co span { font-size: var(--text-2xs); color: var(--text-faint); font-family: var(--font-mono); }
+
+/* ---- 10. Main + context-rail layout ------------------------------------- */
+.ctx-grid { display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: var(--space-4); align-items: start; }
+.ctx-rail { display: flex; flex-direction: column; gap: var(--space-3); position: sticky; top: 68px; }
+.ctx-panel { background: var(--surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: var(--space-4); }
+.ctx-panel h3 { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-faint); margin: 0 0 var(--space-3); }
+@media (max-width: 1180px) { .ctx-grid { grid-template-columns: 1fr; } .ctx-rail { position: static; flex-direction: row; flex-wrap: wrap; } .ctx-rail .ctx-panel { flex: 1 1 240px; } }
