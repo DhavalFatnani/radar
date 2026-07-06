@@ -11,7 +11,7 @@ export const HEADCOUNT_GROWTH_PCT = 15;
 export const OPS_POSTINGS_MIN = 5;
 
 // "operations" (not bare "ops") so "DevOps" never false-matches as an operator role.
-const OPS_OPERATOR_TERMS = ["operations", "warehouse", "inventory", "supply chain", "logistics", "fulfil", "dispatch", "distribution"];
+export const OPS_OPERATOR_TERMS = ["operations", "warehouse", "inventory", "supply chain", "logistics", "fulfil", "dispatch", "distribution"];
 const OPS_ENGINEER_TERMS = ["engineer", "developer", "software", "sde", "devops", "platform", "architect"];
 
 const dateString = z.string().refine((s) => !Number.isNaN(Date.parse(s)), { message: "invalid date" });
