@@ -49,3 +49,29 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .gauge-cluster { display: flex; align-items: center; gap: var(--space-3); }
 .gauge-cluster .big { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 .gauge-cluster .sm { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); }
+
+/* ---- 5. Status pill (campaign run) -------------------------------------- */
+.pill { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; padding: 2px var(--space-2); border-radius: var(--radius-full); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill-done { color: var(--status-approved); background: var(--status-approved-bg); }
+.pill-running { color: var(--status-proposed); background: var(--status-proposed-bg); }
+.pill-running::before { animation: pulse 1.4s var(--ease-in-out) infinite; }
+.pill-queued { color: var(--status-retired); background: var(--status-retired-bg); }
+.pill-failed { color: var(--attention); background: color-mix(in srgb, var(--attention) 12%, transparent); }
+@media (prefers-reduced-motion: reduce) { .pill-running::before { animation: none; } }
+
+/* ---- 6. Kv list --------------------------------------------------------- */
+.kv-list { margin: 0; }
+.kv { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-1) 0; font-size: var(--text-xs); }
+.kv + .kv { border-top: var(--border-w) solid var(--border); }
+.kv-k { color: var(--text-muted); font-family: var(--font-mono); margin: 0; }
+.kv-v { color: var(--text); font-weight: var(--weight-semibold); text-align: right; margin: 0; }
+
+/* ---- 7. Toggle row ------------------------------------------------------ */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) var(--space-3); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); cursor: pointer; }
+.toggle-text b { font-size: var(--text-sm); display: block; } .toggle-text span { font-size: var(--text-2xs); color: var(--text-muted); }
+.switch { position: relative; flex: none; } .switch input { position: absolute; opacity: 0; }
+.switch-track { display: block; width: 34px; height: 19px; border-radius: var(--radius-full); background: var(--border-strong); transition: background var(--dur-fast); }
+.switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform var(--dur-fast); }
+.switch input:checked + .switch-track { background: var(--accent); }
+.switch input:checked + .switch-track::after { transform: translateX(15px); }
