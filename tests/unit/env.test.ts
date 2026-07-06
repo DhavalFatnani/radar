@@ -41,4 +41,20 @@ describe("parseEnv", () => {
     const env = parseEnv({ NODE_ENV: "", DATABASE_URL: "postgresql://u:p@host/db?sslmode=require" });
     expect(env.NODE_ENV).toBe("development");
   });
+
+  describe("CRUSTDATA_API_KEY", () => {
+    const base = { DATABASE_URL: DB };
+    it("is accepted when present", () => {
+      const env = parseEnv({ ...base, CRUSTDATA_API_KEY: "cr-abc123" });
+      expect(env.CRUSTDATA_API_KEY).toBe("cr-abc123");
+    });
+    it("is optional (undefined when absent)", () => {
+      const env = parseEnv(base);
+      expect(env.CRUSTDATA_API_KEY).toBeUndefined();
+    });
+    it("treats empty string as absent", () => {
+      const env = parseEnv({ ...base, CRUSTDATA_API_KEY: "" });
+      expect(env.CRUSTDATA_API_KEY).toBeUndefined();
+    });
+  });
 });

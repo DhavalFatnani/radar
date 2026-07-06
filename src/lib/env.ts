@@ -15,6 +15,8 @@ const envSchema = z.object({
   TEST_DATABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   OUTREACH_FROM_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
+  // Live company/people data provider (Crustdata). Optional — fixture campaigns need no key.
+  CRUSTDATA_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 });
 
 export type Env = z.infer<typeof envSchema>;
