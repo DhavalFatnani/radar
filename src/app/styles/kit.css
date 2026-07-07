@@ -135,3 +135,13 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .data-table .cell-co a:hover b { color: var(--accent); }
 .bulkbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-2); background: var(--accent-soft); border: var(--border-w) solid var(--accent); border-radius: var(--radius-md); font-size: var(--text-sm); }
 .bulkbar-actions { display: flex; gap: var(--space-2); }
+
+/* ---- 14. List context rail — quick views + needs-attention -------------- */
+.ctx-main { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.qv { display: flex; flex-direction: column; gap: var(--space-1); }
+.qv button { text-align: left; font-size: var(--text-sm); padding: var(--space-1) var(--space-2); border: 0; background: none; color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer; }
+.qv button:hover { background: var(--surface-2); color: var(--text); }
+.qv-empty { font-size: var(--text-xs); color: var(--text-faint); margin: 0; }
+.attn { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.attn li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.attn-label { font-size: var(--text-xs); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

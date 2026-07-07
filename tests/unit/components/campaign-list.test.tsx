@@ -1,31 +1,50 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { CampaignList, type CampaignRow } from "@/app/(app)/campaigns/campaign-list";
+import userEvent from "@testing-library/user-event";
+import { CampaignListView } from "@/app/(app)/campaigns/campaign-list";
+import type { CampaignListRow } from "@/app/(app)/campaigns/view-model";
 
-const rows: CampaignRow[] = [
-  { campaignId: "10000000-0000-4000-8000-000000000001", label: "RackPro · India · 20", source: "crustdata", status: "done",
-    stats: { companiesFetched: 24, observationsWritten: 41, leadsCreated: 8, leadsUpdated: 1, creditsSpent: 0.87 } },
-  { campaignId: "10000000-0000-4000-8000-000000000002", label: "Acme · India · 10", source: "company-fixture", status: "failed",
-    stats: null },
+const NOW = new Date("2026-07-07T12:00:00Z").getTime();
+const rows: CampaignListRow[] = [
+  { campaignId: "a1", label: "RackPro · India · 20", vendorName: "RackPro", source: "crustdata", status: "done", companies: 20, leads: 8, credits: 0.87, yield: 40, createdAt: new Date("2026-07-07T10:00:00Z").toISOString() },
+  { campaignId: "b2", label: "Acme · India · 10", vendorName: "Acme", source: "company-fixture", status: "failed", companies: 10, leads: 1, credits: 0, yield: 10, createdAt: new Date("2026-07-06T10:00:00Z").toISOString() },
+  { campaignId: "c3", label: "Globex · US · 15", vendorName: "Globex", source: "crustdata", status: "running", companies: 5, leads: 0, credits: 0.2, yield: 0, createdAt: new Date("2026-07-07T11:00:00Z").toISOString() },
 ];
 
-describe("CampaignList", () => {
-  it("links each campaign to its detail route and shows a status badge", () => {
-    render(<CampaignList campaigns={rows} />);
-    const link = screen.getByRole("link", { name: /RackPro · India · 20/ });
-    expect(link).toHaveAttribute("href", "/campaigns/10000000-0000-4000-8000-000000000001");
-    expect(document.querySelector(".badge-done")?.textContent).toBe("done");
-    expect(document.querySelector(".badge-failed")?.textContent).toBe("failed");
+describe("CampaignListView", () => {
+  it("renders the KPI row and all campaigns by default", () => {
+    render(<CampaignListView rows={rows} nowMs={NOW} />);
+    expect(screen.getByText("Leads sourced")).toBeInTheDocument();
+    // Query the label links — the vendor <span> repeats the name, so getByText would be ambiguous.
+    expect(screen.getByRole("link", { name: /RackPro/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Acme/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Globex/ })).toBeInTheDocument();
   });
 
-  it("shows leads-created for a done run", () => {
-    render(<CampaignList campaigns={rows} />);
-    expect(screen.getByText(/8 leads/i)).toBeInTheDocument();
+  it("filters the table by the status chips", async () => {
+    render(<CampaignListView rows={rows} nowMs={NOW} />);
+    await userEvent.click(screen.getByRole("button", { name: "Failed" }));
+    expect(screen.getByRole("link", { name: /Acme/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /RackPro/ })).toBeNull();
   });
 
-  it("renders an empty message for no campaigns", () => {
-    render(<CampaignList campaigns={[]} />);
-    expect(screen.getByText(/no campaigns/i)).toBeInTheDocument();
+  it("filters by source via the segmented control", async () => {
+    render(<CampaignListView rows={rows} nowMs={NOW} />);
+    await userEvent.click(screen.getByRole("button", { name: "Test" }));
+    expect(screen.getByRole("link", { name: /Acme/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /RackPro/ })).toBeNull();
+  });
+
+  it("filters by the search box (label or vendor)", async () => {
+    render(<CampaignListView rows={rows} nowMs={NOW} />);
+    await userEvent.type(screen.getByLabelText(/Search campaigns/i), "globex");
+    expect(screen.getByRole("link", { name: /Globex/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /RackPro/ })).toBeNull();
+  });
+
+  it("shows a credit budget gauge in the rail", () => {
+    const { container } = render(<CampaignListView rows={rows} nowMs={NOW} />);
+    expect(container.querySelector("svg.gauge .gauge-arc")).toBeTruthy();
   });
 });
