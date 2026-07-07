@@ -19,10 +19,14 @@ export default async function VendorsPage() {
           description="Add a vendor above to prove the pipe — full profiles from the SIA intake interview will appear here."
         />
       ) : (
-        <ul className="vendor-list">
+        <ul className="row-list">
           {vendors.map((v) => (
-            <li key={v.vendorId}>
-              <Link href={`/vendors/${v.vendorId}`}>{v.name}</Link>
+            <li key={v.vendorId} className="row-item">
+              <Link href={`/vendors/${v.vendorId}`} className="row-link">
+                <span className="row-main">
+                  <span className="row-title">{v.name}</span>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>

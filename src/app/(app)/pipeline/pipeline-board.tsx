@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   BOARD_ORDER,
   STAGE_LABELS,
@@ -35,14 +36,16 @@ export function PipelineBoard({ leads }: { leads: LeadCard[] }) {
           <ul className="lead-list">
             {items.map((lead) => (
               <li key={lead.leadId} className="lead-card">
-                <p className="lead-company">{lead.companyName}</p>
-                <p className="lead-vendor">for {lead.vendorName}</p>
-                {lead.intent && <p className="lead-intent">{lead.intent}</p>}
-                <p className="lead-meta">
-                  <span className="lead-score">score {formatScore(lead.score)}</span>
-                  {lead.hasBrief && <span className="lead-tag">brief</span>}
-                  {lead.hasContactBlock && <span className="lead-tag">contacts</span>}
-                </p>
+                <Link href={`/leads/${lead.leadId}`} className="lead-card-body">
+                  <p className="lead-company">{lead.companyName}</p>
+                  <p className="lead-vendor">for {lead.vendorName}</p>
+                  {lead.intent && <p className="lead-intent">{lead.intent}</p>}
+                  <p className="lead-meta">
+                    <span className="lead-score">score {formatScore(lead.score)}</span>
+                    {lead.hasBrief && <span className="lead-tag">brief</span>}
+                    {lead.hasContactBlock && <span className="lead-tag">contacts</span>}
+                  </p>
+                </Link>
                 <StageControls leadId={lead.leadId} stage={lead.stage} />
               </li>
             ))}

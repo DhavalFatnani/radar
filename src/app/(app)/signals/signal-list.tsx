@@ -21,16 +21,20 @@ export function SignalList({ signals }: SignalListProps) {
       {groups.map(({ status, items }) => (
         <section key={status}>
           <h2 className="signal-group-head">{status}</h2>
-          <ul className="signal-list">
+          <ul className="row-list">
             {items.map((s) => (
-              <li key={s.signalId}>
-                <Link href={`/signals/${s.signalId}`}>
-                  {s.name}
+              <li key={s.signalId} className="row-item">
+                <Link href={`/signals/${s.signalId}`} className="row-link">
+                  <span className="row-main">
+                    <span className="row-title">{s.name}</span>
+                    <span className="row-meta">
+                      {s.signalId} &middot; {s.family}{s.strength ? ` · ${s.strength}` : ""}
+                    </span>
+                  </span>
+                  <span className="row-aside">
+                    <span className={`badge badge-${s.status}`}>{s.status}</span>
+                  </span>
                 </Link>
-                <p className="signal-meta">
-                  {s.signalId} &middot; {s.family}{s.strength ? ` · ${s.strength}` : ""}
-                </p>
-                <span className={`badge badge-${s.status}`}>{s.status}</span>
               </li>
             ))}
           </ul>

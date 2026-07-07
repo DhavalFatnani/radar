@@ -130,10 +130,14 @@ export function CatalogueView({ graph }: { graph: CatalogueGraph }) {
               {matches.length === 0 ? (
                 <p className="muted">No vendors match that need yet.</p>
               ) : (
-                <ul className="match-list">
+                <ul className="row-list">
                   {matches.map((v) => (
-                    <li key={v.vendorId}>
-                      <Link href={`/vendors/${v.vendorId}`}>{v.name}</Link>
+                    <li key={v.vendorId} className="row-item">
+                      <Link href={`/vendors/${v.vendorId}`} className="row-link">
+                        <span className="row-main">
+                          <span className="row-title">{v.name}</span>
+                        </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>

@@ -20,15 +20,21 @@ export function MappingList({ mappings }: MappingListProps) {
       {groups.map(({ status, items }) => (
         <section key={status}>
           <h2 className="signal-group-head">{status}</h2>
-          <ul className="mapping-list">
+          <ul className="row-list">
             {items.map((m) => (
-              <li key={m.mappingId}>
-                <Link href={`/mappings/${m.mappingId}`}>{m.name}</Link>
-                <p className="mapping-meta">
-                  {m.servesVendorType ? `${m.servesVendorType} · ` : ""}
-                  {m.requiredSignals?.length ?? 0} required · {m.supportingSignals?.length ?? 0} supporting
-                </p>
-                <span className={`badge badge-${m.status}`}>{m.status}</span>
+              <li key={m.mappingId} className="row-item">
+                <Link href={`/mappings/${m.mappingId}`} className="row-link">
+                  <span className="row-main">
+                    <span className="row-title">{m.name}</span>
+                    <span className="row-meta">
+                      {m.servesVendorType ? `${m.servesVendorType} · ` : ""}
+                      {m.requiredSignals?.length ?? 0} required · {m.supportingSignals?.length ?? 0} supporting
+                    </span>
+                  </span>
+                  <span className="row-aside">
+                    <span className={`badge badge-${m.status}`}>{m.status}</span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

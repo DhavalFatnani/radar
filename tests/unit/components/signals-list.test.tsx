@@ -54,7 +54,7 @@ describe("SignalList", () => {
 
   it("renders a family label 'hiring'", () => {
     const { container } = render(<SignalList signals={fixtures} />);
-    const meta = container.querySelector(".signal-meta");
+    const meta = container.querySelector(".row-meta");
     expect(meta?.textContent).toContain("hiring");
   });
 
