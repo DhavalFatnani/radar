@@ -2,7 +2,6 @@
 import { useMemo, useState } from "react";
 import { StatTile } from "@/app/components/ui/stat-tile";
 import { Gauge } from "@/app/components/ui/gauge";
-import { StatusPill } from "@/app/components/ui/status-pill";
 import { SearchInput, FilterChips, Segmented } from "@/app/components/ui/controls";
 import { CampaignTable } from "./campaign-table";
 import { deriveListKpis, CREDIT_BUDGET, type CampaignListRow } from "./view-model";
@@ -13,6 +12,13 @@ const STATUS_OPTS = [
 ];
 const SOURCE_OPTS = [{ value: "all", label: "All" }, { value: "crustdata", label: "Live" }, { value: "fixture", label: "Test" }];
 
+const ATTN_ABBR: Record<string, string> = { running: "run", failed: "fail", queued: "queue", done: "done" };
+function attnSub(r: CampaignListRow): string {
+  if (r.status === "running") return `running · ${r.companies} fetched`;
+  if (r.status === "failed") return "failed · needs a look";
+  return "queued · starts next";
+}
+
 export function CampaignListView({ rows, nowMs }: { rows: CampaignListRow[]; nowMs: number }) {
   const now = useMemo(() => new Date(nowMs), [nowMs]);
   const [search, setSearch] = useState("");
@@ -22,6 +28,13 @@ export function CampaignListView({ rows, nowMs }: { rows: CampaignListRow[]; now
 
   const kpis = useMemo(() => deriveListKpis(rows, now), [rows, now]);
   const used = useMemo(() => rows.reduce((s, r) => s + r.credits, 0), [rows]);
+  const pctUsed = CREDIT_BUDGET > 0 ? (used / CREDIT_BUDGET) * 100 : 0;
+  const counts = {
+    live: rows.filter((r) => r.status === "running").length,
+    failed: rows.filter((r) => r.status === "failed").length,
+    high: rows.filter((r) => r.yield >= 40).length,
+    all: rows.length,
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -44,11 +57,12 @@ export function CampaignListView({ rows, nowMs }: { rows: CampaignListRow[]; now
           {kpis.map((k) => <StatTile key={k.label} {...k} />)}
         </div>
         <div className="cmdbar">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search campaigns…" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Filter these campaigns…" />
           <FilterChips options={STATUS_OPTS} value={status} onChange={setStatus} />
           <Segmented options={SOURCE_OPTS} value={source} onChange={setSource} />
         </div>
         <CampaignTable rows={filtered} now={now} />
+        <div className="list-note">{rows.length} campaign{rows.length === 1 ? "" : "s"} · click a row to open its detail.</div>
       </div>
 
       <aside className="ctx-rail">
@@ -56,26 +70,25 @@ export function CampaignListView({ rows, nowMs }: { rows: CampaignListRow[]; now
           <h3>Credit budget</h3>
           <div className="gauge-cluster">
             <Gauge value={used} max={CREDIT_BUDGET} />
-            <div><div className="big">{used.toFixed(1)}</div><div className="sm">of {CREDIT_BUDGET} credits</div></div>
+            <div><div className="big">{used.toFixed(1)}</div><div className="sm">of {CREDIT_BUDGET} · {pctUsed.toFixed(1)}% used</div></div>
           </div>
         </div>
         <div className="ctx-panel">
           <h3>Quick views</h3>
-          <div className="qv">
-            <button type="button" onClick={() => { setStatus("all"); setSource("all"); setSearch(""); setMinYield(0); }}>All campaigns</button>
-            <button type="button" onClick={() => { setStatus("running"); setMinYield(0); }}>Live runs</button>
-            <button type="button" onClick={() => { setStatus("failed"); setMinYield(0); }}>Failed runs</button>
-            <button type="button" onClick={() => { setStatus("all"); setMinYield(40); }}>High-yield ≥40%</button>
-          </div>
+          <div className="qview" onClick={() => { setStatus("running"); setMinYield(0); }}>Live runs <span className="n">{counts.live}</span></div>
+          <div className="qview" onClick={() => { setStatus("failed"); setMinYield(0); }}>Failed — retry <span className="n">{counts.failed}</span></div>
+          <div className="qview" onClick={() => { setStatus("all"); setMinYield(40); }}>High yield ≥40% <span className="n">{counts.high}</span></div>
+          <div className="qview" onClick={() => { setStatus("all"); setSource("all"); setSearch(""); setMinYield(0); }}>All campaigns <span className="n">{counts.all}</span></div>
         </div>
         <div className="ctx-panel">
           <h3>Needs attention</h3>
           {attention.length === 0 ? <p className="qv-empty">Nothing needs attention.</p> : (
-            <ul className="attn">
-              {attention.map((r) => (
-                <li key={r.campaignId}><span className="attn-label">{r.label}</span><StatusPill status={r.status} /></li>
-              ))}
-            </ul>
+            attention.map((r) => (
+              <div className="attn" key={r.campaignId}>
+                <span className={`pill pill-${r.status}`}>{ATTN_ABBR[r.status]}</span>
+                <div className="attn-co"><b>{r.label}</b><span>{attnSub(r)}</span></div>
+              </div>
+            ))
           )}
         </div>
       </aside>

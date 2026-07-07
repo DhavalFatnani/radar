@@ -125,7 +125,7 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .page-header-actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
 
 /* ---- 13. Source tag + bulk action bar + checkbox column ----------------- */
-.src-tag { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; padding: 1px var(--space-2); border-radius: var(--radius-full); border: var(--border-w) solid var(--border-strong); color: var(--text-muted); }
+.src-tag { font-family: var(--font-mono); font-size: var(--text-2xs); padding: 2px 7px; border-radius: var(--radius-sm); border: var(--border-w) solid var(--border-strong); color: var(--text-muted); }
 .src-tag.live { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 .data-table th.sortable .th-sort { font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; display: inline-flex; align-items: center; }
 .data-table th.sortable .th-sort:hover { color: var(--text); }
@@ -138,13 +138,16 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 
 /* ---- 14. List context rail — quick views + needs-attention -------------- */
 .ctx-main { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
-.qv { display: flex; flex-direction: column; gap: var(--space-1); }
-.qv button { text-align: left; font-size: var(--text-sm); padding: var(--space-1) var(--space-2); border: 0; background: none; color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer; }
-.qv button:hover { background: var(--surface-2); color: var(--text); }
+.qview { display: flex; align-items: center; justify-content: space-between; padding: var(--space-1) 2px; font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); }
+.qview:hover { color: var(--text); }
+.qview .n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-faint); }
 .qv-empty { font-size: var(--text-xs); color: var(--text-faint); margin: 0; }
-.attn { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-.attn li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.attn-label { font-size: var(--text-xs); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; font-size: var(--text-sm); }
+.attn + .attn { border-top: var(--border-w) solid var(--border); }
+.attn-co { flex: 1; min-width: 0; }
+.attn-co b { font-size: var(--text-sm); }
+.attn-co span { display: block; font-size: var(--text-2xs); color: var(--text-faint); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-note { font-size: var(--text-2xs); color: var(--text-faint); font-family: var(--font-mono); margin-top: var(--space-1); }
 
 /* ---- 15. Surfaced-leads open link --------------------------------------- */
 .open-link { color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }

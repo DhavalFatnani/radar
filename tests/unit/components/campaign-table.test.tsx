@@ -7,8 +7,8 @@ import type { CampaignListRow } from "@/app/(app)/campaigns/view-model";
 
 const NOW = new Date("2026-07-07T12:00:00Z");
 const rows: CampaignListRow[] = [
-  { campaignId: "a1", label: "RackPro · India · 20", vendorName: "RackPro", source: "crustdata", status: "done", companies: 20, leads: 8, credits: 0.87, yield: 40, createdAt: new Date("2026-07-07T10:00:00Z").toISOString() },
-  { campaignId: "b2", label: "Acme · India · 10", vendorName: "Acme", source: "company-fixture", status: "failed", companies: 10, leads: 1, credits: 0, yield: 10, createdAt: new Date("2026-07-06T10:00:00Z").toISOString() },
+  { campaignId: "a1", label: "RackPro · India · 20", vendorName: "RackPro", vendorType: "Infra", source: "crustdata", status: "done", companies: 20, leads: 8, credits: 0.87, yield: 40, createdAt: new Date("2026-07-07T10:00:00Z").toISOString() },
+  { campaignId: "b2", label: "Acme · India · 10", vendorName: "Acme", vendorType: "Mktg", source: "company-fixture", status: "failed", companies: 10, leads: 1, credits: 0, yield: 10, createdAt: new Date("2026-07-06T10:00:00Z").toISOString() },
 ];
 
 describe("CampaignTable", () => {
@@ -16,8 +16,8 @@ describe("CampaignTable", () => {
     render(<CampaignTable rows={rows} now={NOW} />);
     expect(screen.getByRole("link", { name: /RackPro · India · 20/ })).toHaveAttribute("href", "/campaigns/a1");
     expect(document.querySelector(".pill-done")).toBeTruthy();
-    expect(screen.getByText("Live")).toBeInTheDocument();
-    expect(screen.getByText("Test")).toBeInTheDocument();
+    expect(screen.getByText("live")).toBeInTheDocument();
+    expect(screen.getByText("test")).toBeInTheDocument();
   });
 
   it("sorts by a numeric column when its header is clicked", async () => {

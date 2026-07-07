@@ -65,7 +65,7 @@
 
   /* ---- Layout ------------------------------------------------------------- */
   --rail-w: 232px;
-  --content-max: 1400px;
+  --content-max: 1780px;  /* matches the approved campaigns mockup canvas */
   --z-rail: 30;
   --z-header: 40;
   --z-overlay: 80;

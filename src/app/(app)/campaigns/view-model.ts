@@ -9,6 +9,7 @@ export type CampaignListRow = {
   campaignId: string;
   label: string;
   vendorName: string;
+  vendorType: string | null;
   source: string;
   status: CampaignStatus;
   companies: number;
@@ -73,7 +74,7 @@ export function deriveListKpis(rows: CampaignListRow[], now: Date): KpiTile[] {
   const withYield = rows.filter((r) => r.companies > 0);
   const avgYield = withYield.length ? Math.round(withYield.reduce((s, r) => s + r.yield, 0) / withYield.length) : 0;
   return [
-    { label: "Campaigns 30d", value: String(rows.filter((r) => withinDays(r.createdAt, now, 30)).length) },
+    { label: "Campaigns · 30d", value: String(rows.filter((r) => withinDays(r.createdAt, now, 30)).length) },
     { label: "Leads sourced", value: String(rows.reduce((s, r) => s + r.leads, 0)), points: leadsPts, ...trend(leadsPts) },
     { label: "Companies scanned", value: String(rows.reduce((s, r) => s + r.companies, 0)), points: coPts, ...trend(coPts) },
     { label: "Avg yield", value: String(avgYield), unit: "%", points: yieldPts, ...trend(yieldPts) },

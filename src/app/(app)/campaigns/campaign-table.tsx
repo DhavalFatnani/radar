@@ -41,7 +41,7 @@ export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Dat
               <th className="sortable">{sortBtn("label", "Campaign")}</th>
               <th>Source</th>
               <th>Status</th>
-              {numHead("companies", "Companies")}
+              {numHead("companies", "Cos")}
               {numHead("leads", "Leads")}
               {numHead("yield", "Yield")}
               {numHead("credits", "Credits")}
@@ -54,8 +54,8 @@ export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Dat
               return (
                 <tr key={c.campaignId}>
                   <td className="chk"><input type="checkbox" aria-label={`Select ${c.label}`} checked={sel.selected.has(c.campaignId)} onChange={() => sel.toggle(c.campaignId)} /></td>
-                  <td className="cell-co"><Link href={`/campaigns/${c.campaignId}`}><b>{c.label}</b></Link><span>{c.vendorName}</span></td>
-                  <td><span className={`src-tag ${tag.kind}`}>{tag.label}</span></td>
+                  <td className="cell-co"><Link href={`/campaigns/${c.campaignId}`}><b>{c.label}</b></Link><span>{c.vendorType ? `${c.vendorName} · ${c.vendorType}` : c.vendorName}</span></td>
+                  <td><span className={`src-tag ${tag.kind}`}>{tag.kind}</span></td>
                   <td><StatusPill status={c.status} /></td>
                   <td className="num">{c.companies}</td>
                   <td className="num">{c.leads}</td>

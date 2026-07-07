@@ -3,7 +3,7 @@ import { yieldPct, relativeTime, sourceTag, deriveListKpis, CREDIT_BUDGET, toSur
 
 const NOW = new Date("2026-07-07T12:00:00Z");
 function row(over: Partial<CampaignListRow>): CampaignListRow {
-  return { campaignId: "c", label: "L", vendorName: "V", source: "crustdata", status: "done", companies: 20, leads: 8, credits: 1, yield: 40, createdAt: NOW.toISOString(), ...over };
+  return { campaignId: "c", label: "L", vendorName: "V", vendorType: "Infra", source: "crustdata", status: "done", companies: 20, leads: 8, credits: 1, yield: 40, createdAt: NOW.toISOString(), ...over };
 }
 
 describe("yieldPct", () => {
@@ -40,7 +40,7 @@ describe("deriveListKpis", () => {
     ];
     const tiles = deriveListKpis(rows, NOW);
     expect(tiles).toHaveLength(4);
-    expect(tiles[0]).toMatchObject({ label: "Campaigns 30d", value: "2" });   // two within 30d
+    expect(tiles[0]).toMatchObject({ label: "Campaigns · 30d", value: "2" });   // two within 30d
     expect(tiles[1]).toMatchObject({ label: "Leads sourced", value: "16" });  // 8+5+3
     expect(tiles[2]).toMatchObject({ label: "Companies scanned", value: "60" });
     expect(tiles[3].label).toBe("Avg yield");

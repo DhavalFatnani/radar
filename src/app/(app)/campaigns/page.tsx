@@ -14,7 +14,7 @@ export default async function CampaignsPage() {
     .select({
       campaignId: campaigns.campaignId, label: campaigns.label, source: campaigns.source,
       status: campaigns.status, stats: campaigns.stats, createdAt: campaigns.createdAt,
-      vendorName: vendorProfiles.name,
+      vendorName: vendorProfiles.name, vendorType: vendorProfiles.vendorType,
     })
     .from(campaigns)
     .innerJoin(vendorProfiles, eq(campaigns.vendorId, vendorProfiles.vendorId))
@@ -25,18 +25,23 @@ export default async function CampaignsPage() {
     const companies = s?.companiesFetched ?? 0;
     const leads = s?.leadsCreated ?? 0;
     return {
-      campaignId: r.campaignId, label: r.label, vendorName: r.vendorName ?? "—",
+      campaignId: r.campaignId, label: r.label, vendorName: r.vendorName ?? "—", vendorType: r.vendorType ?? null,
       source: r.source, status: r.status, companies, leads,
       credits: s?.creditsSpent ?? 0, yield: yieldPct(companies, leads),
       createdAt: (r.createdAt ?? new Date()).toISOString(),
     };
   });
 
-  const newCta = <Link href="/campaigns/new" className="btn btn-primary btn-sm">New Campaign</Link>;
+  const newCta = (
+    <Link href="/campaigns/new" className="btn btn-primary">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      New Campaign
+    </Link>
+  );
 
   return (
     <>
-      <PageHeader eyebrow="Operate" title="Campaigns" sub="Every sourcing run, its yield, and what needs a look." actions={newCta} />
+      <PageHeader eyebrow="Operate" title="Campaigns" sub="Every sourcing run, and the leads it surfaced." actions={newCta} />
       {rows.length === 0 ? (
         <EmptyState icon="campaigns" title="No campaigns yet"
           description="Open a vendor and hit “Find Leads” to run your first campaign." />
