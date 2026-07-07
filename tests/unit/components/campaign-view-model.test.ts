@@ -45,6 +45,13 @@ describe("deriveListKpis", () => {
     expect(tiles[2]).toMatchObject({ label: "Companies scanned", value: "60" });
     expect(tiles[3].label).toBe("Avg yield");
     expect(tiles[3].unit).toBe("%");
+    // every tile carries a multi-point sparkline series (time-bucketed).
+    expect(tiles.every((t) => (t.points?.length ?? 0) > 1)).toBe(true);
+  });
+  it("still produces a graphable sparkline series from a single campaign", () => {
+    const tiles = deriveListKpis([row({ createdAt: NOW.toISOString() })], NOW);
+    expect(tiles[1].points!.length).toBeGreaterThan(1);
+    expect(tiles[1].points!.some((p) => p > 0)).toBe(true);
   });
   it("exposes a spendable budget constant", () => {
     expect(CREDIT_BUDGET).toBeGreaterThan(0);

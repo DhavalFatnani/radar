@@ -51,9 +51,25 @@ export type KpiTile = { label: string; value: string; unit?: string; delta?: str
 function withinDays(iso: string, now: Date, days: number): boolean {
   return now.getTime() - new Date(iso).getTime() <= days * 86400_000;
 }
-function seriesTail(rows: CampaignListRow[], pick: (r: CampaignListRow) => number, n = 8): number[] {
-  // rows arrive newest-first; sparkline reads oldest→newest.
-  return rows.slice(0, n).map(pick).reverse();
+function startOfDayMs(ms: number): number {
+  return Math.floor(ms / 86400_000) * 86400_000;
+}
+
+/** N daily buckets ending today (oldest→newest) so a sparkline always has points,
+ * even with a single campaign. mode: sum (leads/companies), avg (yield), count. */
+function dailyBuckets(rows: CampaignListRow[], now: Date, days: number, pick: (r: CampaignListRow) => number, mode: "sum" | "avg" | "count"): number[] {
+  const sums = new Array<number>(days).fill(0);
+  const counts = new Array<number>(days).fill(0);
+  const today = startOfDayMs(now.getTime());
+  for (const r of rows) {
+    const idx = days - 1 - Math.round((today - startOfDayMs(new Date(r.createdAt).getTime())) / 86400_000);
+    if (idx < 0 || idx >= days) continue;
+    counts[idx] += 1;
+    sums[idx] += pick(r);
+  }
+  if (mode === "count") return counts;
+  if (mode === "avg") return sums.map((s, i) => (counts[i] ? Math.round(s / counts[i]) : 0));
+  return sums;
 }
 function trend(points: number[]): { delta?: string; deltaDir?: "up" | "down" } {
   if (points.length < 4) return {};
@@ -68,13 +84,15 @@ function trend(points: number[]): { delta?: string; deltaDir?: "up" | "down" } {
 }
 
 export function deriveListKpis(rows: CampaignListRow[], now: Date): KpiTile[] {
-  const leadsPts = seriesTail(rows, (r) => r.leads);
-  const coPts = seriesTail(rows, (r) => r.companies);
-  const yieldPts = seriesTail(rows, (r) => r.yield);
+  const DAYS = 8;
+  const campPts = dailyBuckets(rows, now, DAYS, () => 1, "count");
+  const leadsPts = dailyBuckets(rows, now, DAYS, (r) => r.leads, "sum");
+  const coPts = dailyBuckets(rows, now, DAYS, (r) => r.companies, "sum");
+  const yieldPts = dailyBuckets(rows, now, DAYS, (r) => r.yield, "avg");
   const withYield = rows.filter((r) => r.companies > 0);
   const avgYield = withYield.length ? Math.round(withYield.reduce((s, r) => s + r.yield, 0) / withYield.length) : 0;
   return [
-    { label: "Campaigns · 30d", value: String(rows.filter((r) => withinDays(r.createdAt, now, 30)).length) },
+    { label: "Campaigns · 30d", value: String(rows.filter((r) => withinDays(r.createdAt, now, 30)).length), points: campPts, ...trend(campPts) },
     { label: "Leads sourced", value: String(rows.reduce((s, r) => s + r.leads, 0)), points: leadsPts, ...trend(leadsPts) },
     { label: "Companies scanned", value: String(rows.reduce((s, r) => s + r.companies, 0)), points: coPts, ...trend(coPts) },
     { label: "Avg yield", value: String(avgYield), unit: "%", points: yieldPts, ...trend(yieldPts) },
