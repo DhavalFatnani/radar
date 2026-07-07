@@ -5,7 +5,7 @@ import { db } from "@/db/client";
 import { getCampaign } from "@/lib/campaigns/data";
 import { campaignLeads, leads, companies } from "@/db/schema";
 import { PageHeader } from "@/app/components/ui/page-header";
-import type { CampaignStatsShape } from "../campaign-list";
+import type { CampaignStatsShape } from "../view-model";
 
 export default async function CampaignDetailPage({ params }: { params: Promise<{ campaignId: string }> }) {
   const { campaignId } = await params;
