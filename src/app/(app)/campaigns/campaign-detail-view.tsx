@@ -20,6 +20,8 @@ export function CampaignDetailView({ stats, runDetails, leads }: {
   const best = leads.reduce<SurfacedLeadRow | null>((b, l) => (!b || l.score > b.score ? l : b), null);
   const avg = leads.length ? Math.round(leads.reduce((s, l) => s + l.score, 0) / leads.length) : 0;
   const newCount = leads.filter((l) => l.wasNew).length;
+  // score profile of this run's leads (low→high) — a real per-run distribution.
+  const scorePts = leads.length >= 2 ? leads.map((l) => l.score).sort((a, b) => a - b) : undefined;
 
   return (
     <div className="ctx-grid">
@@ -27,7 +29,7 @@ export function CampaignDetailView({ stats, runDetails, leads }: {
         <div className="stat-row">
           <StatTile label="Companies fetched" value={String(stats?.companiesFetched ?? 0)} />
           <StatTile label="Observations" value={String(stats?.observationsWritten ?? 0)} />
-          <StatTile label="Leads created" value={String(stats?.leadsCreated ?? 0)} delta={`▲ ${newCount} new`} deltaDir="up" />
+          <StatTile label="Leads created" value={String(stats?.leadsCreated ?? 0)} delta={`▲ ${newCount} new`} deltaDir="up" points={scorePts} />
           <StatTile label="Credits" value={(stats?.creditsSpent ?? 0).toFixed(2)} />
         </div>
 

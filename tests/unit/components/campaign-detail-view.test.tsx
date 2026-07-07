@@ -29,4 +29,8 @@ describe("CampaignDetailView", () => {
     expect(screen.getByRole("button", { name: /Re-run/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Export CSV/ })).toBeInTheDocument();
   });
+  it("draws a score-profile sparkline on the Leads created tile", () => {
+    const { container } = render(<CampaignDetailView stats={stats} runDetails={runDetails} leads={leads} />);
+    expect(container.querySelector("svg.sparkline")).toBeTruthy();
+  });
 });
