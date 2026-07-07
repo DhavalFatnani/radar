@@ -145,3 +145,7 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .attn { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .attn li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .attn-label { font-size: var(--text-xs); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- 15. Surfaced-leads open link --------------------------------------- */
+.open-link { color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
+.open-link:hover { text-decoration: underline; }
