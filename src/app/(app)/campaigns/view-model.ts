@@ -79,3 +79,28 @@ export function deriveListKpis(rows: CampaignListRow[], now: Date): KpiTile[] {
     { label: "Avg yield", value: String(avgYield), unit: "%", points: yieldPts, ...trend(yieldPts) },
   ];
 }
+
+export type SurfacedLeadRow = {
+  leadId: string; companyName: string;
+  domain: string | null; signals: number | null; funding: string | null; headcount: number | null;
+  score: number; wasNew: boolean;
+};
+
+export function toSurfacedLeadRow(raw: {
+  leadId: string; companyName: string; score: number | null; wasNew: boolean; profile: unknown; snapshot: unknown;
+}): SurfacedLeadRow {
+  const p = (raw.profile ?? {}) as Record<string, unknown>;
+  const s = (raw.snapshot ?? {}) as Record<string, unknown>;
+  const str = (v: unknown): string | null => (typeof v === "string" && v ? v : null);
+  const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
+  return {
+    leadId: raw.leadId,
+    companyName: raw.companyName,
+    domain: str(p.domain) ?? str(p.website),
+    signals: num(s.opsPostings),
+    funding: str(s.fundraiseDate),
+    headcount: num(s.headcountTotal),
+    score: raw.score ?? 0,
+    wasNew: raw.wasNew,
+  };
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { yieldPct, relativeTime, sourceTag, deriveListKpis, CREDIT_BUDGET, type CampaignListRow } from "@/app/(app)/campaigns/view-model";
+import { yieldPct, relativeTime, sourceTag, deriveListKpis, CREDIT_BUDGET, toSurfacedLeadRow, type CampaignListRow } from "@/app/(app)/campaigns/view-model";
 
 const NOW = new Date("2026-07-07T12:00:00Z");
 function row(over: Partial<CampaignListRow>): CampaignListRow {
@@ -48,5 +48,20 @@ describe("deriveListKpis", () => {
   });
   it("exposes a spendable budget constant", () => {
     expect(CREDIT_BUDGET).toBeGreaterThan(0);
+  });
+});
+
+describe("toSurfacedLeadRow", () => {
+  it("pulls domain + snapshot fields defensively, nulls when absent", () => {
+    const r = toSurfacedLeadRow({
+      leadId: "l1", companyName: "RackPro", score: 72, wasNew: true,
+      profile: { domain: "rackpro.io" },
+      snapshot: { opsPostings: 4, fundraiseDate: "2026-03-01", headcountTotal: 180 },
+    });
+    expect(r).toEqual({ leadId: "l1", companyName: "RackPro", domain: "rackpro.io", signals: 4, funding: "2026-03-01", headcount: 180, score: 72, wasNew: true });
+  });
+  it("degrades to nulls / zero score when data is missing", () => {
+    const r = toSurfacedLeadRow({ leadId: "l2", companyName: "Acme", score: null, wasNew: false, profile: null, snapshot: null });
+    expect(r).toEqual({ leadId: "l2", companyName: "Acme", domain: null, signals: null, funding: null, headcount: null, score: 0, wasNew: false });
   });
 });
