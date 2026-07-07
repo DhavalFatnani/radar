@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
 import { CampaignTable } from "@/app/(app)/campaigns/campaign-table";
 import type { CampaignListRow } from "@/app/(app)/campaigns/view-model";
 
@@ -26,6 +30,20 @@ describe("CampaignTable", () => {
     const firstDataRow = document.querySelectorAll("tbody tr")[0];
     // ascending by leads → Acme (1) first. Query the label link (the vendor <span> also says "Acme").
     expect(within(firstDataRow as HTMLElement).getByRole("link", { name: /Acme/ })).toBeInTheDocument();
+  });
+
+  it("navigates to the campaign when a row (outside the checkbox) is clicked", async () => {
+    push.mockClear();
+    render(<CampaignTable rows={rows} now={NOW} />);
+    await userEvent.click(screen.getByText("live")); // source-tag cell of the crustdata row
+    expect(push).toHaveBeenCalledWith("/campaigns/a1");
+  });
+
+  it("does not navigate when the row checkbox is clicked", async () => {
+    push.mockClear();
+    render(<CampaignTable rows={rows} now={NOW} />);
+    await userEvent.click(screen.getByLabelText("Select RackPro · India · 20"));
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("shows the bulk action bar once rows are selected via select-all", async () => {

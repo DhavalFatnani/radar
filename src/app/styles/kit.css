@@ -130,6 +130,7 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .data-table th.sortable .th-sort { font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; display: inline-flex; align-items: center; }
 .data-table th.sortable .th-sort:hover { color: var(--text); }
 .data-table td.chk, .data-table th.chk { width: 34px; text-align: center; padding-right: 0; }
+.data-table th.col-yield, .data-table td.col-yield { text-align: center; }
 .data-table td.chk input, .data-table th.chk input { cursor: pointer; accent-color: var(--accent); }
 .data-table .cell-co a { color: inherit; text-decoration: none; }
 .data-table .cell-co a:hover b { color: var(--accent); }

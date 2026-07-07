@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSort, useRowSelection } from "@/app/components/ui/use-table";
 import { ScoreMeter } from "@/app/components/ui/score-meter";
 import { StatusPill } from "@/app/components/ui/status-pill";
@@ -10,6 +11,7 @@ function arrow(active: boolean, dir: 1 | -1) {
 }
 
 export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Date }) {
+  const router = useRouter();
   const { sorted, sortKey, sortDir, toggle } = useSort<CampaignListRow>(rows, "createdAt", -1);
   const sel = useRowSelection(rows.map((r) => r.campaignId));
 
@@ -43,7 +45,7 @@ export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Dat
               <th>Status</th>
               {numHead("companies", "Cos")}
               {numHead("leads", "Leads")}
-              {numHead("yield", "Yield")}
+              <th className="col-yield sortable">{sortBtn("yield", "Yield")}</th>
               {numHead("credits", "Credits")}
               {numHead("createdAt", "Run")}
             </tr>
@@ -52,14 +54,14 @@ export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Dat
             {sorted.map((c) => {
               const tag = sourceTag(c.source);
               return (
-                <tr key={c.campaignId}>
-                  <td className="chk"><input type="checkbox" aria-label={`Select ${c.label}`} checked={sel.selected.has(c.campaignId)} onChange={() => sel.toggle(c.campaignId)} /></td>
-                  <td className="cell-co"><Link href={`/campaigns/${c.campaignId}`}><b>{c.label}</b></Link><span>{c.vendorType ? `${c.vendorName} · ${c.vendorType}` : c.vendorName}</span></td>
+                <tr key={c.campaignId} className="clickable" onClick={() => router.push(`/campaigns/${c.campaignId}`)}>
+                  <td className="chk" onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label={`Select ${c.label}`} checked={sel.selected.has(c.campaignId)} onChange={() => sel.toggle(c.campaignId)} /></td>
+                  <td className="cell-co"><Link href={`/campaigns/${c.campaignId}`} onClick={(e) => e.stopPropagation()}><b>{c.label}</b></Link><span>{c.vendorType ? `${c.vendorName} · ${c.vendorType}` : c.vendorName}</span></td>
                   <td><span className={`src-tag ${tag.kind}`}>{tag.kind}</span></td>
                   <td><StatusPill status={c.status} /></td>
                   <td className="num">{c.companies}</td>
                   <td className="num">{c.leads}</td>
-                  <td className="num"><ScoreMeter value={c.yield} size="sm" /></td>
+                  <td className="col-yield"><ScoreMeter value={c.yield} size="sm" /></td>
                   <td className="num money">{c.credits.toFixed(2)}</td>
                   <td className="num">{relativeTime(c.createdAt, now)}</td>
                 </tr>

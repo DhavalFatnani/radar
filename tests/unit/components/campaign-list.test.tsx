@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 import { CampaignListView } from "@/app/(app)/campaigns/campaign-list";
 import type { CampaignListRow } from "@/app/(app)/campaigns/view-model";
 
