@@ -31,6 +31,26 @@ export async function runCampaignForVendor(
   return { campaignId, stats };
 }
 
+/** Create + run a campaign persisting the full new-campaign config (superset of geography/target). */
+export async function createAndRunCampaign(
+  db: DB,
+  input: { vendorId: string; source: string; geography: string; target: number; config: Record<string, unknown> },
+): Promise<{ campaignId: string; stats: CampaignStats }> {
+  const [vendor] = await db
+    .select({ vendorId: vendorProfiles.vendorId, name: vendorProfiles.name })
+    .from(vendorProfiles).where(eq(vendorProfiles.vendorId, input.vendorId)).limit(1);
+  if (!vendor) throw new Error(`vendor ${input.vendorId} not found`);
+
+  const { campaignId } = await createCampaign(db, {
+    vendorId: vendor.vendorId,
+    source: input.source,
+    label: `${vendor.name} · ${input.geography} · ${input.target}`,
+    config: input.config,
+  });
+  const stats = await runCampaign(db, { campaignId, adapter: adapterForSource(input.source) });
+  return { campaignId, stats };
+}
+
 /** Resolve a --vendor arg that is either a UUID or a (case-insensitive) vendor name. */
 async function resolveVendorId(db: DB, vendorArg: string): Promise<string> {
   if (UUID_RE.test(vendorArg)) return vendorArg;
