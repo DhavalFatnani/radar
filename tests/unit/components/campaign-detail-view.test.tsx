@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+
 import { CampaignDetailView } from "@/app/(app)/campaigns/campaign-detail-view";
 import type { SurfacedLeadRow } from "@/app/(app)/campaigns/view-model";
 

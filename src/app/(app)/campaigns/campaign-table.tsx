@@ -29,9 +29,9 @@ export function CampaignTable({ rows, now }: { rows: CampaignListRow[]; now: Dat
         <div className="bulkbar">
           <span>{sel.selected.size} selected</span>
           <div className="bulkbar-actions">
-            <button type="button" className="btn btn-sm">Re-run</button>
-            <button type="button" className="btn btn-sm">Export</button>
-            <button type="button" className="btn btn-sm">Dismiss</button>
+            <button type="button" className="btn btn-sm btn-ghost">Re-run</button>
+            <button type="button" className="btn btn-sm btn-ghost">Export</button>
+            <button type="button" className="btn btn-sm btn-ghost">Dismiss</button>
           </div>
         </div>
       ) : null}
