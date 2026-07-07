@@ -14,6 +14,12 @@ const leads: SurfacedLeadRow[] = [
 const stats = { companiesFetched: 24, observationsWritten: 41, leadsCreated: 8, leadsUpdated: 1, creditsSpent: 0.87 };
 // Vendor value is "Initech" (not a lead company) so getByText("RackPro") stays unique to the table.
 const runDetails = [{ k: "Vendor", v: "Initech" }, { k: "Geography", v: "India" }];
+const trends = {
+  companies: [10, 14, 12, 18, 20, 24],
+  observations: [20, 24, 22, 30, 36, 41],
+  leads: [3, 5, 4, 6, 7, 8],
+  credits: [0.3, 0.5, 0.4, 0.6, 0.7, 0.87],
+};
 
 describe("CampaignDetailView", () => {
   it("renders the four stat tiles and the run-details kv list", () => {
@@ -29,8 +35,8 @@ describe("CampaignDetailView", () => {
     expect(screen.getByRole("button", { name: /Re-run/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Export CSV/ })).toBeInTheDocument();
   });
-  it("draws a score-profile sparkline on the Leads created tile", () => {
-    const { container } = render(<CampaignDetailView stats={stats} runDetails={runDetails} leads={leads} />);
-    expect(container.querySelector("svg.sparkline")).toBeTruthy();
+  it("draws a trend sparkline on every stat tile", () => {
+    const { container } = render(<CampaignDetailView stats={stats} runDetails={runDetails} leads={leads} trends={trends} />);
+    expect(container.querySelectorAll("svg.sparkline").length).toBe(4);
   });
 });

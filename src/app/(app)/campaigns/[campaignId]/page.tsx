@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db/client";
 import { getCampaign } from "@/lib/campaigns/data";
-import { campaignLeads, leads, companies, companySnapshots, vendorProfiles } from "@/db/schema";
+import { campaigns, campaignLeads, leads, companies, companySnapshots, vendorProfiles } from "@/db/schema";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { StatusPill } from "@/app/components/ui/status-pill";
 import { CampaignDetailView } from "../campaign-detail-view";
@@ -32,6 +32,22 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   const cfg = (campaign.config ?? {}) as Record<string, unknown>;
   const tag = sourceTag(campaign.source);
 
+  // This vendor's recent runs → a per-metric trend for each stat tile.
+  const vendorRuns = await db
+    .select({ stats: campaigns.stats, createdAt: campaigns.createdAt })
+    .from(campaigns)
+    .where(eq(campaigns.vendorId, campaign.vendorId))
+    .orderBy(desc(campaigns.createdAt))
+    .limit(12);
+  const recent = vendorRuns.reverse(); // oldest → newest
+  const st = (r: (typeof recent)[number]) => r.stats as CampaignStatsShape | null;
+  const trends = {
+    companies: recent.map((r) => st(r)?.companiesFetched ?? 0),
+    observations: recent.map((r) => st(r)?.observationsWritten ?? 0),
+    leads: recent.map((r) => st(r)?.leadsCreated ?? 0),
+    credits: recent.map((r) => st(r)?.creditsSpent ?? 0),
+  };
+
   const runDetails = [
     { k: "Vendor", v: vendor?.name ?? "—" },
     { k: "Geography", v: String(cfg.geography ?? "—") },
@@ -47,7 +63,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
       <PageHeader eyebrow="Operate" title={campaign.label}
         actions={<><StatusPill status={campaign.status} /><span className={`src-tag ${tag.kind}`}>{tag.label}</span></>} />
       {campaign.error && <p role="alert" className="run-error">{campaign.error}</p>}
-      <CampaignDetailView stats={stats} runDetails={runDetails} leads={surfaced} />
+      <CampaignDetailView stats={stats} runDetails={runDetails} leads={surfaced} trends={trends} />
     </>
   );
 }
