@@ -5,6 +5,7 @@ import { generateLeads } from "@/lib/sourcing/leads";
 import { gatherPlanInputs } from "@/lib/campaigns/plan-inputs";
 import { ingestCompanyObservations } from "@/lib/campaigns/ingest";
 import { getCampaign, finishCampaign, failCampaign, recordCampaignLead, writeCompanySnapshot, type CampaignStats } from "@/lib/campaigns/data";
+import { resolveFundedSinceDays } from "@/lib/campaigns/funded-window";
 import type { CompanySourceAdapter, CompanyQuery } from "@/lib/sourcing/company-schema";
 
 type LeadKey = string;
@@ -27,11 +28,11 @@ export async function runCampaign(
     if (!plan.runnable) throw new Error("vendor has no approved mappings — nothing to source");
 
     // 2. Build the provider query from the plan + campaign config.
-    const cfg = (campaign.config ?? {}) as { geography?: string; target?: number };
+    const cfg = (campaign.config ?? {}) as { geography?: string; target?: number; fundedSinceDays?: unknown };
     const query: CompanyQuery = {
       geography: cfg.geography ?? "IND",
       target: cfg.target ?? 20,
-      fundedSinceDays: plan.fundedSinceDays,
+      fundedSinceDays: resolveFundedSinceDays(plan.fundedSinceDays, cfg.fundedSinceDays),
       signalFamilies: plan.signalFamilies,
     };
 
