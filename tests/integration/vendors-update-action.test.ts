@@ -75,4 +75,14 @@ describe("updateVendor action", () => {
     const [row] = await testDb.select().from(vendorProfiles).where(eq(vendorProfiles.vendorId, vendorId));
     expect(row.vendorType).toBe("Infra");
   });
+
+  it("returns an error and writes nothing for an over-long vendorType", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme" });
+    const fd = profileForm("Acme Logistics");
+    fd.set("vendorType", "x".repeat(121));
+    const result = await updateVendor(vendorId, undefined, fd);
+    expect(result).toBe("Vendor type is too long.");
+    const [row] = await testDb.select().from(vendorProfiles).where(eq(vendorProfiles.vendorId, vendorId));
+    expect(row.version).toBe(1);
+  });
 });

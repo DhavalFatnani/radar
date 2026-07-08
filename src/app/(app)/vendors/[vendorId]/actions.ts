@@ -35,7 +35,11 @@ export async function updateVendor(
     return parsed.error.issues[0]?.message ?? "Invalid vendor profile.";
   }
 
-  const vendorType = vendorTypeSchema.parse(String(formData.get("vendorType") ?? ""));
+  const typeResult = vendorTypeSchema.safeParse(String(formData.get("vendorType") ?? ""));
+  if (!typeResult.success) {
+    return typeResult.error.issues[0]?.message ?? "Invalid vendor type.";
+  }
+  const vendorType = typeResult.data;
 
   try {
     await updateVendorProfile(vendorId, parsed.data, { kind: "manual_edit" }, vendorType);
