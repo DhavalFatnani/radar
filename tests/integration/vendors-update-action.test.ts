@@ -64,4 +64,15 @@ describe("updateVendor action", () => {
     const [row] = await testDb.select().from(vendorProfiles).where(eq(vendorProfiles.vendorId, vendorId));
     expect(row.version).toBe(1);
   });
+
+  it("persists vendorType from the form and records it in the changelog", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme" });
+    const fd = profileForm("Acme");
+    fd.set("vendorType", "Infra");
+    const result = await updateVendor(vendorId, undefined, fd);
+    expect(result).toBeUndefined();
+
+    const [row] = await testDb.select().from(vendorProfiles).where(eq(vendorProfiles.vendorId, vendorId));
+    expect(row.vendorType).toBe("Infra");
+  });
 });

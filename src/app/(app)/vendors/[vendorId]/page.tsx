@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/app/components/ui/page-header";
-import { getVendor } from "@/lib/vendors/data";
+import { getVendor, getVendorTypeOptions } from "@/lib/vendors/data";
 import { getActiveInterview } from "@/lib/interviews/data";
 import { db } from "@/db/client";
 import { getSourcingReadiness } from "@/lib/campaigns/readiness";
@@ -21,6 +21,7 @@ export default async function VendorDetailPage({
 
   const active = await getActiveInterview(vendorId);
   const readiness = await getSourcingReadiness(db, vendorId);
+  const types = await getVendorTypeOptions();
 
   return (
     <>
@@ -32,7 +33,7 @@ export default async function VendorDetailPage({
         </Link>
       </p>
       <FindLeadsPanel vendorId={vendorId} readiness={readiness} />
-      <EditProfileForm vendor={vendor} />
+      <EditProfileForm vendor={vendor} types={types} />
     </>
   );
 }

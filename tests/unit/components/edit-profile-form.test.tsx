@@ -23,8 +23,19 @@ const vendor: VendorProfile = {
 
 describe("EditProfileForm", () => {
   it("renders the name field pre-filled and a save button", () => {
-    render(<EditProfileForm vendor={vendor} />);
+    render(<EditProfileForm vendor={vendor} types={[]} />);
     expect(screen.getByLabelText(/vendor name/i)).toHaveValue("Acme");
     expect(screen.getByRole("button", { name: /save profile/i })).toBeInTheDocument();
+  });
+
+  it("renders the vendor-type combobox seeded with the current type", () => {
+    render(
+      <EditProfileForm
+        vendor={{ ...vendor, vendorType: "Infra" }}
+        types={[{ type: "Infra", mappingCount: 3, vendorCount: 1 }]}
+      />,
+    );
+    const combo = screen.getByRole("combobox", { name: /vendor type/i });
+    expect(combo).toHaveValue("Infra");
   });
 });

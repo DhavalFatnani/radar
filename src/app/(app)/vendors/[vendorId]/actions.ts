@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { updateVendorProfile, vendorProfileSchema } from "@/lib/vendors/data";
+import { updateVendorProfile, vendorProfileSchema, vendorTypeSchema } from "@/lib/vendors/data";
 
 // Bound with vendorId via .bind(null, vendorId) so the form sees (prevState, formData).
 // Returns an error message string on failure, or undefined on success. Never leaks internals.
@@ -35,8 +35,10 @@ export async function updateVendor(
     return parsed.error.issues[0]?.message ?? "Invalid vendor profile.";
   }
 
+  const vendorType = vendorTypeSchema.parse(String(formData.get("vendorType") ?? ""));
+
   try {
-    await updateVendorProfile(vendorId, parsed.data);
+    await updateVendorProfile(vendorId, parsed.data, { kind: "manual_edit" }, vendorType);
   } catch {
     return "Could not save the vendor profile.";
   }

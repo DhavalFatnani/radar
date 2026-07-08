@@ -1,13 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { VendorProfile } from "@/lib/vendors/data";
+import type { VendorTypeOption } from "@/lib/vendors/schema";
+import { Combobox } from "@/app/components/ui/combobox";
+import { toComboboxOptions, typeHint } from "@/lib/vendors/view-model";
 import { updateVendor } from "./actions";
 
-export function EditProfileForm({ vendor }: { vendor: VendorProfile }) {
+export function EditProfileForm({ vendor, types }: { vendor: VendorProfile; types: VendorTypeOption[] }) {
   const action = updateVendor.bind(null, vendor.vendorId);
   const [error, formAction, isPending] = useActionState(action, undefined);
   const c = vendor.constraints ?? {};
+  const [type, setType] = useState(vendor.vendorType ?? "");
+  const hint = typeHint(type, types);
 
   return (
     <form action={formAction} className="profile-form">
@@ -15,6 +20,20 @@ export function EditProfileForm({ vendor }: { vendor: VendorProfile }) {
         Vendor name
         <input type="text" name="name" defaultValue={vendor.name} required maxLength={200} />
       </label>
+
+      <label>
+        Vendor type
+        <Combobox
+          name="vendorType"
+          ariaLabel="Vendor type"
+          value={type}
+          onChange={setType}
+          options={toComboboxOptions(types)}
+          placeholder="Pick or create a type…"
+          hint={<span className={`combobox-hint combobox-hint--${hint.tone}`}>{hint.text}</span>}
+        />
+      </label>
+
       <label>
         Capabilities (one per line)
         <textarea name="capabilities" rows={3} defaultValue={vendor.capabilities.join("\n")} />
