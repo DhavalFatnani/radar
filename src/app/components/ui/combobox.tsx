@@ -25,7 +25,7 @@ export function Combobox({
   id?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(-1);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
@@ -52,10 +52,13 @@ export function Combobox({
       e.preventDefault();
       setActive((a) => Math.max(a - 1, 0));
     } else if (e.key === "Enter") {
-      if (open && active < filtered.length && filtered[active]) {
+      if (open && active >= 0 && active < filtered.length && filtered[active]) {
         e.preventDefault();
         pick(filtered[active].value);
       } else if (open && showCreate && active === filtered.length) {
+        e.preventDefault();
+        pick(value.trim());
+      } else if (value.trim().length > 0) {
         e.preventDefault();
         pick(value.trim());
       } else {
@@ -90,7 +93,7 @@ export function Combobox({
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
-          setActive(0);
+          setActive(-1);
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}

@@ -56,6 +56,34 @@ describe("Combobox", () => {
     expect(screen.getByTestId("val")).toHaveTextContent("Fintech");
   });
 
+  it("Enter keeps typed free-text on a partial match", () => {
+    render(<Harness />);
+    const input = screen.getByRole("combobox");
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "Mk" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByTestId("val").textContent).toBe("Mk");
+  });
+
+  it("Enter selects an option after arrow navigation", () => {
+    render(<Harness />);
+    const input = screen.getByRole("combobox");
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByTestId("val")).toHaveTextContent("Mktg");
+  });
+
+  it("Enter accepts a brand-new typed value", () => {
+    render(<Harness />);
+    const input = screen.getByRole("combobox");
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "Fintech" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByTestId("val")).toHaveTextContent("Fintech");
+  });
+
   it("renders the hint slot", () => {
     render(
       <Combobox
