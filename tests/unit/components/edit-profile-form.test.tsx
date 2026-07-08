@@ -10,6 +10,7 @@ vi.mock("@/app/(app)/vendors/[vendorId]/actions", () => ({ updateVendor: vi.fn()
 const vendor: VendorProfile = {
   vendorId: "v1",
   name: "Acme",
+  vendorType: null,
   capabilities: ["racking"],
   constraints: null,
   idealCustomer: null,

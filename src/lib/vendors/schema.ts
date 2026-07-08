@@ -2,8 +2,37 @@ import { z } from "zod";
 
 export const vendorStubSchema = z.object({
   name: z.string().trim().min(1, "Vendor name is required.").max(200, "Vendor name is too long."),
+  vendorType: z
+    .string()
+    .trim()
+    .max(120, "Vendor type is too long.")
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
 });
 export type VendorStubInput = z.infer<typeof vendorStubSchema>;
+
+// vendorType is operator-set only (NOT an AI-extraction target — kept out of vendorProfileSchema).
+// Parses a single raw form value into the stored-verbatim string, or null when cleared.
+export const vendorTypeSchema = z
+  .string()
+  .trim()
+  .max(120, "Vendor type is too long.")
+  .transform((v) => (v.length > 0 ? v : null));
+
+export type VendorReadinessClass = "runnable" | "needs_mapping" | "no_type";
+
+export type VendorTypeOption = { type: string; mappingCount: number; vendorCount: number };
+
+export type VendorListRow = {
+  vendorId: string;
+  name: string;
+  vendorType: string | null;
+  version: number;
+  capabilitiesPreview: string;
+  lastChangeAt: string | null;
+  mappingCount: number;
+  readiness: VendorReadinessClass;
+};
 
 export type VendorListItem = { vendorId: string; name: string };
 
@@ -29,6 +58,7 @@ export type InterviewHistoryEntry = {
 export type VendorProfile = {
   vendorId: string;
   name: string;
+  vendorType: string | null;
   capabilities: string[];
   constraints: VendorConstraints | null;
   idealCustomer: string | null;

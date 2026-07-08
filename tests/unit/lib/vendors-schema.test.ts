@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { vendorProfileSchema, vendorStubSchema } from "@/lib/vendors/schema";
+import { vendorProfileSchema, vendorStubSchema, vendorTypeSchema } from "@/lib/vendors/schema";
 
 describe("vendors/schema (DB-free)", () => {
   it("parses and normalises a profile input", () => {
@@ -18,5 +18,27 @@ describe("vendors/schema (DB-free)", () => {
 
   it("rejects an empty name", () => {
     expect(() => vendorStubSchema.parse({ name: "  " })).toThrow();
+  });
+});
+
+describe("vendorStubSchema vendorType", () => {
+  it("accepts an optional vendorType and trims it", () => {
+    const parsed = vendorStubSchema.parse({ name: "Acme", vendorType: "  Infra  " });
+    expect(parsed.vendorType).toBe("Infra");
+  });
+
+  it("omits vendorType when absent", () => {
+    const parsed = vendorStubSchema.parse({ name: "Acme" });
+    expect(parsed.vendorType).toBeUndefined();
+  });
+});
+
+describe("vendorTypeSchema", () => {
+  it("trims a value and returns it verbatim", () => {
+    expect(vendorTypeSchema.parse("  Infra  ")).toBe("Infra");
+  });
+  it("maps empty / whitespace to null", () => {
+    expect(vendorTypeSchema.parse("")).toBeNull();
+    expect(vendorTypeSchema.parse("   ")).toBeNull();
   });
 });

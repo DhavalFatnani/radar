@@ -7,6 +7,7 @@ import { buildQuestionMessages, buildExtractionMessages } from "@/ai/sia/prompts
 const stubProfile: VendorProfile = {
   vendorId: "v1",
   name: "Acme Storage",
+  vendorType: null,
   capabilities: [],
   constraints: null,
   idealCustomer: null,

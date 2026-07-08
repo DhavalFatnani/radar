@@ -5,16 +5,20 @@ import { populateCatalogueFromProfile } from "@/lib/catalogue/data";
 import {
   vendorStubSchema,
   vendorProfileSchema,
+  vendorTypeSchema,
   type VendorStubInput,
   type VendorListItem,
   type VendorConstraints,
   type InterviewHistoryEntry,
   type VendorProfile,
   type VendorProfileInput,
+  type VendorReadinessClass,
+  type VendorTypeOption,
+  type VendorListRow,
 } from "./schema";
 
 // Re-export the pure schema + types so existing importers of "@/lib/vendors/data" keep working.
-export { vendorStubSchema, vendorProfileSchema };
+export { vendorStubSchema, vendorProfileSchema, vendorTypeSchema };
 export type {
   VendorStubInput,
   VendorListItem,
@@ -22,6 +26,9 @@ export type {
   InterviewHistoryEntry,
   VendorProfile,
   VendorProfileInput,
+  VendorReadinessClass,
+  VendorTypeOption,
+  VendorListRow,
 };
 
 // Insert a minimal vendor stub. Input is already validated by the caller.
@@ -110,6 +117,7 @@ export async function getVendor(vendorId: string): Promise<VendorProfile | null>
     .select({
       vendorId: vendorProfiles.vendorId,
       name: vendorProfiles.name,
+      vendorType: vendorProfiles.vendorType,
       capabilities: vendorProfiles.capabilities,
       constraints: vendorProfiles.constraints,
       idealCustomer: vendorProfiles.idealCustomer,
@@ -126,6 +134,7 @@ export async function getVendor(vendorId: string): Promise<VendorProfile | null>
   return {
     vendorId: row.vendorId,
     name: row.name,
+    vendorType: row.vendorType ?? null,
     capabilities: row.capabilities ?? [],
     constraints: (row.constraints as VendorConstraints | null) ?? null,
     idealCustomer: unwrapText(row.idealCustomer),

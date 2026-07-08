@@ -21,6 +21,7 @@ import { submitAnswer, saveInterview, advanceInterview } from "@/app/(app)/vendo
 const vendor: VendorProfile = {
   vendorId: "v1",
   name: "Meridian Warehouse",
+  vendorType: null,
   capabilities: ["Racking up to 12t/bay"],
   constraints: { geographies: ["Maharashtra"] },
   idealCustomer: "3PLs building DCs",

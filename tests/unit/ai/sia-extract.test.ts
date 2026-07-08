@@ -25,6 +25,7 @@ const extracted: VendorProfileInput = {
 const stub: VendorProfile = {
   vendorId: "v1",
   name: "Acme Storage",
+  vendorType: null,
   capabilities: [],
   constraints: null,
   idealCustomer: null,
