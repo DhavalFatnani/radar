@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { vendorProfiles } from "@/db/schema";
+import { vendorProfiles, mappings } from "@/db/schema";
 import { populateCatalogueFromProfile } from "@/lib/catalogue/data";
 import {
   vendorStubSchema,
@@ -16,6 +16,11 @@ import {
   type VendorTypeOption,
   type VendorListRow,
 } from "./schema";
+import {
+  classifyVendorReadiness,
+  capabilitiesPreview,
+  lastChange,
+} from "@/lib/vendors/view-model";
 
 // Re-export the pure schema + types so existing importers of "@/lib/vendors/data" keep working.
 export { vendorStubSchema, vendorProfileSchema, vendorTypeSchema };
@@ -47,6 +52,86 @@ export async function listVendors(): Promise<VendorListItem[]> {
     .from(vendorProfiles)
     .orderBy(asc(vendorProfiles.name))
     .limit(100);
+}
+
+// Case-insensitive count of approved mappings per served vendor type. One query, keyed by lower(type).
+async function approvedMappingTypeCounts(): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ type: mappings.servesVendorType })
+    .from(mappings)
+    .where(eq(mappings.status, "approved"))
+    .limit(500);
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const key = (r.type ?? "").trim().toLowerCase();
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+// Distinct types across approved mappings (mappingCount) and vendors (vendorCount), for the
+// combobox, the live hint, and the list rail. Keyed case-insensitively; first-seen casing wins.
+export async function getVendorTypeOptions(): Promise<VendorTypeOption[]> {
+  const [mapRows, venRows] = await Promise.all([
+    db
+      .select({ type: mappings.servesVendorType })
+      .from(mappings)
+      .where(eq(mappings.status, "approved"))
+      .limit(500),
+    db.select({ type: vendorProfiles.vendorType }).from(vendorProfiles).limit(1000),
+  ]);
+
+  const byKey = new Map<string, VendorTypeOption>();
+  const bump = (raw: string | null, field: "mappingCount" | "vendorCount") => {
+    const t = (raw ?? "").trim();
+    if (!t) return;
+    const key = t.toLowerCase();
+    const cur = byKey.get(key) ?? { type: t, mappingCount: 0, vendorCount: 0 };
+    cur[field] += 1;
+    byKey.set(key, cur);
+  };
+  for (const r of mapRows) bump(r.type, "mappingCount");
+  for (const r of venRows) bump(r.type, "vendorCount");
+
+  return [...byKey.values()].sort(
+    (a, b) => b.mappingCount - a.mappingCount || a.type.localeCompare(b.type),
+  );
+}
+
+// Enriched vendor rows for the redesigned list. Readiness computed from a single batched
+// approved-mapping-count query — NOT N per-vendor readiness calls.
+export async function listVendorRows(): Promise<VendorListRow[]> {
+  const rows = await db
+    .select({
+      vendorId: vendorProfiles.vendorId,
+      name: vendorProfiles.name,
+      vendorType: vendorProfiles.vendorType,
+      capabilities: vendorProfiles.capabilities,
+      version: vendorProfiles.version,
+      interviewHistory: vendorProfiles.interviewHistory,
+    })
+    .from(vendorProfiles)
+    .orderBy(asc(vendorProfiles.name))
+    .limit(100);
+
+  const counts = await approvedMappingTypeCounts();
+
+  return rows.map((r) => {
+    const history = (r.interviewHistory as InterviewHistoryEntry[] | null) ?? [];
+    const vendorType = r.vendorType ?? null;
+    const mappingCount = vendorType ? (counts.get(vendorType.trim().toLowerCase()) ?? 0) : 0;
+    return {
+      vendorId: r.vendorId,
+      name: r.name,
+      vendorType,
+      version: r.version,
+      capabilitiesPreview: capabilitiesPreview(r.capabilities ?? []),
+      lastChangeAt: lastChange(history),
+      mappingCount,
+      readiness: classifyVendorReadiness({ vendorType, mappingCount }),
+    };
+  });
 }
 
 // jsonb { text } <-> plain string helpers.
