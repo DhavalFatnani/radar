@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import type { VendorProfile } from "@/lib/vendors/data";
 import type { VendorTypeOption } from "@/lib/vendors/schema";
+import { Field } from "@/app/components/ui/field";
 import { Combobox } from "@/app/components/ui/combobox";
 import { toComboboxOptions, typeHint } from "@/lib/vendors/view-model";
 import { updateVendor } from "./actions";
@@ -21,9 +22,9 @@ export function EditProfileForm({ vendor, types }: { vendor: VendorProfile; type
         <input type="text" name="name" defaultValue={vendor.name} required maxLength={200} />
       </label>
 
-      <label>
-        Vendor type
+      <Field label="Vendor type" htmlFor="vendorType">
         <Combobox
+          id="vendorType"
           name="vendorType"
           ariaLabel="Vendor type"
           value={type}
@@ -32,7 +33,7 @@ export function EditProfileForm({ vendor, types }: { vendor: VendorProfile; type
           placeholder="Pick or create a type…"
           hint={<span className={`combobox-hint combobox-hint--${hint.tone}`}>{hint.text}</span>}
         />
-      </label>
+      </Field>
 
       <label>
         Capabilities (one per line)

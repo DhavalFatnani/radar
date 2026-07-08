@@ -151,14 +151,6 @@
 }
 .add-signal-form [role="alert"] { margin: 0; color: var(--warning); font-size: var(--text-sm); }
 
-/* --- Slice 5: add-vendor form + vendor list --- */
-.add-vendor-form { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: end; margin-bottom: var(--space-5); }
-.add-vendor-form label { display: grid; gap: var(--space-1); font-size: var(--text-sm); color: var(--text-muted); }
-.add-vendor-form input { min-width: 240px; padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text); }
-.add-vendor-form [role="alert"] { flex-basis: 100%; margin: 0; color: var(--warning); font-size: var(--text-sm); }
-.vendor-list { display: grid; gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
-.vendor-list li { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text); }
-
 /* --- Slice 5 (signals): signal list, filter bar, badges --- */
 .signal-groups { display: grid; gap: var(--space-6); }
 .signal-group-head {
@@ -274,8 +266,6 @@
 .profile-form fieldset { display: grid; gap: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-4); }
 .profile-form legend { padding: 0 var(--space-2); color: var(--text); font-size: var(--text-sm); }
 .profile-form [role="alert"] { margin: 0; color: var(--warning); font-size: var(--text-sm); }
-.vendor-list li a { color: var(--text); text-decoration: none; }
-.vendor-list li a:hover { text-decoration: underline; }
 
 /* --- SIA interview (slice 2c) ------------------------------------------- */
 .sia-layout { display: grid; grid-template-columns: 1fr minmax(320px, 380px); gap: var(--space-5); align-items: start; }
