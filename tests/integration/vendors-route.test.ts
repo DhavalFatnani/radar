@@ -7,7 +7,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { email: "op@tes
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { GET } from "@/app/api/v1/vendors/route";
-import { createVendor } from "@/app/(app)/vendors/actions";
+import { createVendorAction } from "@/app/(app)/vendors/actions";
 import { auth } from "@/lib/auth";
 
 beforeAll(async () => {
@@ -43,8 +43,8 @@ describe("end-to-end: create-then-read through the stack", () => {
   it("a vendor created via the action is returned by the route", async () => {
     const fd = new FormData();
     fd.set("name", "Northwind Traders");
-    const err = await createVendor(undefined, fd);
-    expect(err).toBeUndefined();
+    const r = await createVendorAction({ ok: false }, fd);
+    expect(r.ok).toBe(true);
 
     // DB-level read-back
     const rows = await testDb.select().from(vendorProfiles);

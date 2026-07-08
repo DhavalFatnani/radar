@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { listVendors } from "@/lib/vendors/data";
-import { AddVendorForm } from "./add-vendor-form";
 
 export const metadata = { title: "Vendors — Radar" };
 
@@ -11,7 +10,6 @@ export default async function VendorsPage() {
   return (
     <>
       <PageHeader eyebrow="Build" title="Vendors" />
-      <AddVendorForm />
       {vendors.length === 0 ? (
         <EmptyState
           icon="vendors"
