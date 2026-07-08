@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterEach, afterAll } from "vitest";
 import { migrateTestDb, truncateAll, closeTestDb } from "./helpers/db";
 import { queryClient } from "@/db/client";
-import { vendorStubSchema, createVendorStub, listVendors } from "@/lib/vendors/data";
+import { vendorStubSchema, createVendorStub, listVendors, getVendor } from "@/lib/vendors/data";
 
 beforeAll(async () => {
   await migrateTestDb();
@@ -35,5 +35,17 @@ describe("vendor data layer", () => {
     expect(vendorStubSchema.safeParse({ name: "   " }).success).toBe(false);
     expect(vendorStubSchema.safeParse({ name: "" }).success).toBe(false);
     expect(vendorStubSchema.safeParse({ name: "x".repeat(201) }).success).toBe(false);
+  });
+
+  it("createVendorStub persists vendorType when provided", async () => {
+    const { vendorId } = await createVendorStub({ name: "RackPro", vendorType: "Infra" });
+    const v = await getVendor(vendorId);
+    expect(v!.vendorType).toBe("Infra");
+  });
+
+  it("createVendorStub leaves vendorType null when omitted", async () => {
+    const { vendorId } = await createVendorStub({ name: "NoType" });
+    const v = await getVendor(vendorId);
+    expect(v!.vendorType).toBeNull();
   });
 });

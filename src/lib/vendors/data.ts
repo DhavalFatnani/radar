@@ -35,7 +35,7 @@ export type {
 export async function createVendorStub(input: VendorStubInput): Promise<VendorListItem> {
   const [row] = await db
     .insert(vendorProfiles)
-    .values({ name: input.name })
+    .values({ name: input.name, ...(input.vendorType ? { vendorType: input.vendorType } : {}) })
     .returning({ vendorId: vendorProfiles.vendorId, name: vendorProfiles.name });
   return row;
 }
@@ -150,12 +150,19 @@ export async function updateVendorProfile(
   vendorId: string,
   input: VendorProfileInput,
   source: { kind: "manual_edit" | "interview"; interviewId?: string } = { kind: "manual_edit" },
+  vendorType?: string | null,
 ): Promise<VendorProfile> {
   const current = await getVendor(vendorId);
   if (!current) throw new Error("Vendor not found");
 
   const next = normalizeProfile(input);
   const changed = changedFields(current, next);
+
+  // vendorType is managed separately (operator-set only, not part of VendorProfileInput).
+  const manageType = vendorType !== undefined;
+  const nextVendorType = manageType ? vendorType : current.vendorType;
+  if (manageType && nextVendorType !== current.vendorType) changed.push("vendorType");
+
   if (changed.length === 0) return current; // no-op: no version bump, no write
 
   const newVersion = current.version + 1;
@@ -175,6 +182,7 @@ export async function updateVendorProfile(
     .update(vendorProfiles)
     .set({
       name: next.name,
+      vendorType: nextVendorType,
       capabilities: next.capabilities,
       constraints: next.constraints,
       idealCustomer: next.idealCustomer ? { text: next.idealCustomer } : null,

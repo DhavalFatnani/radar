@@ -84,3 +84,35 @@ describe("updateVendorProfile", () => {
     expect(again.interviewHistory).toHaveLength(1);
   });
 });
+
+describe("updateVendorProfile vendorType", () => {
+  it("sets vendorType, records it in changed[], and bumps the version", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme" });
+    const updated = await updateVendorProfile(vendorId, baseInput("Acme"), { kind: "manual_edit" }, "Infra");
+    expect(updated.vendorType).toBe("Infra");
+    expect(updated.version).toBe(2);
+    expect(updated.interviewHistory.at(-1)!.changed).toContain("vendorType");
+  });
+
+  it("bumps the version when ONLY vendorType changes", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme" });
+    await updateVendorProfile(vendorId, baseInput("Acme")); // v2, no type
+    const again = await updateVendorProfile(vendorId, baseInput("Acme"), { kind: "manual_edit" }, "Infra");
+    expect(again.version).toBe(3);
+    expect(again.interviewHistory.at(-1)!.changed).toEqual(["vendorType"]);
+  });
+
+  it("leaves vendorType untouched when the param is undefined", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme", vendorType: "Infra" });
+    const updated = await updateVendorProfile(vendorId, { ...baseInput("Acme"), capabilities: ["racking", "cctv"] });
+    expect(updated.vendorType).toBe("Infra");
+    expect(updated.interviewHistory.at(-1)!.changed).not.toContain("vendorType");
+  });
+
+  it("clears vendorType to null when passed null", async () => {
+    const { vendorId } = await createVendorStub({ name: "Acme", vendorType: "Infra" });
+    const updated = await updateVendorProfile(vendorId, baseInput("Acme"), { kind: "manual_edit" }, null);
+    expect(updated.vendorType).toBeNull();
+    expect(updated.interviewHistory.at(-1)!.changed).toContain("vendorType");
+  });
+});
