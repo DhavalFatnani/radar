@@ -206,3 +206,47 @@ textarea.field-input { height: auto; padding: var(--space-2) var(--space-3); }
 .mini-runs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .mini-runs li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--text-xs); }
 .mini-runs li span { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- 12. Combobox (vendor type editor) ---------------------------------- */
+.combobox { position: relative; }
+.combobox-input { width: 100%; }
+.combobox-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+.combobox-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.combobox-option--active,
+.combobox-option:hover { background: var(--surface-2); }
+.combobox-option-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); flex: none; }
+.combobox-create { color: var(--accent); font-family: var(--font-mono); font-size: 0.82rem; }
+.combobox-hint-slot { margin-top: 6px; }
+.combobox-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+.combobox-hint--ok { color: var(--success); }
+.combobox-hint--warn { color: var(--warning); }
+.combobox-hint--muted { color: var(--text-muted); }
+
+/* Vendor readiness pills (list + edit hint) */
+.pill-runnable { background: var(--status-approved-bg); color: var(--status-approved); }
+.pill-needs { background: var(--status-proposed-bg); color: var(--status-proposed); }
+.pill-notype { background: var(--status-retired-bg); color: var(--status-retired); }
