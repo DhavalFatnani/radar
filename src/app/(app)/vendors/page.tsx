@@ -1,33 +1,34 @@
 import Link from "next/link";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { listVendors } from "@/lib/vendors/data";
+import { listVendorRows, getVendorTypeOptions } from "@/lib/vendors/data";
+import { VendorListView } from "./vendor-list-view";
 
 export const metadata = { title: "Vendors — Radar" };
 
 export default async function VendorsPage() {
-  const vendors = await listVendors();
+  const [rows, types] = await Promise.all([listVendorRows(), getVendorTypeOptions()]);
+  const newCta = (
+    <Link href="/vendors/new" className="btn btn-primary">
+      + New vendor
+    </Link>
+  );
   return (
     <>
-      <PageHeader eyebrow="Build" title="Vendors" />
-      {vendors.length === 0 ? (
+      <PageHeader
+        eyebrow="Build"
+        title="Vendors"
+        sub="Every vendor, its type, and whether it can source yet."
+        actions={newCta}
+      />
+      {rows.length === 0 ? (
         <EmptyState
           icon="vendors"
           title="No vendors yet"
-          description="Add a vendor above to prove the pipe — full profiles from the SIA intake interview will appear here."
+          description="Create your first vendor and set its type — a runnable type lets mappings source for it right away."
         />
       ) : (
-        <ul className="row-list">
-          {vendors.map((v) => (
-            <li key={v.vendorId} className="row-item">
-              <Link href={`/vendors/${v.vendorId}`} className="row-link">
-                <span className="row-main">
-                  <span className="row-title">{v.name}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <VendorListView rows={rows} types={types} nowMs={Date.now()} />
       )}
     </>
   );
